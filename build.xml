@@ -148,7 +148,7 @@
                 <include name="${ketrika-earname}"/>
             </fileset>
         </copy>-->
-        <copy todir="${deploy.dir}/donation.war">
+        <copy todir="${deploy.dir}/alumni.war">
             <fileset dir="${build-teamTask-war_war}" >
                 <include name="**/*"/>
             </fileset>
@@ -158,7 +158,7 @@
                 <include name="**/*"/>
             </fileset>
         </copy>
-        <touch file="${deploy.dir}/donation.war.dodeploy"/>
+        <touch file="${deploy.dir}/alumni.war.dodeploy"/>
         <touch file="${deploy.dir}/front.war.dodeploy"/>
         <echo> deployement exploded war done </echo>
         <echo>
