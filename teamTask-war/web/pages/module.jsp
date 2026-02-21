@@ -42,7 +42,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-    <title>Alumni ITU</title>
+    <title>Donation</title>
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
     <jsp:include page='elements/css.jsp'/>
     <%--        <script src="${pageContext.request.contextPath}/dist/js/chart.js"></script>--%>

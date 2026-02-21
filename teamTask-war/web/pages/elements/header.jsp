@@ -55,7 +55,7 @@
 <header class="main-header" style="position: fixed; left: 0; right: 0;">
     <!-- Logo -->
 	<div>
-		<a href="<%= lien %>?but=accueil.jsp" class="logo" style="background-color:var(--Background-primaire);color: var(--Text-primary);">
+		<a href="<%= lien %>?but=donation/donation-liste.jsp" class="logo" style="background-color:var(--Background-primaire);color: var(--Text-primary);">
             <span class="logo-mini" style="color:#333;font-weight: 600;">
                 <img style="width: auto;height:42px;" src="${pageContext.request.contextPath}/assets/img/logo.png"/>
             </span>

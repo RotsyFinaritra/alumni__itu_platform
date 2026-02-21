@@ -194,7 +194,7 @@
         var lesValeur=[];
         $.ajax({
             type:'GET',
-            url: _CONTEXT_PATH + '/Deroulante',
+            url:'/donation/Deroulante',
             contentType: 'application/json',
             data:param,
             success:function(ma){
@@ -217,7 +217,7 @@
         var lesValeur=[];
         $.ajax({
             type:'GET',
-            url: _CONTEXT_PATH + '/Deroulante',
+            url:'/donation/Deroulante',
             contentType: 'application/json',
             data:param,
             success:function(ma){
@@ -244,7 +244,7 @@
         var lesValeur=[];
         $.ajax({
             type:'GET',
-            url: _CONTEXT_PATH + '/Deroulante',
+            url:'/donation/Deroulante',
             contentType: 'application/json',
             data:param,
             success:function(ma){
@@ -310,7 +310,7 @@
     function fetchAutocomplete(request, response, affiche, valeur, colFiltre, nomTable, classe,useMocle,champRetour) {
         if (request.term.length >= 1) {
             $.ajax({
-                url: _CONTEXT_PATH + "/autocomplete",
+                url: "/donation/autocomplete",
                 method: "GET",
                 contentType: "application/x-www-form-urlencoded",
                 dataType: "json",

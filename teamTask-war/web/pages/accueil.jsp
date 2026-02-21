@@ -1,44 +1,82 @@
 <%@ page pageEncoding="UTF-8" contentType="text/html; charset=UTF-8" %>
-<style>
-    .alumni-welcome { padding: 30px; }
-    .alumni-welcome h1 { font-size: 28px; font-weight: 700; color: #333; margin-bottom: 10px; }
-    .alumni-welcome p.subtitle { font-size: 16px; color: #666; margin-bottom: 30px; }
-    .alumni-cards { display: flex; flex-wrap: wrap; gap: 20px; }
-    .alumni-card {
-        flex: 1 1 280px; max-width: 350px;
-        background: #fff; border-radius: 8px; padding: 25px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s;
-        text-decoration: none; color: inherit; display: block;
-    }
-    .alumni-card:hover { transform: translateY(-4px); box-shadow: 0 4px 16px rgba(0,0,0,0.15); text-decoration: none; color: inherit; }
-    .alumni-card i.card-icon { font-size: 36px; color: var(--Background-primaire, #3c8dbc); margin-bottom: 15px; display: block; }
-    .alumni-card h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
-    .alumni-card p { font-size: 14px; color: #777; margin: 0; }
-</style>
-
-<div class="content-wrapper alumni-welcome">
+<link href="${pageContext.request.contextPath}/assets/css/accueil.css" rel="stylesheet" type="text/css" />
+<div class="content-wrapper">
+    
     <div class="row m-0">
-        <div class="col-md-12">
-            <h1>Bienvenue sur Alumni ITU</h1>
-            <p class="subtitle">Plateforme de mise en r&eacute;seau des anciens et nouveaux &eacute;tudiants de l'ITU.</p>
+        <div class="col-md-12 nopadding">
+            <h1 class="title-service h142pxBold m-0">Bienvenue sur votre espace de gestion</h1>
+            <p class="desc-service h617pxRegular">Planifiez, suivez et analysez l&rsquo;avancement de vos projets en toute simplicit&eacute; gr&acirc;ce &agrave; une interface intuitive.</p>
         </div>
-        <div class="col-md-12 alumni-cards">
-            <!-- Exemple de cartes - a personnaliser selon vos modules -->
-            <div class="alumni-card">
-                <i class="fa fa-users card-icon"></i>
-                <h3>Annuaire Alumni</h3>
-                <p>Retrouvez les anciens et nouveaux &eacute;tudiants de l'ITU.</p>
-            </div>
-            <div class="alumni-card">
-                <i class="fa fa-calendar card-icon"></i>
-                <h3>&Eacute;v&eacute;nements</h3>
-                <p>D&eacute;couvrez les &eacute;v&eacute;nements et rencontres organis&eacute;s par la communaut&eacute;.</p>
-            </div>
-            <div class="alumni-card">
-                <i class="fa fa-briefcase card-icon"></i>
-                <h3>Offres d'emploi</h3>
-                <p>Consultez les opportunit&eacute;s partag&eacute;es par le r&eacute;seau alumni.</p>
-            </div>
+        <div class="col-md-12 nopadding card-wrapper">
+            <a href="module.jsp?but=chart/projet-etat-kanban.jsp&currentMenu=MENDYN253" class="card col-md-4">
+                <i class="fa fa fa-solid   fa-arrow-right arrow"></i>
+                <img src="${pageContext.request.contextPath}/assets/img/kanban.png" class="icon" />
+                <div class="card-content">
+                    <h3 class="h617pxSemibold">Kanban Projets</h3>
+                    <p class="Body14pxRegular">Organisez vos tâches et visualisez l’état d’avancement par colonne.</p>
+                </div>
+            </a>
+
+            <a href="module.jsp?but=tache/tache-liste.jsp&currentMenu=MEN0006" class="card col-md-4">
+                <i class="fa fa fa-solid   fa-arrow-right arrow"></i>
+                <img src="${pageContext.request.contextPath}/assets/img/tache.png" class="icon" />
+                <div class="card-content">
+                    <h3 class="h617pxSemibold">Tâches du jour</h3>
+                    <p class="Body14pxRegular">Consultez les tâches planifiées pour la journée et restez organisé.</p>
+                </div>
+            </a>
+
+            <a href="module.jsp?but=creationprojet/etatprojet.jsp&currentMenu=MENDYN252" class="card col-md-4">
+                <i class="fa fa fa-solid   fa-arrow-right arrow"></i>
+                <img src="${pageContext.request.contextPath}/assets/img/gantt.png" class="icon" />
+                <div class="card-content">
+                    <h3 class="h617pxSemibold">Visualisation Projets par Phase</h3>
+                    <p class="Body14pxRegular">Obtenez une vue d’ensemble de l’état de vos projets en un clin d’œil.</p>
+                </div>
+            </a>
+
+            <a href="module.jsp?but=chart/analyse.jsp&currentMenu=MENDYN251" class="card col-md-4">
+                <i class="fa fa fa-solid   fa-arrow-right arrow"></i>
+                <img src="${pageContext.request.contextPath}/assets/img/chart.png" class="icon" />
+                <div class="card-content">
+                    <h3 class="h617pxSemibold">Dashboard</h3>
+                    <p class="Body14pxRegular">Visualisez les indicateurs clés de performance de vos projets.</p>
+                </div>
+            </a>
+
+            <a href="module.jsp?but=filemanager/file-liste-2.jsp&currentMenu=MEN0081" class="card col-md-4">
+                <i class="fa fa fa-solid   fa-arrow-right arrow"></i>
+                <img src="${pageContext.request.contextPath}/assets/img/gestion-fichiers.png" class="icon" />
+                <div class="card-content">
+                    <h3 class="h617pxSemibold">Gestion de fichiers</h3>
+                    <p class="Body14pxRegular">Centralisez, consultez et partagez vos documents de projet en toute sécurité.</p>
+                </div>
+            </a>
+            <a href="module.jsp?but=analyse/analyse-creation-tache.jsp&currentMenu=MF001i" class="card col-md-4">
+                <i class="fa fa fa-solid   fa-arrow-right arrow"></i>
+                <img src="${pageContext.request.contextPath}/assets/img/creationtache.png" class="icon" />
+                <div class="card-content">
+                    <h3 class="h617pxSemibold">État de création de tâches</h3>
+                    <p class="Body14pxRegular">Suivez la création des tâches par responsable en temps réel</p>
+                </div>
+            </a>
+            <a href="module.jsp?but=analyse/analyse-croise-duree.jsp&currentMenu=MENSE003" class="card col-md-4">
+                <i class="fa fa fa-solid   fa-arrow-right arrow"></i>
+                <img src="${pageContext.request.contextPath}/assets/img/timingtache.png" class="icon" />
+                <div class="card-content">
+                    <h3 class="h617pxSemibold">Timing des Tâches</h3>
+                    <p class="Body14pxRegular">Comparez les durées estimées et réelles pour chaque tâche.</p>
+                </div>
+            </a>
+            <a href="module.jsp?but=etatGlobal/etat-tache-par-jour-complet.jsp&currentMenu=MEN0085ii" class="card col-md-4">
+                <i class="fa fa fa-solid   fa-arrow-right arrow"></i>
+                <img src="${pageContext.request.contextPath}/assets/img/ressources.png" class="icon" />
+                <div class="card-content">
+                    <h3 class="h617pxSemibold">État par ressource par jour</h3>
+                    <p class="Body14pxRegular">Analysez les tâches attribuées et terminées par ressource chaque jour.</p>
+                </div>
+            </a>
+
         </div>
     </div>
 </div>
