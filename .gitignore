@@ -1,0 +1,133 @@
+# ============================================================
+# Java EE - Alumni ITU Platform
+# ============================================================
+
+# ===========================
+# Artefacts de build (Ant)
+# ===========================
+build-file/
+out/
+target/
+dist/
+build/
+
+# Fichiers compilés Java
+*.class
+
+# Archives Java générées
+*.jar
+*.war
+*.ear
+*.rar
+
+# ===========================
+# IntelliJ IDEA
+# ===========================
+# Fichiers personnels / locaux (ne pas committer)
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/usage.statistics.xml
+.idea/dictionaries/
+.idea/shelf/
+.idea/httpRequests/
+.idea/.gitignore
+
+# Fichiers modules IntelliJ (générés par le build)
+*.iml
+
+# ===========================
+# Fichiers de logs
+# ===========================
+*.log
+*.log.*
+logs/
+
+# ===========================
+# Fichiers temporaires
+# ===========================
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# ===========================
+# Archives et binaires lourds
+# ===========================
+*.zip
+*.tar
+*.tar.gz
+*.tar.bz2
+*.rar
+*.7z
+
+# ===========================
+# Gros dumps SQL (données, pas structure)
+# Les scripts de structure dans BDD/ restent versionnés
+# donation0220.sql
+
+# ===========================
+# Fichiers de configuration locale / secrets
+# ===========================
+*.env
+.env
+local.properties
+*-local.properties
+
+# ===========================
+# Upload / fichiers générés à l'exécution
+# ===========================
+upload/
+uploads/
+temp/
+tmp/
+
+# ===========================
+# Rapports générés (JasperReports, etc.)
+# ===========================
+*.jrprint
+
+# ===========================
+# OS - macOS
+# ===========================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# OS - Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# OS - Linux
+.directory
+
+# ===========================
+# Éditeurs divers
+# ===========================
+# Eclipse
+.classpath
+.project
+.settings/
+.metadata/
+
+# NetBeans
+nbproject/private/
+nbbuild/
+nbdist/
+
+# VS Code
+.vscode/
+
+# ===========================
+# Outils de test
+# ===========================
+test-output/
+surefire-reports/
+
+code-source-apj/
