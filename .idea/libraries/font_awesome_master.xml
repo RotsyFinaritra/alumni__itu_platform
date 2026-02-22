@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="font-awesome-master">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../promesse/teamTask-war/web/pages/dist/css/font-awesome-master.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
