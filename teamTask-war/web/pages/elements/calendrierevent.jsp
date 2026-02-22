@@ -1,2 +1,0 @@
-<script src="${pageContext.request.contextPath}/apjplugins/dragdrop.js" type="text/javascript"></script>
-<script src="${pageContext.request.contextPath}/apjplugins/calendrierevent.js" type="text/javascript"></script>-->

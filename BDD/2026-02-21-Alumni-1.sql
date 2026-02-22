@@ -153,6 +153,107 @@ CREATE SEQUENCE sequserhomepage MINVALUE 1 MAXVALUE 999999999999 START WITH 1 IN
 CREATE OR REPLACE FUNCTION getsequserhomepage() RETURNS integer LANGUAGE plpgsql AS $$ BEGIN RETURN (SELECT nextval('sequserhomepage')); END $$;
 
 -- ==============================
+-- ACTION (APJ - actions utilisateur)
+-- Référencée par apj-core2/utilisateur/Action.java
+-- ==============================
+CREATE TABLE action (
+    id VARCHAR(100) PRIMARY KEY NOT NULL,
+    idmere VARCHAR(500),
+    idfille VARCHAR(500),
+    idtype VARCHAR(100)
+);
+
+CREATE SEQUENCE seqaction MINVALUE 1 MAXVALUE 999999999999 START WITH 1 INCREMENT BY 1 CACHE 20;
+CREATE OR REPLACE FUNCTION getseqaction() RETURNS integer LANGUAGE plpgsql AS $$ BEGIN RETURN (SELECT nextval('seqaction')); END $$;
+
+-- ==============================
+-- RESTRICTION (APJ - droits d'accès aux tables par rôle)
+-- Référencée par apj-core2/utilisateur/Restriction.java
+-- et apj-core2/config/Table.java
+-- ==============================
+CREATE TABLE restriction (
+    id VARCHAR(100) PRIMARY KEY NOT NULL,
+    idrole VARCHAR(100),
+    idaction VARCHAR(100),
+    tablename VARCHAR(100),
+    autorisation VARCHAR(100),
+    description VARCHAR(500),
+    iddirection VARCHAR(100)
+);
+
+CREATE SEQUENCE seqrestriction MINVALUE 1 MAXVALUE 999999999999 START WITH 1 INCREMENT BY 1 CACHE 20;
+CREATE OR REPLACE FUNCTION getseqrestriction() RETURNS integer LANGUAGE plpgsql AS $$ BEGIN RETURN (SELECT nextval('seqrestriction')); END $$;
+
+-- ==============================
+-- HISTORIQUE_VALEUR (APJ - audit des valeurs avant/après modif)
+-- Référencée par apj-core/historique/Historique_valeur.java
+-- ==============================
+CREATE TABLE historique_valeur (
+    id VARCHAR(50) PRIMARY KEY NOT NULL,
+    idhisto VARCHAR(255),
+    refhisto VARCHAR(50),
+    nom_table VARCHAR(50),
+    nom_classe VARCHAR(50),
+    val1 VARCHAR(255), val2 VARCHAR(255), val3 VARCHAR(255), val4 VARCHAR(255),
+    val5 VARCHAR(255), val6 VARCHAR(255), val7 VARCHAR(255), val8 VARCHAR(255),
+    val9 VARCHAR(255), val10 VARCHAR(255), val11 VARCHAR(255), val12 VARCHAR(255),
+    val13 VARCHAR(255), val14 VARCHAR(255), val15 VARCHAR(255), val16 VARCHAR(255),
+    val17 VARCHAR(255), val18 VARCHAR(255), val19 VARCHAR(255), val20 VARCHAR(255),
+    val21 VARCHAR(255), val22 VARCHAR(255), val23 VARCHAR(255), val24 VARCHAR(255),
+    val25 VARCHAR(255), val26 VARCHAR(255), val27 VARCHAR(255), val28 VARCHAR(255),
+    val29 VARCHAR(255), val30 VARCHAR(255), val31 VARCHAR(255), val32 VARCHAR(255),
+    val33 VARCHAR(255), val34 VARCHAR(255), val35 VARCHAR(255), val36 VARCHAR(255),
+    val37 VARCHAR(255), val38 VARCHAR(255), val39 VARCHAR(255), val40 VARCHAR(255)
+);
+
+CREATE SEQUENCE seqhistoriquevaleur MINVALUE 1 MAXVALUE 999999999999 START WITH 1 INCREMENT BY 1 CACHE 20;
+CREATE OR REPLACE FUNCTION getseqhistoriquevaleur() RETURNS integer LANGUAGE plpgsql AS $$ BEGIN RETURN (SELECT nextval('seqhistoriquevaleur')); END $$;
+
+-- ==============================
+-- MAILCC (APJ - destinataires mail)
+-- Référencée par apj-core/utilitaire/Utilitaire.java
+-- ==============================
+CREATE TABLE mailcc (
+    id VARCHAR(100) PRIMARY KEY NOT NULL,
+    mail VARCHAR(500)
+);
+
+CREATE SEQUENCE seqmailcc MINVALUE 1 MAXVALUE 999999999999 START WITH 1 INCREMENT BY 1 CACHE 20;
+CREATE OR REPLACE FUNCTION getseqmailcc() RETURNS integer LANGUAGE plpgsql AS $$ BEGIN RETURN (SELECT nextval('seqmailcc')); END $$;
+
+-- ==============================
+-- MENUDYNAMIQUE (APJ - navigation dynamique par rôle)
+-- ==============================
+CREATE TABLE menudynamique (
+    id VARCHAR(50) PRIMARY KEY NOT NULL,
+    libelle VARCHAR(50),
+    icone VARCHAR(250),
+    href VARCHAR(250),
+    rang INTEGER,
+    niveau INTEGER,
+    id_pere VARCHAR(50) REFERENCES menudynamique(id)
+);
+
+CREATE SEQUENCE seqmenudynamique MINVALUE 1 MAXVALUE 999999999999 START WITH 1 INCREMENT BY 1 CACHE 20;
+CREATE OR REPLACE FUNCTION getseqmenudynamique() RETURNS integer LANGUAGE plpgsql AS $$ BEGIN RETURN (SELECT nextval('seqmenudynamique')); END $$;
+
+-- ==============================
+-- USERMENU (APJ - assignation menu par utilisateur/rôle)
+-- ==============================
+CREATE TABLE usermenu (
+    id VARCHAR(50) PRIMARY KEY NOT NULL,
+    refuser VARCHAR(50),
+    idmenu VARCHAR(50) REFERENCES menudynamique(id),
+    idrole VARCHAR(50) REFERENCES roles(idrole),
+    codeservice VARCHAR(50),
+    codedir VARCHAR(50),
+    interdit INTEGER DEFAULT 0
+);
+
+CREATE SEQUENCE sequsermenu MINVALUE 1 MAXVALUE 999999999999 START WITH 1 INCREMENT BY 1 CACHE 20;
+CREATE OR REPLACE FUNCTION getsequsermenu() RETURNS integer LANGUAGE plpgsql AS $$ BEGIN RETURN (SELECT nextval('sequsermenu')); END $$;
+
+-- ==============================
 -- VUES APJ (requises par UtilisateurUtil.testeValide)
 -- ==============================
 
@@ -370,7 +471,7 @@ INSERT INTO type_utilisateur (id, libelle) VALUES ('TU0000003', 'Enseignant');
 -- Chiffrement: niveau=5, croissante=0 (ascendant)
 -- "admin" chiffré = "firns" (chaque char +5 dans base 36)
 INSERT INTO utilisateur (refuser, loginuser, pwduser, nomuser, adruser, teluser, idrole, rang, prenom, etu, mail)
-VALUES (1, 'admin', 'firns', 'Admin', '', '', 'admin', 0, 'Super', FALSE, 'admin@alumni-itu.mg');
+VALUES (1, 'admin', 'firns', 'Admin', '', '', 'admin', 0, 'Super', '', 'admin@alumni-itu.mg');
 
 -- ParamCrypt pour l'admin (lié à refuser=1)
 INSERT INTO paramcrypt (id, niveau, croissante, idutilisateur)

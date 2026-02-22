@@ -1,0 +1,427 @@
+================================================================================
+ ANALYSE BDD - PROJET ALUMNI ITU
+ Identification des tables/vues à supprimer (provenant du projet donation)
+ Date : 22 février 2026
+================================================================================
+
+CONTEXTE
+--------
+Ce projet est une copie d'un projet de donation basé sur le framework APJ
+(teamTask). Pour créer le nouveau projet alumni, il faut supprimer toutes les
+tables/vues liées au projet donation/teamTask tout en conservant les tables
+nécessaires au fonctionnement d'APJ.
+
+================================================================================
+ PARTIE 1a : TABLES APJ CORE — DROPPÉES ET RECRÉÉES PAR LE SQL ALUMNI
+================================================================================
+Ces tables sont toutes droppées par le script de nettoyage puis recréées
+proprement par BDD/2026-02-21-Alumni-1.sql.
+
+  TABLES APJ de base auth :
+  - roles               (APJ - MapRoles)
+  - utilisateur         (APJ - MapUtilisateur) [+colonnes alumni : prenom/etu/mail/photo/...]
+  - paramcrypt          (APJ - chiffrement mot de passe)
+  - historique          (APJ - log des actions)
+  - annulationutilisateur (APJ - activation/désactivation compte)
+  - direction           (APJ - TypeObjet générique)
+  - userhomepage        (APJ - page d'accueil par rôle)
+  - pays                (recréé avec structure alumni simplifiée)
+
+  TABLES APJ runtime (confirmées par analyse du code source) :
+  - restriction         (apj-core2/utilisateur/Restriction.java + config/Table.java)
+  - historique_valeur   (apj-core/historique/Historique_valeur.java)
+  - mailcc              (apj-core/utilitaire/Utilitaire.java)
+  - action              (apj-core2/utilisateur/Action.java, @deprecated)
+  - menudynamique       (APJ - navigation dynamique par rôle)
+  - usermenu            (APJ - assignation menu utilisateur/rôle)
+
+================================================================================
+ PARTIE 2 : VUES APJ CORE — À CONSERVER / RECRÉER
+================================================================================
+Ces vues sont requises par UtilisateurUtil.testeValide() du framework APJ.
+
+  - utilisateurvalide   (requise par testeValide(user, pass))
+  - utilisateurvue      (requise par testeValide("utilisateurVue", ...))
+  - utilisateurrole     (vue par défaut MapUtilisateurServiceDirection)
+  - menudynamiquelib    (APJ - vue de navigation)
+  - menu_fils           (APJ - vue hiérarchie menu)
+
+================================================================================
+ PARTIE 3 : TABLES DONATION/TEAMTASK — À SUPPRIMER
+================================================================================
+Toutes les tables ci-dessous proviennent du projet donation/teamTask
+et doivent être supprimées pour démarrer le projet alumni proprement.
+
+ -- Donation (métier donation) --
+  - donation
+  - promesse
+  - repartition
+  - repartitiondetails
+  - categoriedonateur
+  - entitedonateur
+  - recepteur
+  - source
+
+ -- Gestion de projet (teamTask core) --
+  - tache
+  - tachemere
+  - tachedefaut
+  - tachemeredefaut
+  - tache_git_details
+  - tache_git_mere
+  - phase
+  - phase_project
+  - module
+  - module_projet
+  - creation_projet
+  - projet
+  - projet_equipe
+  - projetutilisateur
+  - branche
+  - work_branche
+  - work_type
+  - equipe
+  - utilisateur_equipe
+  - fonctionnalite
+  - page
+  - script
+  - script_projet
+  - scriptversionning
+  - deploiement
+  - dependanceobjet
+  - entitescript
+  - execution_script
+  - execution_scriptfille
+  - canevatache
+  - exceptiontache
+  - cheminprojetuser
+  - actiontache
+  - actionprojet
+  -- action             [CONSERVÉE - APJ core2, @deprecated mais référencé]
+  -- restriction        [CONSERVÉ - APJ core2 droits d'accès]
+  - timingapplication
+  - timingsoustache
+  - tempstravail
+  - tauxavancementmodule
+  - tauxavancementprojet
+  - coutprevisionnel
+  - honoraire
+  - tauxhonoraire
+  - prevision
+  - pointage
+  - disponibilite
+  - indisponibilite
+  - external_work
+  - jourrepos
+  - absence
+  - typeabsence
+  - typerepos
+  - typetache
+  - typepage
+  - typescript
+  - typeclasse
+  - typeaction
+  - connexion
+  - serveur
+  - alertscheduler
+  - requete_a_envoyer
+  - conception_pm
+  - architecture
+  - relation
+  - entite
+  - attribusentite
+  - base
+  - baserelation
+  - metier
+  - metierfille
+  - metierrelation
+  - classe
+  - classeetfiche
+  - attributclasse
+  - apjclasse
+  - typeattributclasse
+  - typebase
+  - typemetier
+  - typerelation
+  - typeactionmetier
+  - typeliaison
+  - typeclasse
+  - typedependancediagram
+  - diagramaffichage
+  - diagramclass
+  - diagramclasscomposant
+  - diagramclasscomposanttype
+  - diagramclasspackage
+  - diagramtable
+  - diagramtablecolonne
+  - pageanalyse
+  - pageanalyseattribut
+  - pagefiche
+  - pageficheattribut
+  - pageliste
+  - pagelisteattribut
+  - pagerelation
+  - pagesaisie
+  - pageattribut
+  - panalysechampfiltre
+  - plistchampfiltre
+  - champdynamique
+  - champsspeciaux
+  - typechampsspeciaux
+  - typepageanalyse
+  - typepageliste
+  - typepagesaisie
+  - typeplistchampfiltre
+  - boutonchamp
+  - boutonpage
+  - mappingtypeattribut
+  -- menudynamique      [CONSERVÉ - navigation APJ]
+  -- usermenu           [CONSERVÉ - navigation APJ]
+  - log_direction
+  - log_personnel
+  - log_service              (module mg/cnaps — CNAPS spécifique, non requis alumni)
+  - histoimport
+  - histoinsert
+  - historiqueactif
+  -- historique_valeur   [CONSERVÉE - APJ core1]
+
+ -- Comptabilité / Finance --
+  - caisse
+  - categoriecaisse
+  - typecaisse
+  - mouvementcaisse
+  - mvtcaisseprevision
+  - reportcaisse
+  - motifavoirfc
+  - avoirfc
+  - avoirfcfille
+  - categorieavoirfc
+  - compta_classe_compte
+  - compta_compte
+  - compta_compte_backup
+  - compta_ecriture
+  - compta_ecriture_backup
+  - compta_exercice
+  - compta_journal
+  - compta_journal_backup
+  - compta_lettrage
+  - compta_origine
+  - compta_sous_ecriture
+  - compta_sous_ecriture_backup
+  - compta_type_compte
+  - tauxdechange
+  - devise
+  - devis
+  - devis_fille
+  - ordonnerpaiement
+  - proposition
+  - pertegainimprevue
+
+ -- Commerce / Vente --
+  - vente
+  - vente_details
+  - client
+  - niveauclient
+  - fournisseur
+  - typefournisseur
+  - magasin2
+  - typemagasin
+  - point
+  - as_ingredients
+  - categorieingredient
+  - ouinon
+  - typeouinon
+  - cote
+  - unite
+
+ -- Géographie (hors du scope alumni) --
+  - province
+  - region
+  - district
+  - commune
+  - fokontany
+  - ministere
+  - niveau
+  - categorieniveau
+
+ -- Reporting / Code génération APJ --
+  - crconfig
+  - crcontent
+  - crcontentfille
+  - attributoracle
+  - attributpostgres
+  - attributtype
+  - analyses
+  - piecejointe
+  -- mailcc             [CONSERVÉE - APJ core1 envoi mail]
+  - mailrapport
+  - attacher_fichier
+  - typefichier
+  - notification
+  - notificationaction
+  - notificationdetails
+  - notificationgroupe
+  - notificationsignal
+  - cnaps_user
+  - qualite
+  - type
+  - type_utilisateur   [!] SERA RECRÉE depuis le nouveau SQL alumni
+
+ -- RH --
+  - cnaps_user
+  - honoraire
+  - tauxhonoraire
+  - log_personnel
+  - log_direction
+  - log_service
+
+================================================================================
+ PARTIE 4 : VUES DONATION/TEAMTASK — À SUPPRIMER
+================================================================================
+Toutes les vues ci-dessous proviennent du projet donation/teamTask.
+
+ -- Vues donation --
+  - donationlibcpl
+  - donationlibcpl_materiel
+  - donationlibcpl_mobilemoney
+  - donationlibcpl_nonvivre
+  - donationlibcpl_reste
+  - donationlibcpl_vivre
+  - donationreste
+  - donationsituation
+  - analyse_donation
+  - promesselibcpl
+  - repartitionlib
+  - repartitionlib_cpl
+  - repartitiondetailslib
+  - repartitiondetails_projet
+  - repartition_sans_donation
+  - reparttion_avec_donation
+
+ -- Vues gestion de projet --
+  - tache_lib / tachelib / tachemere_lib / tachemerelib
+  - tachemerelibaviser / tachemereviser / tachemere_projet / tachemere_fille
+  - tachemere_fonctionnalite / tachevita / tachetsyvita / tachefait
+  - tacheentame / tachenonentame / tachenonattribue / tacheentamenonfait
+  - tacheentite / tacheentitegrp / tacheentitelib / tacheentitelibgrp
+  - tacherelation / tachegitdetailscpl / tachedefaut_full / statmere
+  - nbtacheparetat / nombre_tache_parmere
+  - etat_creation_tache / etatdeslieux
+  - etatprojetfonctionnalite / etatprojetfonctionnaliteid
+  - fonctionnalite_lib / fonctionnalite_libcomplet
+  - module_projet_lib
+  - branche_lib
+  - traitement_tache / traitement_projet / traitement_soustache
+  - script_non_exec / script_non_exec_lib / scriptlib / scriptupdate
+  - scriptcpltache / script_projet_lib / script_projet_libcomplet
+  - scriptversionningresponsable
+  - deploiementlib / deploiementlibcpl*
+  - execution_scriptfille_lib / execution_scriptfille_cplt
+  - phase_lib / phase_project_lib / phase_projet_lib / phase_projet_ordre
+  - somme_par_projet / nbre_page_par_projet / nombre_fonctionnalite
+  - nbre_page_parfonctionnalite / nbre_page_parfonctionnalite_o
+  - v_status_projets / v_projet_encours / v_phase_projets / v_projet_devis
+  - v_avancement_tache / v_tache_estimation / v_soustache_lib_*
+  - v_equipe_projet / v_projetutilisateur_lib / v_ressource_lib
+  - capacitejournaliere / jourreposferie / jourreposlib / jourreposweekend
+  - absencelib / absencelib_* / indisponibilitelib / external_worklib*
+  - v_timingapplication_lib / v_timingsoustache_lib
+  - v_total_ressource_application / v_total_ressource_tache
+  - v_allocation_charges / v_allocation_charges_all
+  - propositionlib / previsionvalide / prevision_cpl / prevision_complet_cpl*
+  - previsionavecmvtcaisse / decalageprevision
+  - serveurlib / deploiementlibcpl
+  - connexion_lib / touslesdate / generate_series
+
+ -- Vues comptabilité --
+  - compta_balance_etat / compta_compte_lib / compta_compte_libelle / compta_*
+  - mouvementcaissecpl / mouvementcaissecpl_valider / mouvementcaisse_vise
+  - mouvementcaissegroupefacture / mvtcaisseprevisionvise
+  - mvtcaissesomprevisiongroup / reportcaisse_devise / reportsolde
+  - avoirfclib / avoirfclib_cpl / avoirfclib_cpl_grp / avoirfclib_cpl_visee
+  - avoirfcfille_grp / devis_lib / devis_lib2 / devis_libcree / devis_libfait
+  - devis_libvalideclient / devis_libvalideintere / devis_fille_lib
+  - v_etatcaisse / v_etat_devis / v_devis_cpl_lib / v_devis_libetat
+  - resultatprevisionneleffectif / resultatpreveffectiftous
+  - resultatprevisionnelmvt / resultatprevisionneltousmvt
+  - insertion_vente / vente_cpl / vente_cpl_* / vente_details_cpl
+  - vente_details_saisie / vente_grp_tous / vente_grp_viser / vente_lib
+  - vente_mere_montant / vente_mf / ventemontant
+  - tiers / client_libcomplet / client_tmp
+
+ -- Vues code génération / APJ builder --
+  - apjclasselib / apjclasselib2 / architecturelib / architecturelib*
+  - architecturemetierdefaut / architecturemetierdefautlib
+  - baselib / baselibapj / baselibspec / baserelationlib / basedependanceview*
+  - metierlib / metierlibapj / metierlibspec / metier_fmlib / metierfille_lib
+  - metierrelationlib / metierdependanceview / metierdependanceviewlib
+  - classelib / classe_lib / attributclasselib
+  - pagelib* / page_lib / page_libapj / page_libcomplet / page_libspec
+  - page_projet / pagelien / pageanalyselib / pageanalyseattributlib
+  - pagefichelib / pageficheattributlib / pagelistelib / pagelistelib2
+  - pagelisteattributlib / pagerelationlib / pagesaisielib / pageattributlib*
+  - panalysechampfiltrelib / plistchampfiltrelib / pagechampfiltre*
+  - champdynamiquelib / champdynamique_squl / champsspeciauxlib / champsspeciaux_squl
+  -- menudynamiquelib   [CONSERVÉE - navigation APJ]
+  -- menu_fils          [CONSERVÉE - navigation APJ]
+  - mappingtypeattributlib
+  - diagramobjet / v_diagramclasslibcomplet / v_classeetfiche
+  - crcontentlib / crcontentfillelib / crdateformu / conception_pme / conception_pmlib
+  - etatprojetfonctionnalite / creation_projetpages / decomptepage
+  - actionlib / actiontachelib / actiontachelibvalide
+  - notificationlib / notificationlibnonlu / notificationsignalnonvise
+  - notificationvalide / notificationgroupdetailsuser
+  - piecejointe_lib / piecejointe_libcomplet
+  - historiqueactiflib / historique_libelle / v_historique / v_histoinsert
+  - v_historique_creation_tache / v_historique_fileaccess / v_historique_log_desc
+  - v_alertscheduler_now / entitelib / attribusentitelib / relationlib
+  - canevatachelib / cheminprojetuserlib / conception_pm_metier
+  - utilisateuracade_vue / utilisateur_equipe_cpl / utilisateurvue_roles
+
+ -- Nota : Ces 3 vues existent dans le dump donation mais doivent être RECRÉÉES --
+ -- pour alumni (avec la nouvelle structure de la table utilisateur alumni) :    --
+  - utilisateurvalide   → recréer
+  - utilisateurvue      → recréer
+  - (utilisateurrole)   → créer (n'existe pas dans le dump donation sous ce nom)
+
+================================================================================
+ PARTIE 5 : TABLES ALUMNI — À CRÉER (nouvelles, depuis 2026-02-21-Alumni-1.sql)
+================================================================================
+  - type_utilisateur
+  - type_emploie
+  - promotion
+  - specialite
+  - utilisateur_specialite
+  - competence
+  - competence_utilisateur
+  - diplome
+  - pays
+  - ville
+  - ecole
+  - domaine
+  - parcours
+  - entreprise
+  - experience
+  - reseaux_sociaux
+  - reseau_utilisateur
+
+================================================================================
+ RÉSUMÉ
+================================================================================
+  Tables à SUPPRIMER (donation)  : ~180 tables
+  Vues à SUPPRIMER (donation)    : ~200 vues
+  Tables APJ DROP + RECRÉÉES    :   8 tables (roles, utilisateur, paramcrypt,
+                                    historique, annulationutilisateur, direction,
+                                    userhomepage, pays)
+  Tables APJ CONSERVÉES          :   6 tables (restriction, historique_valeur,
+                                    mailcc, action, menudynamique, usermenu)
+  Vues APJ RECRÉÉES              :   3 vues (utilisateurvalide, utilisateurvue,
+                                    utilisateurrole)
+  Tables ALUMNI créées           :  18 tables métier (specialite, competence,
+                                    diplome, pays, ville, parcours, etc.)
+
+  Ordre d'exécution :
+    1. BDD/cleanup/drop_donation_tables.sql
+    2. BDD/2026-02-21-Alumni-1.sql
+
+================================================================================

@@ -1,24 +1,24 @@
 <project name="deploy-ejb" default="deploy" basedir="./build-file">
     <property environment="env" />
-    <property name="deploy.dir" value="/home/fitia/Documents/wildfly/standalone/deployments/" />
-    <property name="teamTask-warname" value="teamTask.war" />
+    <property name="deploy.dir" value="/opt/wildfly-10.1.0.Final/standalone/deployments/" />
+    <property name="alumni-warname" value="alumni.war" />
     <property name="front-warname" value="front.war" />
-    <property name="teamTask-jarname" value="teamTask-ejb.jar" />
-    <property name="teamTask-earname" value="teamTask.ear" />
-    <property name="srcejb-dir" value="./teamTask-ejb/src/" />
-    <property name="srcwar-dir" value="./teamTask-war/src/java" />
+    <property name="alumni-jarname" value="alumni-ejb.jar" />
+    <property name="alumni-earname" value="alumni.ear" />
+    <property name="srcejb-dir" value="./alumni-ejb/src/" />
+    <property name="srcwar-dir" value="./alumni-war/src/java" />
     <property name="srcwarfront-dir" value="./front-war/src/java" />
 
-    <property name="build-teamTask-war_war" value="${basedir}/teamTask_war" />
+    <property name="build-alumni-war_war" value="${basedir}/alumni_war" />
     <property name="build-front-war_war" value="${basedir}/front_war" />
-    <property name="build-teamTask-ejb_jar" value="${basedir}/teamTask_jar" />
-    <property name="build-teamTask-lib" value="${basedir}/lib" />
+    <property name="build-alumni-ejb_jar" value="${basedir}/alumni_jar" />
+    <property name="build-alumni-lib" value="${basedir}/lib" />
 
     <property name="buildEar.dir" value="${basedir}/ear" />
-    <property name="webcontent.dir" value="../teamTask-war/web" />
+    <property name="webcontent.dir" value="../alumni-war/web" />
     <property name="webcontentfront.dir" value="../front/web" />
 
-    <property name="srcproperties.dir" value="../teamTask-ejb/src/java/ressources" />
+    <property name="srcproperties.dir" value="../alumni-ejb/src/java/ressources" />
 
     <path id="classpath">
         <fileset dir="${basedir}\lib">
@@ -29,17 +29,17 @@
 
     <target name="clean">
         <echo>
-            Compilation teamTask GENIUS_ART_C [START]----------------
+            Compilation Alumni ITU Platform  GENIUS_ART_C [START]----------------
         </echo>
         <echo>JDK ${ant.java.version} ${ant.version} </echo>
         <echo> clean </echo>
 
-        <delete file="${build-teamTask-ejb_jar}" />
-        <delete file="${build-teamTask-war_war}" />
+        <delete file="${build-alumni-ejb_jar}" />
+        <delete file="${build-alumni-war_war}" />
         <delete file="${build-front-war_war}" />
-        <delete file="${build-teamTask-lib}" />
-        <delete file="${basedir}/${teamTask-earname}" />
-        <delete file="${buildEar.dir}/${teamTask-earname}" />
+        <delete file="${build-alumni-lib}" />
+        <delete file="${basedir}/${alumni-earname}" />
+        <delete file="${buildEar.dir}/${alumni-earname}" />
 
         <echo> clean done </echo>
     </target>
@@ -51,26 +51,26 @@
     <target name="init" depends="clean">
         <echo> initialisation ${dateDuJour} </echo>
 
-        <mkdir dir="${build-teamTask-war_war}" />
-        <mkdir dir="${build-teamTask-war_war}/WEB-INF" />
-        <mkdir dir="${build-teamTask-war_war}/WEB-INF/lib" />
-        <mkdir dir="${build-teamTask-war_war}/WEB-INF/classes" />
-        <mkdir dir="${build-teamTask-war_war}/WEB-INF/classes/META-INF" />
+        <mkdir dir="${build-alumni-war_war}" />
+        <mkdir dir="${build-alumni-war_war}/WEB-INF" />
+        <mkdir dir="${build-alumni-war_war}/WEB-INF/lib" />
+        <mkdir dir="${build-alumni-war_war}/WEB-INF/classes" />
+        <mkdir dir="${build-alumni-war_war}/WEB-INF/classes/META-INF" />
         <mkdir dir="${build-front-war_war}" />
         <mkdir dir="${build-front-war_war}/WEB-INF" />
         <mkdir dir="${build-front-war_war}/WEB-INF/lib" />
         <mkdir dir="${build-front-war_war}/WEB-INF/classes" />
         <mkdir dir="${build-front-war_war}/WEB-INF/classes/META-INF" />
 
-        <mkdir dir="${build-teamTask-ejb_jar}" />
+        <mkdir dir="${build-alumni-ejb_jar}" />
 
 
         <echo file="${webcontent.dir}/dateBuild.txt" append="false" message="${dateDuJour}" />
 
-        <copy todir="${build-teamTask-war_war}/">
+        <copy todir="${build-alumni-war_war}/">
             <fileset dir="${webcontent.dir}" excludes="WEB-INF/**" />
         </copy>
-        <copy todir="${build-teamTask-war_war}/WEB-INF/lib/">
+        <copy todir="${build-alumni-war_war}/WEB-INF/lib/">
             <fileset dir="${basedir}/lib">
                 <exclude name="netty*.jar" />
                 <exclude name="jboss*.jar" />
@@ -91,16 +91,16 @@
         </copy>
 
         <!--<copy
-        file="../teamTask-war/web/WEB-INF/web.xml"
-        tofile="${build-teamTask-war_war}/WEB-INF/web.xml" />-->
-        <copy file="../teamTask-ejb/src/java/project.properties"
-            tofile="${build-teamTask-ejb_jar}/project.properties" />
-        <copy file="../teamTask-ejb/src/java/apj.properties"
-            tofile="${build-teamTask-ejb_jar}/apj.properties" />
-        <copy file="../teamTask-ejb/src/java/ressources/text.properties"
-            tofile="${build-teamTask-ejb_jar}/java/resources/text.properties" />
-        <copy file="../teamTask-ejb/src/java/ressources/text_zh.properties"
-            tofile="${build-teamTask-ejb_jar}/java/resources/text_zh.properties" />
+        file="../alumni-war/web/WEB-INF/web.xml"
+        tofile="${build-alumni-war_war}/WEB-INF/web.xml" />-->
+        <copy file="../alumni-ejb/src/java/project.properties"
+            tofile="${build-alumni-ejb_jar}/project.properties" />
+        <copy file="../alumni-ejb/src/java/apj.properties"
+            tofile="${build-alumni-ejb_jar}/apj.properties" />
+        <copy file="../alumni-ejb/src/java/ressources/text.properties"
+            tofile="${build-alumni-ejb_jar}/java/resources/text.properties" />
+        <copy file="../alumni-ejb/src/java/ressources/text_zh.properties"
+            tofile="${build-alumni-ejb_jar}/java/resources/text_zh.properties" />
 
         <echo> initialisation done </echo>
     </target>
@@ -108,41 +108,41 @@
 
     <target name="compile" depends="init">
         <echo> compilation </echo>
-        <javac srcdir="../teamTask-ejb/src/java" destdir="${build-teamTask-ejb_jar}" nowarn="true"
+        <javac srcdir="../alumni-ejb/src/java" destdir="${build-alumni-ejb_jar}" nowarn="true"
             debug="on" deprecation="off" classpathref="classpath" includeantruntime="false"
             encoding="iso-8859-1">
         </javac>
-        <copy todir="${build-teamTask-ejb_jar}">
-            <fileset dir="../teamTask-ejb/src/java">
+        <copy todir="${build-alumni-ejb_jar}">
+            <fileset dir="../alumni-ejb/src/java">
                 <include name="**/*.template" />
                 <include name="**/*.txt" />
             </fileset>
         </copy>
-        <!-- <copy todir="${build-teamTask-ejb_jar}/i18n">
-            <fileset dir="../teamTask-ejb/src/java/i18n" includes="**/*.properties" />
+        <!-- <copy todir="${build-alumni-ejb_jar}/i18n">
+            <fileset dir="../alumni-ejb/src/java/i18n" includes="**/*.properties" />
         </copy> -->
         <echo> compilation done </echo>
     </target>
 
     <target name="buildEjbJar" depends="compile">
         <echo>Build EJB JAR</echo>
-        <jar basedir="${build-teamTask-ejb_jar}" destfile="${buildEar.dir}/${teamTask-jarname}" />
-        <copy file="${buildEar.dir}/${teamTask-jarname}"
-            todir="${build-teamTask-war_war}/WEB-INF/lib/">
+        <jar basedir="${build-alumni-ejb_jar}" destfile="${buildEar.dir}/${alumni-jarname}" />
+        <copy file="${buildEar.dir}/${alumni-jarname}"
+            todir="${build-alumni-war_war}/WEB-INF/lib/">
         </copy>
-        <copy file="${buildEar.dir}/${teamTask-jarname}" todir="${build-front-war_war}/WEB-INF/lib/">
+        <copy file="${buildEar.dir}/${alumni-jarname}" todir="${build-front-war_war}/WEB-INF/lib/">
         </copy>
         <echo>End Build EJB JAR</echo>
     </target>
 
     <target name="compileWar" depends="buildEjbJar">
         <echo> compilation </echo>
-        <javac srcdir="../teamTask-war/src/java"
-            destdir="${build-teamTask-war_war}/WEB-INF/classes/" nowarn="true" debug="on"
+        <javac srcdir="../alumni-war/src/java"
+            destdir="${build-alumni-war_war}/WEB-INF/classes/" nowarn="true" debug="on"
             deprecation="off" classpathref="classpath" includeantruntime="false"
             encoding="iso-8859-1">
             <classpath>
-                <pathelement location="${buildEar.dir}/${teamTask-jarname}" />
+                <pathelement location="${buildEar.dir}/${alumni-jarname}" />
             </classpath>
         </javac>
         <echo> compilation done</echo>
@@ -151,10 +151,10 @@
     <target name="copieProperties" depends="compileWar">
         <echo> Copie des properties</echo>
         <copy file="${srcproperties.dir}/text.properties"
-            todir="${build-teamTask-war_war}/WEB-INF/classes">
+            todir="${build-alumni-war_war}/WEB-INF/classes">
         </copy>
         <copy file="${srcproperties.dir}/text_zh.properties"
-            todir="${build-teamTask-war_war}/WEB-INF/classes">
+            todir="${build-alumni-war_war}/WEB-INF/classes">
         </copy>
         <copy file="${srcproperties.dir}/text.properties"
             todir="${build-front-war_war}/WEB-INF/classes">
@@ -175,7 +175,7 @@
             </fileset>
         </copy>-->
         <copy todir="${deploy.dir}/alumni.war">
-            <fileset dir="${build-teamTask-war_war}">
+            <fileset dir="${build-alumni-war_war}">
                 <include name="**/*" />
             </fileset>
         </copy>
@@ -188,7 +188,7 @@
         <touch file="${deploy.dir}/front.war.dodeploy" />
         <echo> deployement exploded war done </echo>
         <echo>
-            Compilation teamTask GENIUS_ART_C [DONE]----------------
+            Compilation Alumni ITU Platform  GENIUS_ART_C [DONE]----------------
         </echo>
 
     </target>
