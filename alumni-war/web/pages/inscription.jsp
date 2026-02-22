@@ -1,97 +1,4 @@
-            // Vérification de la clé primaire
-            System.out.println("DEBUG: refuser généré = " + utilisateur.getRefuser());
 <%@ page pageEncoding="UTF-8" contentType="text/html; charset=UTF-8" %>
-<%@page import="bean.TypeObjet"%>
-<%@page import="user.*"%>
-<%@ page import="utilitaireAcade.*" %>
-<%@ page import="utilitaire.*" %>
-<%@ page import="bean.CGenUtil" %>
-<%@ page import="lc.Direction" %>
-<%@ page import="java.net.InetAddress" %>
-<%@ page import="utilisateurAcade.UtilisateurAcade" %>
-<%
-    if ("POST".equalsIgnoreCase(request.getMethod())) {
-        // Handle registration
-        String nomuser = request.getParameter("nomuser");
-        String prenom = request.getParameter("prenom");
-        String mail = request.getParameter("mail");
-        String etu = request.getParameter("etu");
-        String loginuser = request.getParameter("loginuser");
-        String pwduser = request.getParameter("pwduser");
-        String confirmPwd = request.getParameter("confirmPwd");
-        String teluser = request.getParameter("teluser");
-        String adruser = request.getParameter("adruser");
-
-        if (!pwduser.equals(confirmPwd)) {
-            session.setAttribute("errorInscription", "Les mots de passe ne correspondent pas.");
-            response.sendRedirect("inscription.jsp");
-            return;
-        }
-
-        try {
-            // Encrypt password
-            String encryptedPwd = UtilitaireAcade.cryptWord(pwduser, 5, 0);
-
-            // Vérification des champs essentiels
-            if(loginuser == null || loginuser.trim().isEmpty() ||
-               encryptedPwd == null || encryptedPwd.trim().isEmpty() ||
-               nomuser == null || nomuser.trim().isEmpty() ||
-               prenom == null || prenom.trim().isEmpty() ||
-               mail == null || mail.trim().isEmpty()) {
-                session.setAttribute("errorInscription", "Tous les champs obligatoires doivent être renseignés.");
-                response.sendRedirect("inscription.jsp");
-                return;
-            }
-
-            // Log pour debug
-            System.out.println("Inscription: loginuser=" + loginuser +
-                   ", nomuser=" + nomuser +
-                   ", prenom=" + prenom +
-                   ", mail=" + mail +
-                   ", etu=" + etu +
-                   ", teluser=" + teluser +
-                   ", adruser=" + adruser);
-
-
-            UtilisateurAcade utilisateur = new UtilisateurAcade();
-            utilisateur.setLoginuser(loginuser);
-            utilisateur.setPwduser(encryptedPwd);
-            utilisateur.setNomuser(nomuser);
-            utilisateur.setPrenom(prenom);
-            utilisateur.setMail(mail);
-            utilisateur.setEtu(etu);
-            utilisateur.setTeluser(teluser);
-            utilisateur.setAdruser(adruser);
-            utilisateur.setIdrole("alumni");
-            utilisateur.setIdtypeutilisateur("TU0000001");
-
-            // Générer la clé primaire
-            try {
-                utilisateur.construirePK(null);
-            } catch (Exception pkEx) {
-                pkEx.printStackTrace();
-                session.setAttribute("errorInscription", "Erreur lors de la génération de la clé primaire utilisateur: " + pkEx.getMessage());
-                response.sendRedirect("inscription.jsp");
-                return;
-            }
-
-            // Get UserEJB
-            UserEJB u = UserEJBClient.lookupUserEJBBeanLocal();
-
-            // Create the user
-            u.createObject(utilisateur);
-
-            session.setAttribute("successInscription", "Inscription réussie. Vous pouvez maintenant vous connecter.");
-            response.sendRedirect("../index.jsp");
-            return;
-        } catch (Exception e) {
-            e.printStackTrace();
-            session.setAttribute("errorInscription", "Erreur lors de l'inscription: " + e.getMessage());
-            response.sendRedirect("inscription.jsp");
-            return;
-        }
-    }
-%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -132,7 +39,7 @@
                     }
                 %>
 
-                <form class="form" action="inscription.jsp" method="post">
+                <form class="form" action="testRegister.jsp" method="post">
                     <label class="field">
                         <span class="label">Nom</span>
                         <span class="input-wrap">
