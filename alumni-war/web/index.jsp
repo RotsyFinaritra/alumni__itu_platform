@@ -97,6 +97,10 @@
                             <span id="login-btn-text">Se connecter</span>
                         </button>
                     </form>
+
+                    <p class="register-link">
+                        <a href="pages/inscription.jsp">Pas de compte ? S'inscrire</a>
+                    </p>
                 </main>
 
                 <footer class="footer">
