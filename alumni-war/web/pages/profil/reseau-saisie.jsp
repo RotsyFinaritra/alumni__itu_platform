@@ -19,6 +19,7 @@
         pi.getFormu().changerEnChamp(listes);
         affichage.Champ c;
         c = pi.getFormu().getChamp("idreseauxsociaux");
+        pi.getFormu().getChamp("lien").setLibelle("Lien vers le profil du reseau social");
         if (c != null) c.setLibelle("R&eacute;seau social");
 
         // Masquer idutilisateur et id (auto-g&eacute;n&eacute;r&eacute;s) — null-safe

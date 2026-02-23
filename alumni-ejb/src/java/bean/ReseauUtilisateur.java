@@ -6,6 +6,15 @@ public class ReseauUtilisateur extends ClassMAPTable {
     private String id;
     private String idreseauxsociaux;
     private int idutilisateur;
+    private String lien;
+
+    public String getLien() {
+        return lien;
+    }
+
+    public void setLien(String lien) {
+        this.lien = lien;
+    }
 
     public ReseauUtilisateur() {
         super.setNomTable("reseau_utilisateur");
