@@ -129,15 +129,13 @@
         utilisateur.setNomuser(nomuser);
         utilisateur.setPrenom(prenom);
         utilisateur.setMail(mail);
-        utilisateur.setEtu(etu != null ? etu : "");
+        // Pour enseignant, etu et idpromotion peuvent être null
+        utilisateur.setEtu((etu != null && !etu.trim().isEmpty()) ? etu : null);
         utilisateur.setTeluser(teluser != null ? teluser : "");
         utilisateur.setAdruser(adruser != null ? adruser : "");
         utilisateur.setIdrole("utilisateur");
-        // Utilise la valeur sélectionnée dans le formulaire
         utilisateur.setIdtypeutilisateur(idtypeutilisateur);
-        // Ajoute la promotion sélectionnée
-        utilisateur.setIdpromotion(idpromotion);
-        // Ajoute la photo si elle a été uploadée
+        utilisateur.setIdpromotion((idpromotion != null && !idpromotion.trim().isEmpty()) ? idpromotion : null);
         if (photoPath != null) {
             utilisateur.setPhoto(photoPath);
         }
