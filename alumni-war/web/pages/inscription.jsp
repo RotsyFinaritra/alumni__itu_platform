@@ -183,7 +183,7 @@
                                                 for (int i = 0; i < promotions.length; i++) {
                                                     bean.Promotion promo = promotions[i];
                                         %>
-                                            <option value="<%= promo.getId() %>"><%= promo.getLibelle() %> (<%= promo.getAnnee() %>)</option>
+                                            <option value="<%= promo.getId() %>"><%= promo.getId() %> (<%= promo.getLibelle() %>)</option>
                                         <%
                                                 }
                                             }

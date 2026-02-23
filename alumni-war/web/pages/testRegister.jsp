@@ -24,6 +24,7 @@
         String teluser = request.getParameter("teluser");
         String adruser = request.getParameter("adruser");
         String idtypeutilisateur = request.getParameter("idtypeutilisateur");
+        String idpromotion = request.getParameter("promotion");
 
         // Validate required fields
         if (loginuser == null || loginuser.trim().isEmpty() ||
@@ -70,6 +71,8 @@
         utilisateur.setIdrole("alumni");
         // Utilise la valeur sélectionnée dans le formulaire
         utilisateur.setIdtypeutilisateur(idtypeutilisateur);
+        // Ajoute la promotion sélectionnée
+        utilisateur.setIdpromotion(idpromotion);
 
         // Generate primary key and create user
         utilisateur.construirePK(c);
