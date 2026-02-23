@@ -1,101 +1,146 @@
-<%@ page import="bean.Experience, bean.Domaine, bean.Entreprise, bean.TypeEmploie" %>
-<%@ page import="affichage.PageInsert, affichage.Liste" %>
+<%@ page import="bean.Experience, bean.Domaine, bean.Entreprise, bean.TypeEmploie, bean.CGenUtil" %>
+<%@ page import="affichage.PageInsertMultiple" %>
 <%@ page import="user.UserEJB" %>
-<%
-    try {
-        UserEJB u = (UserEJB) session.getValue("u");
-        String lien = (String) session.getValue("lien");
-        String refuser = request.getParameter("refuser");
-        if (refuser == null || refuser.isEmpty()) refuser = u.getUser().getTuppleID();
-        String acte = request.getParameter("acte") != null ? request.getParameter("acte") : "insert";
+<% try {
+    UserEJB u = (UserEJB) session.getValue("u");
+    String lien = (String) session.getValue("lien");
+    String refuser = request.getParameter("refuser");
+    if (refuser == null || refuser.isEmpty()) refuser = u.getUser().getTuppleID();
+    int refuserInt = Integer.parseInt(refuser);
 
-        // Créer l'objet Experience et définir idutilisateur AVANT PageInsert
-        Experience exp = new Experience();
-        exp.setIdutilisateur(Integer.parseInt(refuser));
-        
-        PageInsert pi = new PageInsert(exp, request, u);
-        pi.setLien(lien);
+    // --- Charger les experiences existantes ---
+    Experience filtre = new Experience();
+    filtre.setIdutilisateur(refuserInt);
+    Object[] listExistants = CGenUtil.rechercher(filtre, null, null, " AND idutilisateur = " + refuserInt + " ORDER BY datedebut DESC");
 
-        // Libell&eacute;s (null-safe)
-        affichage.Champ c;
-        String[][] labels = {
-            {"poste","Intitul&eacute; du poste"}, {"datedebut","Date de d&eacute;but"},
-            {"datefin","Date de fin (laisser vide si en cours)"},
-            {"iddomaine","Domaine d'activit&eacute;"}, {"identreprise","Entreprise"},
-            {"idtypeemploie","Type de contrat"}
-        };
-        for (String[] lb : labels) {
-            c = pi.getFormu().getChamp(lb[0]);
-            if (c != null) c.setLibelle(lb[1]);
-        }
+    // --- PageInsertMultiple : mere = fille = Experience ---
+    Experience mere = new Experience();
+    Experience fille = new Experience();
+    int nombreLigne = 3;
 
-        // Autocomplete dynamique pour les FK
-        pi.getFormu().getChamp("iddomaine").setPageAppelComplete("bean.Domaine", "id", "domaine");
-        pi.getFormu().getChamp("identreprise").setPageAppelComplete("bean.Entreprise", "id", "entreprise");
-        pi.getFormu().getChamp("idtypeemploie").setPageAppelComplete("bean.TypeEmploie", "id", "type_emploie");
+    PageInsertMultiple pi = new PageInsertMultiple(mere, fille, request, nombreLigne, u);
+    pi.setLien(lien);
+    pi.setTitre("Ajouter des exp&eacute;riences professionnelles");
 
-        // Masquer idutilisateur et définir sa valeur (null-safe)
-        c = pi.getFormu().getChamp("idutilisateur");
-        if (c != null) {
-            c.setValeur(refuser);
-            c.setVisible(false);
-        }
+    // Masquer tous les champs de la mere
+    pi.getFormu().getChamp("idutilisateur").setVisible(false);
+    pi.getFormu().getChamp("poste").setVisible(false);
+    pi.getFormu().getChamp("datedebut").setVisible(false);
+    pi.getFormu().getChamp("datefin").setVisible(false);
+    pi.getFormu().getChamp("iddomaine").setVisible(false);
+    pi.getFormu().getChamp("identreprise").setVisible(false);
+    pi.getFormu().getChamp("idtypeemploie").setVisible(false);
 
-        pi.preparerDataFormu();
+    // Fille : masquer id (auto-genere) et idutilisateur (pre-rempli)
+    pi.getFormufle().getChampMulitple("id").setVisible(false);
+    pi.getFormufle().getChampMulitple("idutilisateur").setVisible(false);
+    pi.getFormufle().getChampMulitple("idutilisateur").setValeur(String.valueOf(refuserInt));
+
+    // Fille : autocomplete sur les FK
+    affichage.Champ.setPageAppelComplete(pi.getFormufle().getChampFille("iddomaine"),    "bean.Domaine",    "id", "domaine");
+    affichage.Champ.setPageAppelComplete(pi.getFormufle().getChampFille("identreprise"), "bean.Entreprise", "id", "entreprise");
+    affichage.Champ.setPageAppelComplete(pi.getFormufle().getChampFille("idtypeemploie"),"bean.TypeEmploie","id", "type_emploie");
+
+    // Labels de l'en-tete
+    pi.getFormufle().getChamp("poste_0").setLibelle("Intitul&eacute; du poste");
+    pi.getFormufle().getChamp("datedebut_0").setLibelle("Date d&eacute;but");
+    pi.getFormufle().getChamp("datefin_0").setLibelle("Date fin (vide = en cours)");
+    pi.getFormufle().getChamp("identreprise_0").setLibelle("Entreprise");
+    pi.getFormufle().getChamp("iddomaine_0").setLibelle("Domaine");
+    pi.getFormufle().getChamp("idtypeemploie_0").setLibelle("Type de contrat");
+
+    // Colonnes visibles dans le tableau
+    pi.getFormufle().setColOrdre(new String[]{"poste", "datedebut", "datefin", "identreprise", "iddomaine", "idtypeemploie"});
+
+    pi.preparerDataFormu();
+    pi.getFormufle().makeHtmlInsertTableauIndex();
 %>
 <div class="content-wrapper">
     <section class="content-header">
-        <h1><%= "update".equals(acte) ? "Modifier une exp&eacute;rience" : "Ajouter une exp&eacute;rience professionnelle" %></h1>
+        <h1><i class="fa fa-briefcase"></i> G&eacute;rer mes exp&eacute;riences professionnelles</h1>
     </section>
     <section class="content">
-        <div class="row">
-            <div class="col-md-8 col-md-offset-2">
-                <div class="box box-success">
-                    <div class="box-header with-border">
-                        <h3 class="box-title"><i class="fa fa-briefcase"></i> Exp&eacute;rience professionnelle</h3>
-                    </div>
-                    <form action="<%= lien %>?but=apresTarif.jsp" method="post" name="sortie" id="formExperience">
-                        <div class="box-body">
-                            <%
-                                pi.getFormu().makeHtmlInsertTabIndex();
-                                out.println(pi.getFormu().getHtmlInsert());
-                            %>
-                        </div>
-                        <div class="box-footer">
-                            <input name="acte" type="hidden" value="<%= acte %>">
-                            <input name="bute" type="hidden" value="profil/mon-profil.jsp">
-                            <input name="classe" type="hidden" value="bean.Experience">
-                            <input name="nomtable" type="hidden" value="experience">
-                            <input name="rajoutLien" type="hidden" value="refuser">
-                            <input name="refuser" type="hidden" value="<%= refuser %>">
-                            <% if ("update".equals(acte) && request.getParameter("id") != null) { %>
-                            <input name="id" type="hidden" value="<%= request.getParameter("id") %>">
-                            <% } %>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fa fa-save"></i> Enregistrer
-                            </button>
-                            <a href="<%= lien %>?but=profil/mon-profil.jsp&refuser=<%= refuser %>" class="btn btn-default">
-                                <i class="fa fa-times"></i> Annuler
-                            </a>
-                        </div>
-                    </form>
-                </div>
+
+        <%-- Liste des experiences existantes --%>
+        <div class="row" style="padding: 0 30px;">
+            <div class="col-md-12" style="background: white; padding: 15px; border-radius: 4px; margin-bottom: 10px;">
+                <h3 class="box-title" style="margin-top:0;"><i class="fa fa-list"></i> Exp&eacute;riences actuelles</h3>
+                <% if (listExistants == null || listExistants.length == 0) { %>
+                    <p class="text-muted">Aucune exp&eacute;rience enregistr&eacute;e.</p>
+                <% } else { %>
+                    <table class="table table-bordered table-striped">
+                        <thead><tr>
+                            <th>Poste</th>
+                            <th>Entreprise</th>
+                            <th>Domaine</th>
+                            <th>Type</th>
+                            <th>D&eacute;but</th>
+                            <th>Fin</th>
+                            <th style="width:80px;text-align:center;">Action</th>
+                        </tr></thead>
+                        <tbody>
+                        <% for (Object o : listExistants) {
+                            Experience exp = (Experience) o;
+                            String libelEntreprise = exp.getIdentreprise() != null ? exp.getIdentreprise() : "";
+                            String libelDomaine    = exp.getIddomaine()    != null ? exp.getIddomaine()    : "";
+                            String libelType       = exp.getIdtypeemploie() != null ? exp.getIdtypeemploie() : "";
+                            if (exp.getIdentreprise() != null && !exp.getIdentreprise().isEmpty()) {
+                                Entreprise en = new Entreprise(); en.setId(exp.getIdentreprise());
+                                Object[] res = CGenUtil.rechercher(en, null, null, "");
+                                if (res != null && res.length > 0) libelEntreprise = ((Entreprise) res[0]).getLibelle();
+                            }
+                            if (exp.getIddomaine() != null && !exp.getIddomaine().isEmpty()) {
+                                Domaine dom = new Domaine(); dom.setId(exp.getIddomaine());
+                                Object[] res = CGenUtil.rechercher(dom, null, null, "");
+                                if (res != null && res.length > 0) libelDomaine = ((Domaine) res[0]).getLibelle();
+                            }
+                            if (exp.getIdtypeemploie() != null && !exp.getIdtypeemploie().isEmpty()) {
+                                TypeEmploie te = new TypeEmploie(); te.setId(exp.getIdtypeemploie());
+                                Object[] res = CGenUtil.rechercher(te, null, null, "");
+                                if (res != null && res.length > 0) libelType = ((TypeEmploie) res[0]).getLibelle();
+                            }
+                        %>
+                        <tr>
+                            <td><%= exp.getPoste() != null ? exp.getPoste() : "<em>-</em>" %></td>
+                            <td><%= libelEntreprise.isEmpty() ? "<em>-</em>" : libelEntreprise %></td>
+                            <td><%= libelDomaine.isEmpty()    ? "<em>-</em>" : libelDomaine %></td>
+                            <td><%= libelType.isEmpty()       ? "<em>-</em>" : libelType %></td>
+                            <td><%= exp.getDatedebut() != null ? exp.getDatedebut().toString() : "-" %></td>
+                            <td><%= exp.getDatefin()   != null ? exp.getDatefin().toString()   : "<em>en cours</em>" %></td>
+                            <td style="text-align:center;">
+                                <a href="<%= lien %>?but=profil/save-experience-apj.jsp&acte=delete&id=<%= exp.getId() %>&refuser=<%= refuser %>"
+                                   class="btn btn-xs btn-danger" onclick="return confirm('Supprimer cette exp\u00e9rience ?');">
+                                    <i class="fa fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <% } %>
+                        </tbody>
+                    </table>
+                <% } %>
             </div>
         </div>
+
+        <%-- Formulaire PageInsertMultiple pour ajouter des experiences --%>
+        <form action="<%= lien %>?but=profil/save-experience-apj.jsp" method="post">
+            <%= pi.getFormufle().getHtmlTableauInsert() %>
+            <input name="acte" type="hidden" value="insertExperiences">
+            <input name="refuser" type="hidden" value="<%= refuser %>">
+            <input name="nombreLigne" type="hidden" value="<%= nombreLigne %>">
+        </form>
+
+        <%-- Bouton retour --%>
+        <div class="row" style="padding: 0 30px; margin-top: 10px;">
+            <div class="col-md-12 text-right">
+                <a href="<%= lien %>?but=profil/mon-profil.jsp&refuser=<%= refuser %>" class="btn btn-default">
+                    <i class="fa fa-arrow-left"></i> Retour au profil
+                </a>
+            </div>
+        </div>
+
     </section>
 </div>
-<script>
-// Supprimer les champs FK vides avant soumission pour éviter les erreurs de contraintes
-document.getElementById('formExperience').addEventListener('submit', function(e) {
-    var selects = this.querySelectorAll('select[name="iddomaine"], select[name="identreprise"], select[name="idtypeemploie"]');
-    selects.forEach(function(select) {
-        if (select.value === '' || select.value === null) {
-            select.removeAttribute('name');
-        }
-    });
-});
-</script>
-<%  } catch (Exception e) {
-        e.printStackTrace();
-    }
-%>
+<% } catch (Exception e) {
+    e.printStackTrace();
+    out.println("<div class='alert alert-danger'><h4><i class='fa fa-ban'></i> Erreur</h4><p>" + e.getMessage() + "</p></div>");
+} %>

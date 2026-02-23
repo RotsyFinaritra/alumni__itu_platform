@@ -57,9 +57,9 @@
 <div class="parcours-tab-content">
     <% if (isOwnProfile) { %>
     <div class="clearfix" style="margin-bottom:25px;">
-        <a href="<%= lien %>?but=profil/parcours-saisie.jsp&acte=insert&refuser=<%= refuser %>"
+        <a href="<%= lien %>?but=profil/parcours-saisie.jsp&refuser=<%= refuser %>"
            class="btn parcours-add-btn pull-right">
-            <i class="fa fa-plus"></i> Ajouter un parcours
+            <i class="fa fa-pencil"></i> G&eacute;rer mes parcours
         </a>
     </div>
     <% } %>
@@ -117,12 +117,8 @@
             </div>
             <% if (isOwnProfile) { %>
             <div class="parcours-actions">
-                <a class="btn btn-parcours btn-parcours-edit"
-                   href="<%= lien %>?but=profil/parcours-saisie.jsp&acte=update&classe=bean.Parcours&nomtable=parcours&id=<%= p.getId() %>&refuser=<%= refuser %>">
-                    <i class="fa fa-pencil"></i> Modifier
-                </a>
                 <a class="btn btn-parcours btn-parcours-delete"
-                   href="<%= lien %>?but=apresTarif.jsp&acte=delete&classe=bean.Parcours&nomtable=parcours&bute=profil/mon-profil.jsp&id=<%= p.getId() %>&refuser=<%= refuser %>&rajoutLien=refuser"
+                   href="<%= lien %>?but=profil/save-parcours-apj.jsp&acte=delete&id=<%= p.getId() %>&refuser=<%= refuser %>"
                    onclick="return confirm('Supprimer ce parcours ?')">
                     <i class="fa fa-trash"></i> Supprimer
                 </a>

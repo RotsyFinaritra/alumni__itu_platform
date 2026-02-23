@@ -58,9 +58,9 @@
 <div class="experience-tab-content">
     <% if (isOwnProfile) { %>
     <div class="clearfix" style="margin-bottom:25px;">
-        <a href="<%= lien %>?but=profil/experience-saisie.jsp&acte=insert&refuser=<%= refuser %>"
+        <a href="<%= lien %>?but=profil/experience-saisie.jsp&refuser=<%= refuser %>"
            class="btn exp-add-btn pull-right">
-            <i class="fa fa-plus"></i> Ajouter une exp&eacute;rience
+            <i class="fa fa-pencil"></i> G&eacute;rer mes exp&eacute;riences
         </a>
     </div>
     <% } %>
@@ -121,12 +121,8 @@
             </div>
             <% if (isOwnProfile) { %>
             <div class="exp-actions">
-                <a class="btn btn-exp btn-exp-edit"
-                   href="<%= lien %>?but=profil/experience-saisie.jsp&acte=update&classe=bean.Experience&nomtable=experience&id=<%= exp.getId() %>&refuser=<%= refuser %>">
-                    <i class="fa fa-pencil"></i> Modifier
-                </a>
                 <a class="btn btn-exp btn-exp-delete"
-                   href="<%= lien %>?but=apresTarif.jsp&acte=delete&classe=bean.Experience&nomtable=experience&bute=profil/mon-profil.jsp&id=<%= exp.getId() %>&refuser=<%= refuser %>&rajoutLien=refuser"
+                   href="<%= lien %>?but=profil/save-experience-apj.jsp&acte=delete&id=<%= exp.getId() %>&refuser=<%= refuser %>"
                    onclick="return confirm('Supprimer cette exp&eacute;rience ?')">
                     <i class="fa fa-trash"></i> Supprimer
                 </a>
