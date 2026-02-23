@@ -55,7 +55,7 @@
         }
 
 
-        queryString = "but=donation/donation-saisie.jsp";//
+        queryString = "but=accueil.jsp";//
         
         String queryURL = request.getQueryString();
         if (queryURL != null && !queryURL.equals("")) {
