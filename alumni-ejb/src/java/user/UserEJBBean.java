@@ -40,6 +40,7 @@ import modules.GestionRole;
 
 import utilisateur.ConstanteUtilisateur;
 import utilisateur.HomePageURL;
+import utilisateurAcade.UtilisateurStatut;
 import constanteAcade.ConstanteEtatAcade;
 import utilitaire.ConstanteUser;
 import utilitaire.UtilDB;
@@ -536,10 +537,68 @@ public class UserEJBBean implements UserEJB, UserEJBRemote, SessionBean {
         }
     }
 
+    /**
+     * Vérifie le statut de modération de l'utilisateur avant d'autoriser la connexion.
+     *
+     * <p>Interroge la vue {@code utilisateur_statut} via {@link bean.CGenUtil#rechercher}
+     * pour obtenir le statut courant du compte :</p>
+     * <ul>
+     *   <li><b>actif</b> – connexion autorisée, la méthode retourne normalement.</li>
+     *   <li><b>suspendu</b> – lève une exception avec la date de fin de suspension et le motif.</li>
+     *   <li><b>banni</b> – lève une exception indiquant un bannissement définitif avec le motif.</li>
+     * </ul>
+     *
+     * @param loginuser le login saisi par l'utilisateur
+     * @throws Exception si le compte est suspendu, banni, ou en cas d'erreur technique
+     */
+    public void checkUtilisateurStatut(String loginuser) throws Exception {
+        Connection c = null;
+        try {
+            c = (new utilitaire.UtilDB()).GetConn();
+            UtilisateurStatut us = new UtilisateurStatut();
+            Object[] resultats = CGenUtil.rechercher(us, null, null, c, " and loginuser = '" + loginuser + "'");
+
+            if (resultats == null || resultats.length == 0) {
+                // L'utilisateur n'existe pas dans la vue : laisse testeValide gérer l'erreur
+                return;
+            }
+
+            UtilisateurStatut statut = (UtilisateurStatut) resultats[0];
+            String etat = statut.getStatut();
+
+            if ("suspendu".equalsIgnoreCase(etat)) {
+                String dateExpiration = statut.getDate_expiration() != null
+                        ? statut.getDate_expiration().toString()
+                        : "date inconnue";
+                String motif = statut.getMotif() != null && !statut.getMotif().isEmpty()
+                        ? statut.getMotif()
+                        : "aucun motif pr\u00e9cis\u00e9";
+                throw new Exception(
+                        "Votre compte est suspendu jusqu'au " + dateExpiration
+                        + ". Motif : " + motif);
+            }
+
+            if ("banni".equalsIgnoreCase(etat)) {
+                String motif = statut.getMotif() != null && !statut.getMotif().isEmpty()
+                        ? statut.getMotif()
+                        : "aucun motif pr\u00e9cis\u00e9";
+                throw new Exception(
+                        "Votre compte a \u00e9t\u00e9 banni d\u00e9finitivement. Motif : " + motif);
+            }
+
+            // Statut 'actif' ou toute autre valeur : on laisse passer
+        } finally {
+            if (c != null) {
+                try { c.close(); } catch (Exception ignored) {}
+            }
+        }
+    }
+
     @Override
     public void testLogin(String user, String pass) throws Exception {
         Connection c = null;
         try {
+            checkUtilisateurStatut(user);
             u = testeValide(user, pass);
 
             UtilisateurUtil crt = new UtilisateurUtil();
@@ -573,6 +632,7 @@ public class UserEJBBean implements UserEJB, UserEJBRemote, SessionBean {
         try {
             user = "judicael";
             pass = "judicael";
+            checkUtilisateurStatut(user);
             u = testeValide(user, pass);
 
             UtilisateurUtil crt = new UtilisateurUtil();
