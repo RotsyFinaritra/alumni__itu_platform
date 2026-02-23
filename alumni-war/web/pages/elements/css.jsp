@@ -44,7 +44,7 @@ folder instead of downloading all of them to reduce the load. -->
 <link href="${pageContext.request.contextPath}/dist/css/stylecustom.css?6" rel="stylesheet" type="text/css" />
 <link href="${pageContext.request.contextPath}/assets/css/apj-global-style.css" rel="stylesheet" type="text/css" />
 <%--        <link href="${pageContext.request.contextPath}/dist/css/messagestyle.css" rel="stylesheet" type="text/css" />--%>
-<%--	<link href="${pageContext.request.contextPath}/dist/css/jquery-ui.css" rel="stylesheet" type="text/css" />--%>
+	<link href="${pageContext.request.contextPath}/dist/css/jquery-ui.css" rel="stylesheet" type="text/css" />
 <!-- -->
 
 <!-- legend and print-->
