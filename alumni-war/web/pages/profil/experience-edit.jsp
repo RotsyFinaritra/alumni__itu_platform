@@ -15,6 +15,23 @@
         if (res != null && res.length > 0) exp = (Experience) res[0];
     }
 
+    // Charger les libelles FK pour pre-remplir l'affichage autocomplete
+    String domaineLabel = "";
+    String entrepriseLabel = "";
+    String typeEmploieLabel = "";
+    if (exp.getIddomaine() != null && !exp.getIddomaine().isEmpty()) {
+        Object[] rd = CGenUtil.rechercher(new Domaine(), null, null, " AND id = '" + exp.getIddomaine() + "'");
+        if (rd != null && rd.length > 0) { Domaine dom = (Domaine)rd[0]; domaineLabel = dom.getId() + " - " + dom.getLibelle(); }
+    }
+    if (exp.getIdentreprise() != null && !exp.getIdentreprise().isEmpty()) {
+        Object[] re = CGenUtil.rechercher(new Entreprise(), null, null, " AND id = '" + exp.getIdentreprise() + "'");
+        if (re != null && re.length > 0) { Entreprise ent = (Entreprise)re[0]; entrepriseLabel = ent.getId() + " - " + ent.getLibelle(); }
+    }
+    if (exp.getIdtypeemploie() != null && !exp.getIdtypeemploie().isEmpty()) {
+        Object[] rt = CGenUtil.rechercher(new TypeEmploie(), null, null, " AND id = '" + exp.getIdtypeemploie() + "'");
+        if (rt != null && rt.length > 0) { TypeEmploie te = (TypeEmploie)rt[0]; typeEmploieLabel = te.getId() + " - " + te.getLibelle(); }
+    }
+
     PageInsert pi = new PageInsert(exp, request, u);
     pi.setLien(lien);
 
@@ -55,10 +72,10 @@
     </section>
     <section class="content">
         <div class="row">
-            <div class="col-md-8 col-md-offset-2">
+            <div class="col-md-12">
                 <div class="box box-success">
-                    <div class="box-header with-border">
-                        <h3 class="box-title">Exp&eacute;rience professionnelle</h3>
+                    <div class="box-header with-border" style="background:#3c8dbc; color:#fff;">
+                        <h3 class="box-title" style="color:#fff;">Exp&eacute;rience professionnelle</h3>
                     </div>
                     <form action="<%= lien %>?but=apresTarif.jsp" method="post" name="sortie" id="formExperience">
                         <div class="box-body">
@@ -66,6 +83,14 @@
                                 pi.getFormu().makeHtmlInsertTabIndex();
                                 out.println(pi.getFormu().getHtmlInsert());
                             %>
+                            <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                var el;
+                                el = document.getElementById('iddomainelibelle'); if (el) el.value = '<%= domaineLabel.replace("'", "&apos;") %>';
+                                el = document.getElementById('identrepriselibelle'); if (el) el.value = '<%= entrepriseLabel.replace("'", "&apos;") %>';
+                                el = document.getElementById('idtypeemploielibelle'); if (el) el.value = '<%= typeEmploieLabel.replace("'", "&apos;") %>';
+                            });
+                            </script>
                         </div>
                         <div class="box-footer">
                             <input name="acte"     type="hidden" value="update">

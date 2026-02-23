@@ -15,6 +15,23 @@
         if (res != null && res.length > 0) parc = (Parcours) res[0];
     }
 
+    // Charger les libelles FK pour pre-remplir l'affichage autocomplete
+    String diplomeLabel = "";
+    String ecoleLabel = "";
+    String domaineLabel = "";
+    if (parc.getIddiplome() != null && !parc.getIddiplome().isEmpty()) {
+        Object[] rd = CGenUtil.rechercher(new Diplome(), null, null, " AND id = '" + parc.getIddiplome() + "'");
+        if (rd != null && rd.length > 0) { Diplome dipl = (Diplome)rd[0]; diplomeLabel = dipl.getId() + " - " + dipl.getLibelle(); }
+    }
+    if (parc.getIdecole() != null && !parc.getIdecole().isEmpty()) {
+        Object[] re = CGenUtil.rechercher(new Ecole(), null, null, " AND id = '" + parc.getIdecole() + "'");
+        if (re != null && re.length > 0) { Ecole ec = (Ecole)re[0]; ecoleLabel = ec.getId() + " - " + ec.getLibelle(); }
+    }
+    if (parc.getIddomaine() != null && !parc.getIddomaine().isEmpty()) {
+        Object[] rm = CGenUtil.rechercher(new Domaine(), null, null, " AND id = '" + parc.getIddomaine() + "'");
+        if (rm != null && rm.length > 0) { Domaine dom = (Domaine)rm[0]; domaineLabel = dom.getId() + " - " + dom.getLibelle(); }
+    }
+
     PageInsert pi = new PageInsert(parc, request, u);
     pi.setLien(lien);
 
@@ -53,10 +70,10 @@
     </section>
     <section class="content">
         <div class="row">
-            <div class="col-md-8 col-md-offset-2">
+            <div class="col-md-12">
                 <div class="box box-primary">
-                    <div class="box-header with-border">
-                        <h3 class="box-title">Parcours acad&eacute;mique</h3>
+                    <div class="box-header with-border" style="background:#3c8dbc; color:#fff;">
+                        <h3 class="box-title" style="color:#fff;">Parcours acad&eacute;mique</h3>
                     </div>
                     <form action="<%= lien %>?but=apresTarif.jsp" method="post" name="sortie" id="formParcours">
                         <div class="box-body">
@@ -64,6 +81,14 @@
                                 pi.getFormu().makeHtmlInsertTabIndex();
                                 out.println(pi.getFormu().getHtmlInsert());
                             %>
+                            <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                var el;
+                                el = document.getElementById('iddiplomelibelle'); if (el) el.value = '<%= diplomeLabel.replace("'", "&apos;") %>';
+                                el = document.getElementById('idecolelibelle'); if (el) el.value = '<%= ecoleLabel.replace("'", "&apos;") %>';
+                                el = document.getElementById('iddomainelibelle'); if (el) el.value = '<%= domaineLabel.replace("'", "&apos;") %>';
+                            });
+                            </script>
                         </div>
                         <div class="box-footer">
                             <input name="acte"     type="hidden" value="update">

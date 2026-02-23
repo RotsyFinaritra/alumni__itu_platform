@@ -43,7 +43,7 @@ public class TypeEmploie extends ClassMAPTable {
 
     @Override
     public String[] getValMotCles() {
-        return new String[]{"libelle"};
+        return new String[]{"id", "libelle"};
     }
 
     public void construirePK(Connection c) throws Exception {

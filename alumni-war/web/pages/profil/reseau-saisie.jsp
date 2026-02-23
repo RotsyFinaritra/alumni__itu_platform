@@ -53,10 +53,10 @@
     </section>
     <section class="content">
         <div class="row">
-            <div class="col-md-6 col-md-offset-3">
+            <div class="col-md-12">
                 <div class="box box-info">
-                    <div class="box-header with-border">
-                        <h3 class="box-title"><i class="fa fa-share-alt"></i> R&eacute;seau social</h3>
+                    <div class="box-header with-border" style="background:#3c8dbc; color:#fff;">
+                        <h3 class="box-title" style="color:#fff;"><i class="fa fa-share-alt"></i> R&eacute;seau social</h3>
                     </div>
                     <form action="<%= lien %>?but=apresTarif.jsp" method="post" name="sortie" id="formReseau">
                         <div class="box-body">
