@@ -156,25 +156,32 @@
                         
                         <!-- Formulaire à droite -->
                         <div class="form-section">
-                            <div class="">
-                                <div class="box-body" style="">
+                            <div class="box box-primary">
+                                <div class="box-header with-border" style="display:none;">
+                                    <h3 class="box-title"><i class="fa fa-user"></i> Informations personnelles</h3>
+                                </div>
+                                <div class="box-body">
                                     <%
                                         pi.getFormu().makeHtmlInsertTabIndex();
                                         out.println(pi.getFormu().getHtmlInsert());
                                     %>
                                 </div>
-                                <div class="box-footer" style="display: none;">
+                                <div class="box-footer" style="display:none;">
                                     <input name="acte" type="hidden" value="update">
                                     <input name="bute" type="hidden" value="profil/mon-profil.jsp">
                                     <input name="classe" type="hidden" value="utilisateurAcade.UtilisateurAcade">
                                     <input name="nomtable" type="hidden" value="utilisateur">
                                     <input name="refuser" type="hidden" value="<%= refuser %>">
-                                    
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fa fa-save"></i> Enregistrer les modifications
+                                    </button>
+                                    <a href="<%= lien %>?but=profil/mon-profil.jsp" class="btn btn-default btn-lg">
+                                        <i class="fa fa-times"></i> Annuler
+                                    </a>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </form>
                 </form>
             </div>
         </div>
@@ -209,11 +216,18 @@ document.getElementById('photoInput').addEventListener('change', function(e) {
     }
 });
 
-// Masquer le champ photo g&eacute;n&eacute;r&eacute; automatiquement par APJ
+// Masquer uniquement le champ photo g&eacute;n&eacute;r&eacute; par APJ (pas le conteneur parent)
 $(document).ready(function() {
-    // Chercher et masquer tous les champs avec le nom "photo" dans le formulaire g&eacute;n&eacute;r&eacute;
-    $('input[name="photo"]').not('#photoInput').closest('.form-group, tr, div').hide();
-    $('label:contains("Photo")').not('.photo-upload-section label').closest('.form-group, tr, div').hide();
+    // Trouver tous les inputs photo sauf notre propre input
+    $('.box-body input[name="photo"]').not('#photoInput').each(function() {
+        // Masquer uniquement la ligne du formulaire (tr pour table ou form-group pour div)
+        var $parent = $(this).closest('tr');
+        if ($parent.length) {
+            $parent.hide();
+        } else {
+            $(this).closest('.form-group').hide();
+        }
+    });
 });
 </script>
 
