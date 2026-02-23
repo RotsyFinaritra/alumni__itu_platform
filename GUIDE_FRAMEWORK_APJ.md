@@ -12,6 +12,7 @@
 9. [Classes Framework Clés](#9-classes-framework-clés)
 10. [Build et Déploiement](#10-build-et-déploiement)
 11. [Recette pour Créer un Nouveau Module](#11-recette-pour-créer-un-nouveau-module)
+12. [Pièges et Limitations Connues](#12-pièges-et-limitations-connues-du-framework-apj)
 
 ---
 
@@ -773,6 +774,136 @@ Modifier `accueil.jsp` et `testLogin.jsp` (queryString par défaut).
 
 ---
 
+## 12. Pièges et Limitations Connues du Framework APJ
+
+### 12.1 Types Java supportés dans les Beans (ClassMAPTable)
+
+**⚠️ CRITIQUE : Ne JAMAIS utiliser `boolean` dans un bean APJ.**
+
+La méthode `Champ.javaToSql()` ne contient aucun mapping pour le type Java `boolean`.
+Quand un champ `boolean` est rencontré, `Champ.type` (le type SQL) reste `null`.
+Puis `makeWhere()` (version compilée dans `apj-core.jar`) appelle
+`ch[k].getTypeColonne().compareToIgnoreCase("timestamp")` → **NullPointerException**.
+
+**Types supportés par `javaToSql()`** :
+- `java.lang.String` / `char` → `Varchar2`
+- `int` / `float` / `Double` → `Number`
+- `java.sql.Date` → `Date`
+- `java.sql.Time` → `Time`
+- `java.sql.Timestamp` → `Timestamp(6)`
+- `java.io.InputStream` → `blob`
+- `org.postgis.PGgeometry` → `geometry`
+
+**Solution pour les champs booléens** : utiliser `int` (0 = false, 1 = true) et `INTEGER` en SQL.
+
+### 12.2 `CGenUtil.rechercher()` — le paramètre `apresWhere`
+
+```java
+// ✅ CORRECT : apresWhere doit être "" (chaîne vide), jamais null
+Object[] result = CGenUtil.rechercher(filtre, null, null, "");
+
+// ✅ CORRECT : avec une condition supplémentaire
+Object[] result = CGenUtil.rechercher(filtre, null, null, " AND refuser = " + id);
+
+// ❌ FAUX (ambiguïté de surcharge) :
+Object[] result = CGenUtil.rechercher(filtre, null, null, null);
+```
+
+Passer `null` comme `apresWhere` rend l'appel ambigu pour le compilateur Java
+(plusieurs surcharges de `rechercher` matchent).
+
+### 12.3 `makeWhere()` et les colonnes INTEGER / primitives
+
+`makeWhere()` ignore les champs dont le type Java est `int`, `double` ou `short`
+(`testNombre = true` → le champ est sauté). Cela signifie :
+
+- Un champ `int idutilisateur = 0` ne sera **jamais** inclus dans le WHERE généré.
+- Pour filtrer sur un champ entier, **il faut passer la condition dans `apresWhere`** :
+  ```java
+  CGenUtil.rechercher(filtre, null, null, " AND idutilisateur = " + valeur);
+  ```
+
+De plus, `makeWhere()` applique `upper()` sur les valeurs `String` non-vides.
+Si la colonne PostgreSQL est de type `INTEGER` mais le champ Java est `String`
+(comme `refuser` dans `Utilisateur`), cela génère `upper(refuser)` →
+**Erreur PostgreSQL : `function upper(integer) does not exist`**.
+
+**Solution** : ne pas utiliser `makeWhere` pour ces cas ; passer par `apresWhere` direct.
+
+### 12.4 `getValeurFieldByMethod()` — Réflexion sur les getters
+
+CGenUtil construit le nom du getter comme `"get" + capitalize(nomChamp)`.
+Il ne tente **jamais** le préfixe `is` (convention Java pour les booleans).
+- Pour un champ `visible`, il cherche `getVisible()` et non `isVisible()`.
+- Raison supplémentaire de ne pas utiliser `boolean` : la convention de nommage
+  `isXxx()` n'est pas supportée par CGenUtil.
+
+Le fallback est case-insensitive : `getNomchamp` trouvera `getNomChamp()`.
+
+### 12.5 `PageConsulte.getChampByName()` — Toujours null-safe
+
+`getChampByName(nom)` retourne `null` si le champ n'existe pas dans le formulaire.
+Toujours vérifier avant d'appeler une méthode dessus :
+```java
+Champ c = pc.getChampByName("rang");
+if (c != null) { c.setVisible(false); }
+```
+
+### 12.6 `module.jsp` — Gestion d'erreurs
+
+Dans les blocs `catch`, `e.getMessage()` peut retourner `null`.
+Ne jamais appeler `.toUpperCase()` ou autre méthode sur le résultat sans vérifier :
+```java
+String msg = (e.getMessage() != null) ? e.getMessage() : "Erreur inconnue";
+```
+
+### 12.7 `UserEJB` — Accès à l'identifiant utilisateur
+
+`UserEJB` n'a pas de méthode `getRefuser()`. Pour obtenir l'ID de l'utilisateur :
+```java
+String refuser = u.getUser().getTuppleID();
+```
+
+### 12.8 Identifiants Java — Pas de caractères accentués
+
+Le compilateur JSP (JDT) ne supporte pas les caractères accentués dans les noms
+de variables (`champsContrôlés`). Utiliser uniquement des caractères ASCII
+
+### 12.9 Listes déroulantes (FK) — `changerEnChamp()`, pas `setListe()`
+
+`affichage.Champ` n'a **pas** de méthode `setListe()`. La classe `Liste extends Champ` :
+c'est un type de Champ, pas un attribut qu'on met sur un Champ.
+
+Pour transformer un champ texte en liste déroulante, il faut créer un tableau de `Liste`
+et appeler `changerEnChamp()` qui **remplace** les Champ correspondants :
+```java
+Liste[] listes = new Liste[2];
+listes[0] = new Liste("idpromotion", new Promotion(), "libelle", "id");
+listes[1] = new Liste("idtypeutilisateur", new TypeUtilisateur(), "libelle", "id");
+pi.getFormu().changerEnChamp(listes);
+
+// On peut ensuite modifier les libellés APRÈS changerEnChamp
+pi.getFormu().getChamp("idpromotion").setLibelle("Promotion");
+```
+
+### 12.10 Chargement AJAX de fragments — Éviter `module.jsp`
+
+`module.jsp` est la page maître qui inclut le layout complet (header, sidebar, JS, CSS).
+Si on charge un onglet via AJAX avec `$.get(lien + "?but=page.jsp")`, le contenu
+retourné contient tout le layout → double sidebar, double barre de recherche.
+
+Pour charger un fragment HTML (onglet, popup), utiliser le chemin direct du JSP :
+```java
+// ❌ FAUX : charge la page via module.jsp (layout complet)
+data-url="<%= lien %>?but=profil/parcours-tab.jsp"
+
+// ✅ CORRECT : charge uniquement le fragment JSP
+data-url="<%= request.getContextPath() %>/pages/profil/parcours-tab.jsp?refuser=<%= refuser %>"
+```
+(`champsControles`).
+
+---
+
 ## Résumé des Conventions
 
 | Élément               | Convention                                           |
@@ -786,3 +917,6 @@ Modifier `accueil.jsp` et `testLogin.jsp` (queryString par défaut).
 | Listes (FK)           | `new Liste("attribut", typeObjet, "val", "id")`     |
 | Vues SQL              | Suffixe `libcpl` pour les vues avec jointures        |
 | Séquences             | Fonction PostgreSQL retournant le prochain numéro    |
+| **Types beans**       | **String, int, double, Date, Timestamp — JAMAIS boolean** |
+| **apresWhere**        | **Toujours `""` minimum, jamais `null`**            |
+| **Filtres int**       | **Toujours via `apresWhere`, pas via le bean filtre** |

@@ -22,8 +22,14 @@ public class VisibiliteUtilisateur extends ClassMAPTable {
      */
     private String nomChamp;
 
-    /** true = visible par les autres alumni, false = masqué */
-    private boolean visible;
+    /**
+     * 1 = visible par les autres alumni, 0 = masqué.
+     * APJ ne supporte pas le type boolean Java (javaToSql() n'a pas de mapping
+     * pour boolean → Champ.type reste null → NPE dans makeWhere).
+     * On utilise int (0/1) à la place, qui est correctement géré par APJ
+     * (javaToSql → "Number", testNombre=true dans makeWhere → le champ est ignoré).
+     */
+    private int visible = 0;
 
     public VisibiliteUtilisateur() {
         super.setNomTable("visibilite_utilisateur");
@@ -46,11 +52,11 @@ public class VisibiliteUtilisateur extends ClassMAPTable {
         this.nomChamp = nomChamp;
     }
 
-    public boolean isVisible() {
+    public int getVisible() {
         return visible;
     }
 
-    public void setVisible(boolean visible) {
+    public void setVisible(int visible) {
         this.visible = visible;
     }
 

@@ -65,9 +65,15 @@
     <!-- Content -->
     <% try {%>
     <jsp:include page='<%=but%>'/>
-    <% } catch (Exception e) {%>
-    <script language="JavaScript"> alert('<%=HtmlUtils.escapeHtmlAccents(e.getMessage().toUpperCase()) %>');
-    history.back();</script>
+    <% } catch (Exception e) { e.printStackTrace();
+        java.io.StringWriter sw = new java.io.StringWriter();
+        e.printStackTrace(new java.io.PrintWriter(sw));
+        String errMsg = e.getMessage() != null ? e.getMessage() : e.getClass().getName();
+    %>
+    <div style="background:#f2dede;color:#a94442;border:1px solid #ebccd1;padding:15px;margin:10px;border-radius:4px;">
+        <strong>Erreur :</strong> <%=errMsg%><br/>
+        <pre style="font-size:11px;margin-top:10px;white-space:pre-wrap;"><%=sw.toString()%></pre>
+    </div>
     <%
         }
     %>
@@ -159,10 +165,12 @@
 <%
 } catch (Exception e) {
     e.printStackTrace();
+    java.io.StringWriter sw2 = new java.io.StringWriter();
+    e.printStackTrace(new java.io.PrintWriter(sw2));
+    String outerMsg = e.getMessage() != null ? e.getMessage() : e.getClass().getName();
 %>
-
-<script language="JavaScript">
-    alert('<%=HtmlUtils.escapeHtmlAccents(e.getMessage())%>');
-    history.back();
-</script>
+<div style="background:#f2dede;color:#a94442;border:1px solid #ebccd1;padding:15px;margin:10px;border-radius:4px;">
+    <strong>Erreur (outer) :</strong> <%=outerMsg%><br/>
+    <pre style="font-size:11px;margin-top:10px;white-space:pre-wrap;"><%=sw2.toString()%></pre>
+</div>
 <% }%>
