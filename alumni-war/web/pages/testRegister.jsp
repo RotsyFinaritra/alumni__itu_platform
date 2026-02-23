@@ -23,6 +23,7 @@
         String confirmPwd = request.getParameter("confirmPwd");
         String teluser = request.getParameter("teluser");
         String adruser = request.getParameter("adruser");
+        String idtypeutilisateur = request.getParameter("idtypeutilisateur");
 
         // Validate required fields
         if (loginuser == null || loginuser.trim().isEmpty() ||
@@ -67,7 +68,8 @@
         utilisateur.setTeluser(teluser != null ? teluser : "");
         utilisateur.setAdruser(adruser != null ? adruser : "");
         utilisateur.setIdrole("alumni");
-        utilisateur.setIdtypeutilisateur("TU0000001");
+        // Utilise la valeur sélectionnée dans le formulaire
+        utilisateur.setIdtypeutilisateur(idtypeutilisateur);
 
         // Generate primary key and create user
         utilisateur.construirePK(c);
