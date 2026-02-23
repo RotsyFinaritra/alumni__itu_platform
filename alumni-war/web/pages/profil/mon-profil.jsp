@@ -115,14 +115,22 @@
                 <div class="box box-primary">
                     <div class="box-body box-profile">
                         <% String photo = utilisateur.getPhoto();
-                           if (photo != null && !photo.isEmpty()) { %>
+                           if (photo != null && !photo.isEmpty()) {
+                               // Extraire le nom du fichier si c'est un chemin complet
+                               String photoFileName = photo;
+                               if (photo.contains("/")) {
+                                   photoFileName = photo.substring(photo.lastIndexOf("/") + 1);
+                               }
+                        %>
                         <img class="profile-user-img img-responsive img-circle"
-                             src="<%= photo %>"
-                             alt="Photo de profil">
+                             src="<%= request.getContextPath() %>/profile-photo?file=<%= photoFileName %>"
+                             alt="Photo de profil"
+                             style="width: 100px; height: 100px; object-fit: cover;">
                         <% } else { %>
                         <img class="profile-user-img img-responsive img-circle"
-                             src="assets/img/user-placeholder.png"
-                             alt="Photo de profil">
+                             src="<%= request.getContextPath() %>/assets/img/user-placeholder.svg"
+                             alt="Photo de profil"
+                             style="width: 100px; height: 100px; object-fit: cover;">
                         <% } %>
                         <h3 class="profile-username text-center">
                             <%= (utilisateur.getPrenom() != null ? utilisateur.getPrenom() : "") %>

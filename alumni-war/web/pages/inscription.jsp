@@ -66,9 +66,14 @@
         .input-wrap input[type="email"],
         .input-wrap input[type="password"],
         .input-wrap input[type="tel"],
+        .input-wrap input[type="file"],
         .input-wrap select {
             width: 100%;
             box-sizing: border-box;
+        }
+        .input-wrap input[type="file"] {
+            font-size: 12px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -116,7 +121,7 @@
                                 }
                             %>
 
-                <form class="form" action="testRegister.jsp" method="post">
+                <form class="form" action="testRegister.jsp" method="post" enctype="multipart/form-data">
                     <label class="field">
                         <span class="label">Nom</span>
                         <span class="input-wrap">
@@ -241,6 +246,16 @@
                                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 14.5 9 2.5 2.5 0 0 1 12 11.5z"/></svg>
                             </span>
                             <input type="text" name="adruser" placeholder="Entrer votre adresse" />
+                        </span>
+                    </label>
+
+                    <label class="field">
+                        <span class="label">Photo de profil</span>
+                        <span class="input-wrap">
+                            <span class="icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                            </span>
+                            <input type="file" name="photo" accept="image/*" style="padding: 5px 8px;" />
                         </span>
                     </label>
 
