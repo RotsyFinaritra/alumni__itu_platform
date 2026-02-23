@@ -25,12 +25,10 @@
             if (c != null) c.setLibelle(lb[1]);
         }
 
-        // Listes d&eacute;roulantes pour les FK (APJ : changerEnChamp remplace les Champ par des Liste)
-        Liste[] listes = new Liste[3];
-        listes[0] = new Liste("iddomaine", new Domaine(), "libelle", "id");
-        listes[1] = new Liste("identreprise", new Entreprise(), "libelle", "id");
-        listes[2] = new Liste("idtypeemploie", new TypeEmploie(), "libelle", "id");
-        pi.getFormu().changerEnChamp(listes);
+        // Autocomplete dynamique pour les FK
+        pi.getFormu().getChamp("iddomaine").setPageAppelComplete("bean.Domaine", "id", "domaine");
+        pi.getFormu().getChamp("identreprise").setPageAppelComplete("bean.Entreprise", "id", "entreprise");
+        pi.getFormu().getChamp("idtypeemploie").setPageAppelComplete("bean.TypeEmploie", "id", "type_emploie");
 
         // Masquer idutilisateur (null-safe)
         c = pi.getFormu().getChamp("idutilisateur");
