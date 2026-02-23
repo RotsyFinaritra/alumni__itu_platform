@@ -134,3 +134,5 @@ code-source-apj/
 BDD/references/
 alumni-war/web/dateBuild.txt
 project-reference/
+build.xml
+alumni-ejb/src/java/apj.properties
