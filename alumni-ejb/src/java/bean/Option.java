@@ -2,14 +2,12 @@ package bean;
 
 import java.sql.Connection;
 
-public class Promotion extends ClassMAPTable {
+public class Option extends ClassMAPTable {
     private String id;
     private String libelle;
-    private int annee;
-    private String idOption;
 
-    public Promotion() {
-        super.setNomTable("promotion");
+    public Option() {
+        super.setNomTable("option");
     }
 
     public String getId() {
@@ -28,22 +26,6 @@ public class Promotion extends ClassMAPTable {
         this.libelle = libelle;
     }
 
-    public int getAnnee() {
-        return annee;
-    }
-
-    public void setAnnee(int annee) {
-        this.annee = annee;
-    }
-
-    public String getIdOption() {
-        return idOption;
-    }
-
-    public void setIdOption(String idOption) {
-        this.idOption = idOption;
-    }
-
     @Override
     public String getTuppleID() {
         return this.id;
@@ -55,8 +37,8 @@ public class Promotion extends ClassMAPTable {
     }
 
     public void construirePK(Connection c) throws Exception {
-        super.setNomTable("promotion");
-        this.preparePk("PROMO", "getseqpromotion");
+        super.setNomTable("option");
+        this.preparePk("OP", "getseqoption");
         this.setId(makePK(c));
     }
 }
