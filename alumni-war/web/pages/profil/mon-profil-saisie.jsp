@@ -1,6 +1,6 @@
 <%@ page import="utilisateurAcade.UtilisateurAcade" %>
 <%@ page import="bean.Promotion, bean.TypeUtilisateur, bean.CGenUtil" %>
-<%@ page import="affichage.PageInsert, affichage.Liste , affichage.Champ" %>
+<%@ page import="affichage.PageInsert, affichage.Liste" %>
 <%@ page import="user.UserEJB" %>
 <%
     try {
@@ -10,7 +10,7 @@
         // On modifie toujours son propre profil
         final String refuser = u.getUser().getTuppleID();
 
-        // Charger les données manuellement avec WHERE explicite
+        // Charger les donn&eacute;es manuellement avec WHERE explicite
         // (contourne makeWhere/upper(integer) sur la colonne refuser INTEGER)
         UtilisateurAcade filtre = new UtilisateurAcade();
         Object[] result = CGenUtil.rechercher(filtre, null, null, " AND refuser = " + refuser);
@@ -28,8 +28,8 @@
         pi.setBase(utilisateur);
         pi.makeFormulaireUpt();
 
-        // Libellés (null-safe : getChamp peut retourner null)
-        Champ c;
+        // Libell&eacute;s (null-safe : getChamp peut retourner null)
+        affichage.Champ c;
         String[][] labels = {
             {"nomuser","Nom"}, {"prenom","Pr&eacute;nom"}, {"mail","Email"},
             {"teluser","T&eacute;l&eacute;phone"}, {"adruser","Adresse"},
@@ -40,24 +40,12 @@
             c = pi.getFormu().getChamp(lb[0]);
             if (c != null) c.setLibelle(lb[1]);
         }
-        // Active le champ fichier pour la photo
-        c = pi.getFormu().getChamp("photo");
-        if (c != null) c.setPhoto(true);
 
-        // NE PAS utiliser changerEnChamp pour les champs qu'on veut en recherche
-        // On va plutôt configurer les champs un par un avec setPageAppelComplete
-        
-        // Configuration du champ Promotion avec recherche
-        c = pi.getFormu().getChamp("idpromotion");
-        if (c != null) {
-            c.setPageAppelComplete("bean.Promotion", "id", "promotion");
-        }
-        
-        // Configuration du champ Type de compte avec recherche
-        c = pi.getFormu().getChamp("idtypeutilisateur");
-        if (c != null) {
-            c.setPageAppelComplete("bean.TypeUtilisateur", "id", "type_utilisateur");
-        }
+        // Listes d&eacute;roulantes pour les FK (APJ : changerEnChamp remplace les Champ par des Liste)
+        Liste[] listes = new Liste[2];
+        listes[0] = new Liste("idpromotion", new Promotion(), "libelle", "id");
+        listes[1] = new Liste("idtypeutilisateur", new TypeUtilisateur(), "libelle", "id");
+        pi.getFormu().changerEnChamp(listes);
 
         // Masquer les champs techniques (null-safe)
         for (String hidden : new String[]{"pwduser", "idrole", "rang", "etu", "photo"}) {
@@ -66,7 +54,6 @@
         }
 
         pi.preparerDataFormu();
-    
 %>
 <style>
 .profile-edit-layout {
