@@ -8,6 +8,8 @@ import utilisateur.Utilisateur;
 import utilitaire.UtilDB;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 public class UtilisateurAcade extends Utilisateur {
 
@@ -73,6 +75,12 @@ public class UtilisateurAcade extends Utilisateur {
         this.idpromotion = idpromotion;
     }
 
+    // --- Fix getter naming inconsistency from parent class ---
+    
+    public String getIdrole() {
+        return super.getIdRole();
+    }
+
     // --- Identité APJ (PK = refuser hérité de Utilisateur) ---
 
     @Override
@@ -86,12 +94,27 @@ public class UtilisateurAcade extends Utilisateur {
     }
 
     public void construirePK(Connection c) throws Exception {
+        boolean closeConn = false;
         if (c == null) {
             c = new UtilDB().GetConn();
+            closeConn = true;
         }
-        super.setNomTable("utilisateur");
-        this.preparePk("", "getsequtilisateur");
-        this.setRefuser(makePK(c));
+        try {
+            super.setNomTable("utilisateur");
+            // Get integer value from sequence (no padding - refuser is INTEGER in DB)
+            Statement stmt = c.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT getsequtilisateur()");
+            if (rs.next()) {
+                int seqVal = rs.getInt(1);
+                this.setRefuser(String.valueOf(seqVal));
+            }
+            rs.close();
+            stmt.close();
+        } finally {
+            if (closeConn && c != null) {
+                c.close();
+            }
+        }
     }
 
     public String[] getMotCles() {
