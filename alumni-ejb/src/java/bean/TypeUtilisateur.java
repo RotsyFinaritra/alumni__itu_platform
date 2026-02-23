@@ -37,6 +37,16 @@ public class TypeUtilisateur extends ClassMAPTable {
         return "id";
     }
 
+    @Override
+    public String[] getMotCles() {
+        return new String[]{"id", "libelle"};
+    }
+
+    @Override
+    public String[] getValMotCles() {
+        return new String[]{"libelle"};
+    }
+
     public void construirePK(Connection c) throws Exception {
         super.setNomTable("type_utilisateur");
         this.preparePk("TU", "getseqtypeutilisateur");

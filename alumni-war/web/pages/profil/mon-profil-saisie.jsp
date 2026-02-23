@@ -28,6 +28,14 @@
         pi.setBase(utilisateur);
         pi.makeFormulaireUpt();
 
+        // Liste déroulante pour Type de compte (changerEnChamp AVANT setLibelle)
+        Liste[] listes = new Liste[1];
+        listes[0] = new Liste("idtypeutilisateur", new TypeUtilisateur(), "libelle", "id");
+        pi.getFormu().changerEnChamp(listes);
+
+        // Autocomplete dynamique pour Promotion (getMotCles cherche sur id + libelle)
+        pi.getFormu().getChamp("idpromotion").setPageAppelComplete("bean.Promotion", "id", "promotion");
+
         // Libellés (null-safe : getChamp peut retourner null)
         Champ c;
         String[][] labels = {
@@ -43,21 +51,6 @@
         // Active le champ fichier pour la photo
         c = pi.getFormu().getChamp("photo");
         if (c != null) c.setPhoto(true);
-
-        // NE PAS utiliser changerEnChamp pour les champs qu'on veut en recherche
-        // On va plutôt configurer les champs un par un avec setPageAppelComplete
-        
-        // Configuration du champ Promotion avec recherche
-        c = pi.getFormu().getChamp("idpromotion");
-        if (c != null) {
-            c.setPageAppelComplete("bean.Promotion", "id", "promotion");
-        }
-        
-        // Configuration du champ Type de compte avec recherche
-        c = pi.getFormu().getChamp("idtypeutilisateur");
-        if (c != null) {
-            c.setPageAppelComplete("bean.TypeUtilisateur", "id", "type_utilisateur");
-        }
 
         // Masquer les champs techniques (null-safe)
         for (String hidden : new String[]{"pwduser", "idrole", "rang", "etu", "photo"}) {

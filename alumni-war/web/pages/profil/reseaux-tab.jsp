@@ -84,6 +84,13 @@
             </div>
             <div class="reseau-info">
                 <div class="reseau-title"><%= libelReseau %></div>
+                <% String lienReseau = ru.getLien();
+                   if (lienReseau != null && !lienReseau.isEmpty()) { %>
+                <a href="<%= lienReseau.startsWith("http") ? lienReseau : "https://" + lienReseau %>" 
+                   target="_blank" style="color:#3c8dbc; font-size:13px; word-break:break-all;">
+                    <i class="fa fa-external-link" style="margin-right:4px;"></i><%= lienReseau %>
+                </a>
+                <% } %>
             </div>
             <% if (isOwnProfile) { %>
             <div class="reseau-actions">
