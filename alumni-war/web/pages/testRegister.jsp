@@ -68,7 +68,7 @@
         utilisateur.setEtu(etu != null ? etu : "");
         utilisateur.setTeluser(teluser != null ? teluser : "");
         utilisateur.setAdruser(adruser != null ? adruser : "");
-        utilisateur.setIdrole("alumni");
+        utilisateur.setIdrole("utilisateur");
         // Utilise la valeur sélectionnée dans le formulaire
         utilisateur.setIdtypeutilisateur(idtypeutilisateur);
         // Ajoute la promotion sélectionnée
