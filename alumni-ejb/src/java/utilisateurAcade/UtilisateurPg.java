@@ -5,6 +5,8 @@ package utilisateurAcade;
 
 import bean.ClassMAPTable;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import utilitaire.UtilDB;
 
 public class UtilisateurPg extends ClassMAPTable {
 
@@ -100,5 +102,40 @@ public class UtilisateurPg extends ClassMAPTable {
         super.setNomTable("utilisateur");
         this.preparePk("", "getsequtilisateur");
         this.setRefuser(Integer.valueOf(makePK(c)));
+    }
+
+    /**
+     * Met a jour le profil utilisateur en base.
+     * Utilise un PreparedStatement avec setInt pour le WHERE refuser (PK integer),
+     * car le framework APJ updateToTable utilise setString pour le PK,
+     * ce qui est incompatible avec une colonne SERIAL/integer en PostgreSQL.
+     */
+    public void updateProfil() throws Exception {
+        String sql = "UPDATE utilisateur SET nomuser=?, prenom=?, mail=?, teluser=?, "
+                   + "adruser=?, loginuser=?, idpromotion=?, idtypeutilisateur=?, photo=? "
+                   + "WHERE refuser=?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = new UtilDB().GetConn();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, this.nomuser);
+            ps.setString(2, this.prenom);
+            ps.setString(3, this.mail);
+            ps.setString(4, this.teluser);
+            ps.setString(5, this.adruser);
+            ps.setString(6, this.loginuser);
+            ps.setString(7, this.idpromotion);
+            ps.setString(8, this.idtypeutilisateur);
+            ps.setString(9, this.photo);
+            ps.setInt(10, this.refuser);
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                throw new Exception("Aucune ligne modifiee, refuser=" + this.refuser + " introuvable");
+            }
+        } finally {
+            if (ps != null) try { ps.close(); } catch (Exception e) {}
+            if (conn != null) try { conn.close(); } catch (Exception e) {}
+        }
     }
 }
