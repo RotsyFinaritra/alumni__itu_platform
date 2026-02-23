@@ -75,3 +75,7 @@ SELECT setval('seqentreprise', 37, true);
 
 -- Vérification
 SELECT COUNT(*) as nombre_entreprises FROM entreprise;
+
+
+ALTER SYSTEM SET max_connections = '200';
+-- Puis redémarrer PostgreSQL

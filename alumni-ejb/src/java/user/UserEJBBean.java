@@ -555,11 +555,19 @@ public class UserEJBBean implements UserEJB, UserEJBRemote, SessionBean {
         Connection c = null;
         try {
             c = (new utilitaire.UtilDB()).GetConn();
+            
+            // Check if connection was established
+            if (c == null) {
+                throw new Exception("Erreur de connexion a la base de donnees. " +
+                        "Le serveur PostgreSQL est peut-etre sature (trop de connexions actives). " +
+                        "Contactez l'administrateur systeme.");
+            }
+            
             UtilisateurStatut us = new UtilisateurStatut();
             Object[] resultats = CGenUtil.rechercher(us, null, null, c, " and loginuser = '" + loginuser + "'");
 
             if (resultats == null || resultats.length == 0) {
-                // L'utilisateur n'existe pas dans la vue : laisse testeValide gérer l'erreur
+                // L'utilisateur n'existe pas  dans la vue : laisse testeValide gérer l'erreur
                 return;
             }
 
@@ -596,7 +604,6 @@ public class UserEJBBean implements UserEJB, UserEJBRemote, SessionBean {
 
     @Override
     public void testLogin(String user, String pass) throws Exception {
-        Connection c = null;
         try {
             checkUtilisateurStatut(user);
             u = testeValide(user, pass);
@@ -620,18 +627,12 @@ public class UserEJBBean implements UserEJB, UserEJBRemote, SessionBean {
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new Exception(ex.getMessage());
-        } finally {
-            if (c != null) {
-                c.close();
-            }
         }
     }
     @Override
     public void testLogin(String user, String pass, String param) throws Exception {
-        Connection c = null;
         try {
-            user = "judicael";
-            pass = "judicael";
+            // REMOVED HARDCODED TEST CREDENTIALS - USE ACTUAL PARAMETERS
             checkUtilisateurStatut(user);
             u = testeValide(user, pass);
 
@@ -654,10 +655,6 @@ public class UserEJBBean implements UserEJB, UserEJBRemote, SessionBean {
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new Exception(ex.getMessage());
-        } finally {
-            if (c != null) {
-                c.close();
-            }
         }
     }
 
