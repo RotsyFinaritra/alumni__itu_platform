@@ -26,6 +26,8 @@
 .reseau-actions { display: flex; gap: 6px; margin-left: auto; }
 .btn-reseau { padding: 5px 10px; font-size: 12px; border-radius: 3px; border: none; cursor: pointer; white-space: nowrap; }
 .btn-reseau i { margin-right: 4px; }
+.btn-reseau-edit { background: #3c8dbc; color: #fff; }
+.btn-reseau-edit:hover { background: #357ca5; }
 .btn-reseau-delete { background: #d32f2f; color: #fff; }
 .btn-reseau-delete:hover { background: #c62828; }
 .reseau-empty { text-align: center; padding: 40px 20px; color: #999; }
@@ -94,6 +96,10 @@
             </div>
             <% if (isOwnProfile) { %>
             <div class="reseau-actions">
+                <a class="btn btn-reseau btn-reseau-edit"
+                   href="<%= lien %>?but=profil/reseau-saisie.jsp&id=<%= ru.getId() %>&refuser=<%= refuser %>">
+                    <i class="fa fa-pencil"></i> Modifier
+                </a>
                 <a class="btn btn-reseau btn-reseau-delete"
                    href="<%= lien %>?but=apresTarif.jsp&acte=delete&classe=bean.ReseauUtilisateur&nomtable=reseau_utilisateur&bute=profil/mon-profil.jsp&id=<%= ru.getId() %>&refuser=<%= refuser %>&rajoutLien=refuser"
                    onclick="return confirm('Supprimer ce r&eacute;seau ?')">

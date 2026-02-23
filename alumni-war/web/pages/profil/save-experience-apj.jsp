@@ -1,6 +1,7 @@
 <%@ page import="bean.Experience, bean.CGenUtil" %>
+<%@ page import="affichage.PageInsertMultiple" %>
+<%@ page import="bean.ClassMAPTable" %>
 <%@ page import="user.UserEJB" %>
-<%@ page import="java.sql.Date" %>
 <%
     try {
         UserEJB u = (UserEJB) session.getValue("u");
@@ -25,36 +26,16 @@
 
         if ("insertExperiences".equalsIgnoreCase(acte)) {
             String[] ids = request.getParameterValues("ids");
-            if (ids != null) {
-                for (String idx : ids) {
-                    String poste          = request.getParameter("poste_"         + idx);
-                    String iddomaine      = request.getParameter("iddomaine_"     + idx);
-                    String identreprise   = request.getParameter("identreprise_"  + idx);
-                    String idtypeemploie  = request.getParameter("idtypeemploie_" + idx);
-                    String dateDebStr     = request.getParameter("datedebut_"     + idx);
-                    String dateFinStr     = request.getParameter("datefin_"       + idx);
-
-                    // Ignorer les lignes completement vides
-                    boolean hasData = (poste         != null && !poste.trim().isEmpty())
-                                   || (iddomaine     != null && !iddomaine.trim().isEmpty())
-                                   || (identreprise  != null && !identreprise.trim().isEmpty())
-                                   || (dateDebStr    != null && !dateDebStr.trim().isEmpty());
-                    if (!hasData) continue;
-
-                    Experience exp = new Experience();
-                    exp.setIdutilisateur(refuserInt);
-                    if (poste         != null && !poste.trim().isEmpty())        exp.setPoste(poste);
-                    if (iddomaine     != null && !iddomaine.trim().isEmpty())    exp.setIddomaine(iddomaine);
-                    if (identreprise  != null && !identreprise.trim().isEmpty()) exp.setIdentreprise(identreprise);
-                    if (idtypeemploie != null && !idtypeemploie.trim().isEmpty()) exp.setIdtypeemploie(idtypeemploie);
-                    if (dateDebStr    != null && !dateDebStr.trim().isEmpty()) {
-                        try { exp.setDatedebut(Date.valueOf(dateDebStr)); } catch (Exception ignored) {}
-                    }
-                    if (dateFinStr != null && !dateFinStr.trim().isEmpty()) {
-                        try { exp.setDatefin(Date.valueOf(dateFinStr)); } catch (Exception ignored) {}
-                    }
-                    CGenUtil.save(exp);
+            int nbLine = Integer.parseInt(request.getParameter("nombreLigne"));
+            if (ids != null && ids.length > 0) {
+                Experience fille = new Experience();
+                PageInsertMultiple pi = new PageInsertMultiple(fille, request, nbLine, ids);
+                ClassMAPTable[] cfille = pi.getObjectFilleAvecValeur();
+                // Forcer idutilisateur sur chaque ligne (securite)
+                for (ClassMAPTable f : cfille) {
+                    ((Experience) f).setIdutilisateur(refuserInt);
                 }
+                u.createObjectMultiple(cfille);
             }
 %>
 <script>window.location.href='<%= lien %>?but=profil/experience-saisie.jsp&refuser=<%= refuser %>';</script>

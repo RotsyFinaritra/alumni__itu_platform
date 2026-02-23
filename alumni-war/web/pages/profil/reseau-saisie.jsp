@@ -7,12 +7,17 @@
         String lien = (String) session.getValue("lien");
         String refuser = request.getParameter("refuser");
         if (refuser == null || refuser.isEmpty()) refuser = u.getUser().getTuppleID();
-        String acte = "insert";
+        String id = request.getParameter("id");
+        String acte = (id != null && !id.isEmpty()) ? "update" : "insert";
 
         // Créer l'objet ReseauUtilisateur et définir idutilisateur AVANT PageInsert
         ReseauUtilisateur reseau = new ReseauUtilisateur();
         reseau.setIdutilisateur(Integer.parseInt(refuser));
-        
+        if ("update".equals(acte) && id != null) {
+            Object[] res = bean.CGenUtil.rechercher(reseau, null, null, " AND id = '" + id + "'");
+            if (res != null && res.length > 0) reseau = (ReseauUtilisateur) res[0];
+        }
+
         PageInsert pi = new PageInsert(reseau, request, u);
         pi.setLien(lien);
 
@@ -33,13 +38,18 @@
             c.setVisible(false);
         }
         c = pi.getFormu().getChamp("id");
-        if (c != null) c.setVisible(false);
+        if (c != null) { c.setVisible(false); if (id != null) c.setValeur(id); }
+
+        if ("update".equals(acte)) {
+            if (reseau.getIdreseauxsociaux() != null) pi.getFormu().getChamp("idreseauxsociaux").setValeur(reseau.getIdreseauxsociaux());
+            if (reseau.getLien() != null) pi.getFormu().getChamp("lien").setValeur(reseau.getLien());
+        }
 
         pi.preparerDataFormu();
 %>
 <div class="content-wrapper">
     <section class="content-header">
-        <h1>Ajouter un r&eacute;seau social</h1>
+        <h1><%= "update".equals(acte) ? "Modifier le r&eacute;seau social" : "Ajouter un r&eacute;seau social" %></h1>
     </section>
     <section class="content">
         <div class="row">
@@ -56,12 +66,15 @@
                             %>
                         </div>
                         <div class="box-footer">
-                            <input name="acte" type="hidden" value="insert">
-                            <input name="bute" type="hidden" value="profil/mon-profil.jsp">
-                            <input name="classe" type="hidden" value="bean.ReseauUtilisateur">
+                            <input name="acte"     type="hidden" value="<%= acte %>">
+                            <input name="bute"     type="hidden" value="profil/mon-profil.jsp">
+                            <input name="classe"   type="hidden" value="bean.ReseauUtilisateur">
                             <input name="nomtable" type="hidden" value="reseau_utilisateur">
                             <input name="rajoutLien" type="hidden" value="refuser">
-                            <input name="refuser" type="hidden" value="<%= refuser %>">
+                            <input name="refuser"  type="hidden" value="<%= refuser %>">
+                            <% if ("update".equals(acte)) { %>
+                            <input name="id" type="hidden" value="<%= id %>">
+                            <% } %>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fa fa-save"></i> Enregistrer
                             </button>

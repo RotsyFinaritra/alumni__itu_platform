@@ -32,6 +32,8 @@
 .btn-parcours i { margin-right: 4px; }
 .btn-parcours-edit { background: #3c8dbc; color: #fff; }
 .btn-parcours-edit:hover { background: #357ca5; }
+.btn-parcours-edit { background: #3c8dbc; color: #fff; }
+.btn-parcours-edit:hover { background: #357ca5; }
 .btn-parcours-delete { background: #d32f2f; color: #fff; }
 .btn-parcours-delete:hover { background: #c62828; }
 .parcours-empty { text-align: center; padding: 40px 20px; color: #999; }
@@ -117,6 +119,10 @@
             </div>
             <% if (isOwnProfile) { %>
             <div class="parcours-actions">
+                <a class="btn btn-parcours btn-parcours-edit"
+                   href="<%= lien %>?but=profil/parcours-edit.jsp&id=<%= p.getId() %>&refuser=<%= refuser %>">
+                    <i class="fa fa-pencil"></i> Modifier
+                </a>
                 <a class="btn btn-parcours btn-parcours-delete"
                    href="<%= lien %>?but=profil/save-parcours-apj.jsp&acte=delete&id=<%= p.getId() %>&refuser=<%= refuser %>"
                    onclick="return confirm('Supprimer ce parcours ?')">

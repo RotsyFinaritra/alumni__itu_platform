@@ -1,6 +1,7 @@
 <%@ page import="bean.Parcours, bean.CGenUtil" %>
+<%@ page import="affichage.PageInsertMultiple" %>
+<%@ page import="bean.ClassMAPTable" %>
 <%@ page import="user.UserEJB" %>
-<%@ page import="java.sql.Date" %>
 <%
     try {
         UserEJB u = (UserEJB) session.getValue("u");
@@ -25,34 +26,16 @@
 
         if ("insertParcours".equalsIgnoreCase(acte)) {
             String[] ids = request.getParameterValues("ids");
-            if (ids != null) {
-                for (String idx : ids) {
-                    String iddiplome   = request.getParameter("iddiplome_"   + idx);
-                    String idecole     = request.getParameter("idecole_"     + idx);
-                    String iddomaine   = request.getParameter("iddomaine_"   + idx);
-                    String dateDebStr  = request.getParameter("datedebut_"   + idx);
-                    String dateFinStr  = request.getParameter("datefin_"     + idx);
-
-                    // Ignorer les lignes completement vides
-                    boolean hasData = (iddiplome != null && !iddiplome.trim().isEmpty())
-                                   || (idecole    != null && !idecole.trim().isEmpty())
-                                   || (iddomaine  != null && !iddomaine.trim().isEmpty())
-                                   || (dateDebStr != null && !dateDebStr.trim().isEmpty());
-                    if (!hasData) continue;
-
-                    Parcours p = new Parcours();
-                    p.setIdutilisateur(refuserInt);
-                    if (iddiplome  != null && !iddiplome.trim().isEmpty())  p.setIddiplome(iddiplome);
-                    if (idecole    != null && !idecole.trim().isEmpty())    p.setIdecole(idecole);
-                    if (iddomaine  != null && !iddomaine.trim().isEmpty())  p.setIddomaine(iddomaine);
-                    if (dateDebStr != null && !dateDebStr.trim().isEmpty()) {
-                        try { p.setDatedebut(Date.valueOf(dateDebStr)); } catch (Exception ignored) {}
-                    }
-                    if (dateFinStr != null && !dateFinStr.trim().isEmpty()) {
-                        try { p.setDatefin(Date.valueOf(dateFinStr)); } catch (Exception ignored) {}
-                    }
-                    CGenUtil.save(p);
+            int nbLine = Integer.parseInt(request.getParameter("nombreLigne"));
+            if (ids != null && ids.length > 0) {
+                Parcours fille = new Parcours();
+                PageInsertMultiple pi = new PageInsertMultiple(fille, request, nbLine, ids);
+                ClassMAPTable[] cfille = pi.getObjectFilleAvecValeur();
+                // Forcer idutilisateur sur chaque ligne (securite)
+                for (ClassMAPTable f : cfille) {
+                    ((Parcours) f).setIdutilisateur(refuserInt);
                 }
+                u.createObjectMultiple(cfille);
             }
 %>
 <script>window.location.href='<%= lien %>?but=profil/parcours-saisie.jsp&refuser=<%= refuser %>';</script>

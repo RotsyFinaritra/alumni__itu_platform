@@ -33,6 +33,8 @@
 .btn-exp i { margin-right: 4px; }
 .btn-exp-edit { background: #00a65a; color: #fff; }
 .btn-exp-edit:hover { background: #008d4c; }
+.btn-exp-edit { background: #00a65a; color: #fff; }
+.btn-exp-edit:hover { background: #008d4c; }
 .btn-exp-delete { background: #d32f2f; color: #fff; }
 .btn-exp-delete:hover { background: #c62828; }
 .exp-empty { text-align: center; padding: 40px 20px; color: #999; }
@@ -121,6 +123,10 @@
             </div>
             <% if (isOwnProfile) { %>
             <div class="exp-actions">
+                <a class="btn btn-exp btn-exp-edit"
+                   href="<%= lien %>?but=profil/experience-edit.jsp&id=<%= exp.getId() %>&refuser=<%= refuser %>">
+                    <i class="fa fa-pencil"></i> Modifier
+                </a>
                 <a class="btn btn-exp btn-exp-delete"
                    href="<%= lien %>?but=profil/save-experience-apj.jsp&acte=delete&id=<%= exp.getId() %>&refuser=<%= refuser %>"
                    onclick="return confirm('Supprimer cette exp&eacute;rience ?')">
