@@ -1,6 +1,6 @@
 <project name="deploy-ejb" default="deploy" basedir="./build-file">
     <property environment="env" />
-    <property name="deploy.dir" value="/opt/wildfly-10.1.0.Final/standalone/deployments/" />
+    <property name="deploy.dir" value="D:\Mr Tahina\wildfly-10.0.0.Final\wildfly-10.0.0.Final\standalone\deployments" />
     <property name="alumni-warname" value="alumni.war" />
     <property name="front-warname" value="front.war" />
     <property name="alumni-jarname" value="alumni-ejb.jar" />

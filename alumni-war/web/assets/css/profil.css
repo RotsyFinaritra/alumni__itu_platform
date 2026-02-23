@@ -1,0 +1,579 @@
+/* ============================================
+   PAGE PROFIL - STYLES
+   ============================================ */
+
+.profil-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+/* ============================================
+   EN-TÊTE DU PROFIL
+   ============================================ */
+
+.profil-header {
+    position: relative;
+    margin-bottom: 40px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.profil-header-bg {
+    height: 200px;
+    background: linear-gradient(135deg, #2B68D9 0%, #1e4ba3 100%);
+    position: relative;
+}
+
+.profil-header-bg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+    opacity: 0.3;
+}
+
+.profil-header-content {
+    display: flex;
+    align-items: flex-end;
+    padding: 0 40px 30px;
+    background: white;
+    gap: 30px;
+}
+
+.profil-avatar-wrapper {
+    margin-top: -60px;
+}
+
+.profil-avatar {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 6px solid white;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    background: white;
+}
+
+.profil-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-edit-btn {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #2B68D9;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.avatar-edit-btn:hover {
+    background: #1e4ba3;
+    transform: scale(1.1);
+}
+
+.profil-info {
+    flex: 1;
+    padding-bottom: 10px;
+}
+
+.profil-name {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1C1F21;
+    margin: 0 0 8px 0;
+    font-family: "DM Sans", sans-serif;
+}
+
+.profil-login,
+.profil-etu {
+    font-size: 16px;
+    color: #6c757d;
+    margin: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.profil-login i,
+.profil-etu i {
+    color: #2B68D9;
+}
+
+/* ============================================
+   ONGLETS
+   ============================================ */
+
+.profil-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #e9ecef;
+    padding: 0 20px;
+}
+
+.tab-btn {
+    padding: 16px 32px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #6c757d;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+    color: #2B68D9;
+    background: rgba(43, 104, 217, 0.05);
+}
+
+.tab-btn.active {
+    color: #2B68D9;
+    border-bottom-color: #2B68D9;
+}
+
+.tab-btn i {
+    font-size: 18px;
+}
+
+/* ============================================
+   CONTENU DES ONGLETS
+   ============================================ */
+
+.profil-content {
+    padding: 0 20px 40px;
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.5s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   CARTES SECTION
+   ============================================ */
+
+.card-section {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e9ecef;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f1f3f5;
+}
+
+.section-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1C1F21;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.section-header h2 i {
+    color: #2B68D9;
+    font-size: 22px;
+}
+
+.btn-edit {
+    padding: 10px 20px;
+    background: #2B68D9;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-edit:hover {
+    background: #1e4ba3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(43, 104, 217, 0.3);
+}
+
+/* ============================================
+   FORMULAIRES
+   ============================================ */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-group label i {
+    color: #2B68D9;
+    font-size: 16px;
+}
+
+.form-control {
+    padding: 12px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 15px;
+    color: #495057;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+    font-family: "DM Sans", sans-serif;
+}
+
+.form-control:disabled {
+    background: #f8f9fa;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+.form-control:not(:disabled):focus {
+    outline: none;
+    border-color: #2B68D9;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(43, 104, 217, 0.1);
+}
+
+.form-control.editable {
+    background: white;
+    border-color: #2B68D9;
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-text {
+    display: block;
+    margin-top: 6px;
+    font-size: 13px;
+    color: #6c757d;
+}
+
+/* ============================================
+   ACTIONS DU FORMULAIRE
+   ============================================ */
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 30px;
+    padding-top: 24px;
+    border-top: 2px solid #f1f3f5;
+}
+
+.btn {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: #2B68D9;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #1e4ba3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(43, 104, 217, 0.3);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+/* ============================================
+   SÉCURITÉ
+   ============================================ */
+
+.security-info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.security-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border-left: 4px solid transparent;
+}
+
+.security-item:first-child {
+    border-left-color: #28a745;
+}
+
+.security-item:last-child {
+    border-left-color: #ffc107;
+}
+
+.security-icon {
+    font-size: 32px;
+}
+
+.security-text h4 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1C1F21;
+}
+
+.security-text p {
+    margin: 0;
+    font-size: 14px;
+    color: #6c757d;
+}
+
+/* ============================================
+   ACTIVITÉ
+   ============================================ */
+
+.activity-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.activity-item {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border-left: 4px solid #2B68D9;
+    transition: all 0.3s ease;
+}
+
+.activity-item:hover {
+    background: #e9ecef;
+    transform: translateX(4px);
+}
+
+.activity-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #2B68D9;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-content h4 {
+    margin: 0 0 6px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1C1F21;
+}
+
+.activity-time {
+    margin: 0;
+    font-size: 13px;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ============================================
+   STATISTIQUES
+   ============================================ */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #2B68D9 0%, #1e4ba3 100%);
+    color: white;
+    padding: 24px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(43, 104, 217, 0.2);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(43, 104, 217, 0.3);
+}
+
+.stat-icon {
+    font-size: 40px;
+    opacity: 0.9;
+}
+
+.stat-info h3 {
+    font-size: 36px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.stat-info p {
+    font-size: 14px;
+    margin: 0;
+    opacity: 0.9;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 992px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .profil-header-content {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .profil-avatar-wrapper {
+        margin-top: -80px;
+    }
+}
+
+@media (max-width: 768px) {
+    .profil-tabs {
+        flex-direction: column;
+        border-bottom: none;
+        padding: 0;
+    }
+    
+    .tab-btn {
+        border-bottom: none;
+        border-left: 3px solid transparent;
+        justify-content: center;
+    }
+    
+    .tab-btn.active {
+        border-left-color: #2B68D9;
+        border-bottom-color: transparent;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .profil-header-bg {
+        height: 150px;
+    }
+    
+    .profil-avatar {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .profil-name {
+        font-size: 24px;
+    }
+}
