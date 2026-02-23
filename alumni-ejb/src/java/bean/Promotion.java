@@ -54,6 +54,16 @@ public class Promotion extends ClassMAPTable {
         return "id";
     }
 
+    @Override
+    public String[] getMotCles() {
+        return new String[]{"id", "libelle"};
+    }
+
+    @Override
+    public String[] getValMotCles() {
+        return new String[]{"id", "libelle"};
+    }
+
     public void construirePK(Connection c) throws Exception {
         super.setNomTable("promotion");
         this.preparePk("PROMO", "getseqpromotion");

@@ -310,7 +310,7 @@
     function fetchAutocomplete(request, response, affiche, valeur, colFiltre, nomTable, classe,useMocle,champRetour) {
         if (request.term.length >= 1) {
             $.ajax({
-                url: "/donation/autocomplete",
+                url: _CONTEXT_PATH + "/autocomplete",
                 method: "GET",
                 contentType: "application/x-www-form-urlencoded",
                 dataType: "json",
