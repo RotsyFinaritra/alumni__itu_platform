@@ -12,7 +12,6 @@
         String acte = request.getParameter("acte");
 
         if ("delete".equalsIgnoreCase(acte)) {
-            // Suppression d'une competence individuelle
             String idcompetence = request.getParameter("idcompetence");
             if (idcompetence != null && !idcompetence.isEmpty()) {
                 Connection conn = null;
@@ -30,21 +29,19 @@
                     if (conn != null) try { conn.close(); } catch (Exception ignored) {}
                 }
             }
-            // Retour a la page competence-saisie
-            response.sendRedirect(lien + "?but=profil/competence-saisie.jsp&refuser=" + refuser);
+%>
+<script>window.location.href='<%= lien %>?but=profil/competence-saisie.jsp&refuser=<%= refuser %>';</script>
+<%
             return;
         }
 
         if ("insertCompetences".equalsIgnoreCase(acte)) {
-            // Insertion des competences cochees dans le PageInsertMultiple
             String[] ids = request.getParameterValues("ids");
-            int nombreLigne = Integer.parseInt(request.getParameter("nombreLigne"));
 
             if (ids != null) {
                 for (String idx : ids) {
                     String idcomp = request.getParameter("idcompetence_" + idx);
                     if (idcomp != null && !idcomp.trim().isEmpty()) {
-                        // Verifier que la competence n'existe pas deja
                         CompetenceUtilisateur check = new CompetenceUtilisateur();
                         check.setIdcompetence(idcomp);
                         check.setIdutilisateur(refuserInt);
@@ -59,19 +56,20 @@
                     }
                 }
             }
-            // Retour a la page competence-saisie
-            response.sendRedirect(lien + "?but=profil/competence-saisie.jsp&refuser=" + refuser);
+%>
+<script>window.location.href='<%= lien %>?but=profil/competence-saisie.jsp&refuser=<%= refuser %>';</script>
+<%
             return;
         }
-
-        // Action inconnue -> retour au profil
-        response.sendRedirect(lien + "?but=profil/mon-profil.jsp&refuser=" + refuser);
-
+%>
+<script>window.location.href='<%= lien %>?but=profil/mon-profil.jsp&refuser=<%= refuser %>';</script>
+<%
     } catch (Exception e) {
         e.printStackTrace();
         String lien = (String) session.getValue("lien");
         String refuser = request.getParameter("refuser");
-        session.setAttribute("errorMessage", "Erreur : " + e.getMessage());
-        response.sendRedirect(lien + "?but=profil/competence-saisie.jsp&refuser=" + refuser);
+%>
+<script>alert('Erreur: <%= e.getMessage() != null ? e.getMessage().replace("'", "\\\\'" ) : "erreur inconnue" %>'); window.location.href='<%= lien %>?but=profil/competence-saisie.jsp&refuser=<%= refuser %>';</script>
+<%
     }
 %>
