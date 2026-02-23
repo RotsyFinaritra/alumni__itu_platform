@@ -27,4 +27,14 @@ public class Specialite extends ClassMAPTable {
         this.preparePk("SPEC", "getseqspecialite");
         this.setId(makePK(c));
     }
+
+    @Override
+    public String[] getMotCles() {
+        return new String[]{"id", "libelle"};
+    }
+
+    @Override
+    public String[] getValMotCles() {
+        return new String[]{"libelle"};
+    }
 }
