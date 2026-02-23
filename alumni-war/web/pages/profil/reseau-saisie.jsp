@@ -9,7 +9,11 @@
         if (refuser == null || refuser.isEmpty()) refuser = u.getUser().getTuppleID();
         String acte = "insert";
 
-        PageInsert pi = new PageInsert(new ReseauUtilisateur(), request, u);
+        // Créer l'objet ReseauUtilisateur et définir idutilisateur AVANT PageInsert
+        ReseauUtilisateur reseau = new ReseauUtilisateur();
+        reseau.setIdutilisateur(Integer.parseInt(refuser));
+        
+        PageInsert pi = new PageInsert(reseau, request, u);
         pi.setLien(lien);
 
         // Libell&eacute;s
@@ -24,7 +28,10 @@
 
         // Masquer idutilisateur et id (auto-g&eacute;n&eacute;r&eacute;s) — null-safe
         c = pi.getFormu().getChamp("idutilisateur");
-        if (c != null) c.setVisible(false);
+        if (c != null) {
+            c.setValeur(refuser);
+            c.setVisible(false);
+        }
         c = pi.getFormu().getChamp("id");
         if (c != null) c.setVisible(false);
 
@@ -53,7 +60,7 @@
                             <input name="bute" type="hidden" value="profil/mon-profil.jsp">
                             <input name="classe" type="hidden" value="bean.ReseauUtilisateur">
                             <input name="nomtable" type="hidden" value="reseau_utilisateur">
-                            <input name="idutilisateur" type="hidden" value="<%= refuser %>">
+                            <input name="rajoutLien" type="hidden" value="refuser">
                             <input name="refuser" type="hidden" value="<%= refuser %>">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fa fa-save"></i> Enregistrer
@@ -68,6 +75,15 @@
         </div>
     </section>
 </div>
+<script>
+// Supprimer les champs FK vides avant soumission pour éviter les erreurs de contraintes
+document.getElementById('formReseau').addEventListener('submit', function(e) {
+    var select = this.querySelector('select[name="idreseauxsociaux"]');
+    if (select && (select.value === '' || select.value === null)) {
+        select.removeAttribute('name');
+    }
+});
+</script>
 <%  } catch (Exception e) {
         e.printStackTrace();
     }

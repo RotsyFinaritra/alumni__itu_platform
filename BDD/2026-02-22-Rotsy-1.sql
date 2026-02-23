@@ -1,9 +1,3 @@
--- Active: 1765439577522@@127.0.0.1@5432@alumni_itu
--- =====================================================
--- MENUS DE NAVIGATION (données de test)
--- Structure : niveau 0 = parent, niveau 1 = fils
--- rang : ordre d'affichage
--- =====================================================
 
 -- Menu 1 : Profil (parent)
 INSERT INTO menudynamique (id, libelle, icone, href, rang, niveau, id_pere)

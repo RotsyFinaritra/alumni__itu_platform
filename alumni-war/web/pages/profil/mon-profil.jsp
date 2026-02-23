@@ -192,7 +192,7 @@
     border-top-color: #262626;
 }
 .instagram-content {
-    padding: 30px 0;
+    padding: 0;
 }
 .info-grid {
     display: grid;

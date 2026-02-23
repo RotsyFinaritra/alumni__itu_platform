@@ -9,7 +9,11 @@
         if (refuser == null || refuser.isEmpty()) refuser = u.getUser().getTuppleID();
         String acte = request.getParameter("acte") != null ? request.getParameter("acte") : "insert";
 
-        PageInsert pi = new PageInsert(new Experience(), request, u);
+        // Créer l'objet Experience et définir idutilisateur AVANT PageInsert
+        Experience exp = new Experience();
+        exp.setIdutilisateur(Integer.parseInt(refuser));
+        
+        PageInsert pi = new PageInsert(exp, request, u);
         pi.setLien(lien);
 
         // Libell&eacute;s (null-safe)
@@ -32,9 +36,12 @@
         listes[2] = new Liste("idtypeemploie", new TypeEmploie(), "libelle", "id");
         pi.getFormu().changerEnChamp(listes);
 
-        // Masquer idutilisateur (null-safe)
+        // Masquer idutilisateur et définir sa valeur (null-safe)
         c = pi.getFormu().getChamp("idutilisateur");
-        if (c != null) c.setVisible(false);
+        if (c != null) {
+            c.setValeur(refuser);
+            c.setVisible(false);
+        }
 
         pi.preparerDataFormu();
 %>
@@ -61,7 +68,7 @@
                             <input name="bute" type="hidden" value="profil/mon-profil.jsp">
                             <input name="classe" type="hidden" value="bean.Experience">
                             <input name="nomtable" type="hidden" value="experience">
-                            <input name="idutilisateur" type="hidden" value="<%= refuser %>">
+                            <input name="rajoutLien" type="hidden" value="refuser">
                             <input name="refuser" type="hidden" value="<%= refuser %>">
                             <% if ("update".equals(acte) && request.getParameter("id") != null) { %>
                             <input name="id" type="hidden" value="<%= request.getParameter("id") %>">
@@ -79,6 +86,17 @@
         </div>
     </section>
 </div>
+<script>
+// Supprimer les champs FK vides avant soumission pour éviter les erreurs de contraintes
+document.getElementById('formExperience').addEventListener('submit', function(e) {
+    var selects = this.querySelectorAll('select[name="iddomaine"], select[name="identreprise"], select[name="idtypeemploie"]');
+    selects.forEach(function(select) {
+        if (select.value === '' || select.value === null) {
+            select.removeAttribute('name');
+        }
+    });
+});
+</script>
 <%  } catch (Exception e) {
         e.printStackTrace();
     }

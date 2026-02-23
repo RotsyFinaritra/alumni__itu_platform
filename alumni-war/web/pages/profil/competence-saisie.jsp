@@ -3,22 +3,19 @@
 <%@ page import="user.UserEJB" %>
 <%@ page import="java.util.Set" %>
 <%
+    UserEJB u = (UserEJB) session.getValue("u");
+    String lien = (String) session.getValue("lien");
+    String refuser = request.getParameter("refuser");
+    if (refuser == null || refuser.isEmpty()) refuser = u.getUser().getTuppleID();
+    int refuserInt = Integer.parseInt(refuser);
+
+    // Récupérer et afficher l'erreur si présente
+    String errorMessage = (String) session.getAttribute("errorMessage");
+    if (errorMessage != null) {
+        session.removeAttribute("errorMessage");
+    }
+
     try {
-        UserEJB u = (UserEJB) session.getValue("u");
-        String lien = (String) session.getValue("lien");
-        String refuser = request.getParameter("refuser");
-        if (refuser == null || refuser.isEmpty()) refuser = u.getUser().getTuppleID();
-        int refuserInt = Integer.parseInt(refuser);
-
-        // Traitement du formulaire POST (enregistrement)
-        if ("POST".equals(request.getMethod())) {
-            String[] selectedComps = request.getParameterValues("competences");
-            String[] selectedSpecs = request.getParameterValues("specialites");
-            CompetenceProfilService.sauvegarder(refuserInt, selectedComps, selectedSpecs);
-            response.sendRedirect(lien + "?but=profil/mon-profil.jsp&refuser=" + refuser);
-            return;
-        }
-
         // Chargement des donn&eacute;es pour affichage
         Object[] toutesComps = CompetenceProfilService.getToutesCompetences();
         Set<String> compActuelles = CompetenceProfilService.getCompetencesUtilisateur(refuserInt);
@@ -30,9 +27,16 @@
         <h1>G&eacute;rer mes comp&eacute;tences et sp&eacute;cialit&eacute;s</h1>
     </section>
     <section class="content">
+        <% if (errorMessage != null) { %>
+        <div class="alert alert-danger alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <h4><i class="fa fa-ban"></i> Erreur</h4>
+            <%= errorMessage %>
+        </div>
+        <% } %>
         <div class="row">
             <div class="col-md-10 col-md-offset-1">
-                <form action="<%= lien %>?but=profil/competence-saisie.jsp&refuser=<%= refuser %>"
+                <form action="<%= lien %>?but=profil/save-competences.jsp&refuser=<%= refuser %>"
                       method="post" id="formCompetences">
                     <div class="row">
                         <!-- Comp&eacute;tences -->
@@ -108,5 +112,9 @@
 </div>
 <%  } catch (Exception e) {
         e.printStackTrace();
+        out.println("<div class='alert alert-danger'>");
+        out.println("<h4><i class='fa fa-ban'></i> Erreur</h4>");
+        out.println("<p>" + e.getMessage() + "</p>");
+        out.println("</div>");
     }
 %>
