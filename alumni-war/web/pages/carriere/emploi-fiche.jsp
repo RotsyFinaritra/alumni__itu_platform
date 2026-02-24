@@ -89,6 +89,10 @@
                            href="<%=lien%>?but=carriere/emploi-modif.jsp&id=<%=postId%>">
                             <i class="fa fa-edit"></i> Modifier
                         </a>
+                        <a class="btn btn-info"
+                           href="<%=lien%>?but=carriere/post-fichiers.jsp&postId=<%=postId%>&type=emploi">
+                            <i class="fa fa-file"></i> Fichiers
+                        </a>
                         <a class="btn btn-danger"
                            href="<%=lien%>?but=apresTarif.jsp&acte=delete&classe=bean.Post&nomtable=posts&bute=carriere/emploi-liste.jsp&id=<%=postId%>"
                            onclick="return confirm('Supprimer cette offre ?')">

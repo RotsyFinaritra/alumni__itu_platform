@@ -13,7 +13,6 @@ public class PostStage extends ClassMAPTable {
     private Date date_fin;
     private double indemnite;
     private String niveau_etude_requis;
-    private String competences_requises;
     private int convention_requise;
     private Integer places_disponibles;
     private String contact_email;
@@ -112,14 +111,6 @@ public class PostStage extends ClassMAPTable {
         this.niveau_etude_requis = niveau_etude_requis;
     }
 
-    public String getCompetences_requises() {
-        return competences_requises;
-    }
-
-    public void setCompetences_requises(String competences_requises) {
-        this.competences_requises = competences_requises;
-    }
-
     public int getConvention_requise() {
         return convention_requise;
     }
@@ -158,15 +149,5 @@ public class PostStage extends ClassMAPTable {
 
     public void setLien_candidature(String lien_candidature) {
         this.lien_candidature = lien_candidature;
-    }
-
-    @Override
-    public String[] getMotCles() {
-        return new String[]{"post_id", "poste"};
-    }
-
-    @Override
-    public String[] getValMotCles() {
-        return new String[]{"post_id", "poste"};
     }
 }

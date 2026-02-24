@@ -169,14 +169,4 @@ public class Post extends ClassMAPTable {
     public void setEdited_by(Integer edited_by) {
         this.edited_by = edited_by;
     }
-
-    @Override
-    public String[] getMotCles() {
-        return new String[]{"id", "contenu"};
-    }
-
-    @Override
-    public String[] getValMotCles() {
-        return new String[]{"id", "contenu"};
-    }
 }

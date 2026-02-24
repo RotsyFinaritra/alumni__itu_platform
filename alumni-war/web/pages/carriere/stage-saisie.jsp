@@ -18,7 +18,6 @@
         pi.getFormu().getChamp("date_fin").setLibelle("Date de fin");
         pi.getFormu().getChamp("indemnite").setLibelle("Indemnit&eacute; (MGA)");
         pi.getFormu().getChamp("niveau_etude_requis").setLibelle("Niveau d'&eacute;tude requis");
-        pi.getFormu().getChamp("competences_requises").setLibelle("Comp&eacute;tences requises");
         pi.getFormu().getChamp("convention_requise").setLibelle("Convention requise");
         pi.getFormu().getChamp("places_disponibles").setLibelle("Places disponibles");
         pi.getFormu().getChamp("contact_email").setLibelle("Email de contact");
@@ -33,13 +32,12 @@
             "carriere/entreprise-saisie.jsp", "id;libelle"
         );
         pi.getFormu().getChamp("niveau_etude_requis").setPageAppelComplete("bean.Diplome", "id", "diplome");
-        pi.getFormu().getChamp("competences_requises").setPageAppelComplete("bean.Competence", "id", "competence");
 
         // Valeurs par défaut
         pi.getFormu().getChamp("convention_requise").setDefaut("0");
         pi.getFormu().getChamp("places_disponibles").setDefaut("1");
 
-        // Ordre des champs
+        // Ordre des champs (sans competences_requises)
         String[] ordre = {
             "identreprise",
             "duree",
@@ -47,7 +45,6 @@
             "date_fin",
             "indemnite",
             "niveau_etude_requis",
-            "competences_requises",
             "convention_requise",
             "places_disponibles",
             "contact_email",
@@ -60,6 +57,10 @@
         String classe = "bean.PostStage";
         String butApresPost = "carriere/stage-liste.jsp";
         String nomTable = "POST_STAGE";
+
+        // Charger la liste des compétences pour le select multiple
+        Competence compFiltre = new Competence();
+        Object[] competences = CGenUtil.rechercher(compFiltre, null, null, " ORDER BY libelle");
 
         // Générer les affichages
         pi.preparerDataFormu();
@@ -83,6 +84,22 @@
                             out.println(pi.getFormu().getHtmlInsert());
                             out.println(pi.getHtmlAddOnPopup());
                         %>
+                        
+                        <!-- Sélection multiple des compétences -->
+                        <div class="form-group">
+                            <label>Comp&eacute;tences requises</label>
+                            <select name="competences[]" class="form-control select2" multiple="multiple" 
+                                    data-placeholder="S&eacute;lectionnez les comp&eacute;tences" style="width: 100%;">
+                                <% if (competences != null) {
+                                    for (Object o : competences) {
+                                        Competence c = (Competence) o;
+                                %>
+                                <option value="<%= c.getId() %>"><%= c.getLibelle() %></option>
+                                <% }} %>
+                            </select>
+                            <small class="form-text text-muted">Maintenez Ctrl pour s&eacute;lectionner plusieurs comp&eacute;tences</small>
+                        </div>
+                        
                         <input name="acte" type="hidden" value="insertStage">
                         <input name="bute" type="hidden" value="<%= butApresPost %>">
                         <input name="classe" type="hidden" value="<%= classe %>">

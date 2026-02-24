@@ -5,6 +5,11 @@
 <%@ page import="bean.Post" %>
 <%@ page import="bean.PostStage" %>
 <%@ page import="bean.VisibilitePublication" %>
+<%@ page import="bean.Competence" %>
+<%@ page import="bean.StageCompetence" %>
+<%@ page import="bean.CGenUtil" %>
+<%@ page import="java.util.HashSet" %>
+<%@ page import="java.util.Set" %>
 <%@ page import="user.UserEJB" %>
 <%
     try {
@@ -72,14 +77,24 @@
             champConvention.setListe(listeConv);
         }
 
-        Champ champComp = puStage.getChampByName("competences_requises");
-        if (champComp != null) {
-            champComp.setLibelle("Competences requises");
-            champComp.setType("editor");
-        }
-
         Champ champNiveau = puStage.getChampByName("niveau_etude_requis");
         if (champNiveau != null) champNiveau.setLibelle("Niveau d etude requis");
+        
+        // Charger toutes les competences disponibles
+        Competence compFiltre = new Competence();
+        Object[] competences = CGenUtil.rechercher(compFiltre, null, null, " ORDER BY libelle");
+        
+        // Charger les competences deja associees a ce stage
+        Set<String> selectedCompetences = new HashSet<>();
+        StageCompetence scFiltre = new StageCompetence();
+        scFiltre.setPost_id(postId);
+        Object[] existingComps = CGenUtil.rechercher(scFiltre, null, null, " AND post_id = '" + postId + "'");
+        if (existingComps != null) {
+            for (Object o : existingComps) {
+                StageCompetence sc = (StageCompetence) o;
+                selectedCompetences.add(sc.getIdcompetence());
+            }
+        }
 %>
 <div class="content-wrapper">
     <section class="content-header">
@@ -117,6 +132,21 @@
                         </div>
                         <div class="box-body">
                             <%= puStage.getHtml() %>
+                            
+                            <!-- Selection multiple des competences -->
+                            <div class="form-group">
+                                <label>Competences requises</label>
+                                <select name="competences[]" class="form-control select2" multiple="multiple" 
+                                        data-placeholder="Selectionnez les competences" style="width: 100%;">
+                                    <% if (competences != null) {
+                                        for (Object o : competences) {
+                                            Competence comp = (Competence) o;
+                                            boolean isSelected = selectedCompetences.contains(comp.getId());
+                                    %>
+                                    <option value="<%= comp.getId() %>" <%= isSelected ? "selected" : "" %>><%= comp.getLibelle() %></option>
+                                    <% }} %>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -124,6 +154,10 @@
                         <button type="submit" class="btn btn-warning">
                             <i class="fa fa-save"></i> Enregistrer les modifications
                         </button>
+                        <a class="btn btn-info"
+                           href="<%=lien%>?but=carriere/post-fichiers.jsp&postId=<%=postId%>&type=stage">
+                            <i class="fa fa-file"></i> Gerer les fichiers
+                        </a>
                         <a class="btn btn-default pull-right"
                            href="<%=lien%>?but=carriere/stage-fiche.jsp&id=<%=postId%>">
                             <i class="fa fa-times"></i> Annuler

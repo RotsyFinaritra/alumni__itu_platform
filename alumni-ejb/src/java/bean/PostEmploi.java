@@ -14,7 +14,6 @@ public class PostEmploi extends ClassMAPTable {
     private double salaire_max;
     private String devise;
     private String experience_requise;
-    private String competences_requises;
     private String niveau_etude_requis;
     private int teletravail_possible;
     private Date date_limite;
@@ -122,14 +121,6 @@ public class PostEmploi extends ClassMAPTable {
         this.experience_requise = experience_requise;
     }
 
-    public String getCompetences_requises() {
-        return competences_requises;
-    }
-
-    public void setCompetences_requises(String competences_requises) {
-        this.competences_requises = competences_requises;
-    }
-
     public String getNiveau_etude_requis() {
         return niveau_etude_requis;
     }
@@ -176,15 +167,5 @@ public class PostEmploi extends ClassMAPTable {
 
     public void setLien_candidature(String lien_candidature) {
         this.lien_candidature = lien_candidature;
-    }
-
-    @Override
-    public String[] getMotCles() {
-        return new String[]{"post_id", "poste"};
-    }
-
-    @Override
-    public String[] getValMotCles() {
-        return new String[]{"post_id", "poste"};
     }
 }

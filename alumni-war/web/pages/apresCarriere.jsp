@@ -2,8 +2,14 @@
 <%@ page import="bean.Post" %>
 <%@ page import="bean.PostEmploi" %>
 <%@ page import="bean.PostStage" %>
+<%@ page import="bean.EmploiCompetence" %>
+<%@ page import="bean.StageCompetence" %>
+<%@ page import="bean.CGenUtil" %>
 <%@ page import="user.UserEJB" %>
 <%@ page import="bean.ClassMAPTable" %>
+<%@ page import="utilitaire.UtilDB" %>
+<%@ page import="java.sql.Connection" %>
+<%@ page import="java.sql.PreparedStatement" %>
 <%
     UserEJB u = (UserEJB) session.getValue("u");
     String lien = (String) session.getValue("lien");
@@ -11,6 +17,9 @@
     String bute = request.getParameter("bute");
     String id   = request.getParameter("id"); // utilise pour update
     String postId = id;
+    
+    // Récupérer les compétences sélectionnées
+    String[] competences = request.getParameterValues("competences[]");
 
     if (acte == null) acte = "";
     if (bute == null) bute = "carriere/carriere-accueil.jsp";
@@ -18,7 +27,7 @@
     try {
 
         // =====================================================================
-        // INSERT EMPLOI : cree un Post (type emploi) + un PostEmploi
+        // INSERT EMPLOI : cree un Post (type emploi) + un PostEmploi + competences
         // =====================================================================
         if (acte.equalsIgnoreCase("insertEmploi")) {
 
@@ -47,13 +56,25 @@
             emploiAvecValeurs.setNomTable("post_emploi");
             emploiAvecValeurs.setPost_id(postId);
             u.createObject(emploiAvecValeurs);
+            
+            // 3. Inserer les competences associees
+            if (competences != null) {
+                for (String idComp : competences) {
+                    if (idComp != null && !idComp.trim().isEmpty()) {
+                        EmploiCompetence ec = new EmploiCompetence();
+                        ec.setPost_id(postId);
+                        ec.setIdcompetence(idComp);
+                        CGenUtil.save(ec);
+                    }
+                }
+            }
 
             bute = "carriere/emploi-fiche.jsp";
             id   = postId;
         }
 
         // =====================================================================
-        // INSERT STAGE : cree un Post (type stage) + un PostStage
+        // INSERT STAGE : cree un Post (type stage) + un PostStage + competences
         // =====================================================================
         else if (acte.equalsIgnoreCase("insertStage")) {
 
@@ -82,13 +103,25 @@
             stageAvecValeurs.setNomTable("post_stage");
             stageAvecValeurs.setPost_id(postId);
             u.createObject(stageAvecValeurs);
+            
+            // 3. Inserer les competences associees
+            if (competences != null) {
+                for (String idComp : competences) {
+                    if (idComp != null && !idComp.trim().isEmpty()) {
+                        StageCompetence sc = new StageCompetence();
+                        sc.setPost_id(postId);
+                        sc.setIdcompetence(idComp);
+                        CGenUtil.save(sc);
+                    }
+                }
+            }
 
             bute = "carriere/stage-fiche.jsp";
             id   = postId;
         }
 
         // =====================================================================
-        // UPDATE EMPLOI : met a jour Post + PostEmploi
+        // UPDATE EMPLOI : met a jour Post + PostEmploi + competences
         // =====================================================================
         else if (acte.equalsIgnoreCase("updateEmploi")) {
 
@@ -109,12 +142,36 @@
             emploiAvecValeurs.setNomTable("post_emploi");
             emploiAvecValeurs.setPost_id(postId);
             u.updateObject(emploiAvecValeurs);
+            
+            // 3. Supprimer les anciennes competences et inserer les nouvelles
+            Connection connEc = null;
+            PreparedStatement psEc = null;
+            try {
+                connEc = new UtilDB().GetConn();
+                psEc = connEc.prepareStatement("DELETE FROM emploi_competence WHERE post_id = ?");
+                psEc.setString(1, postId);
+                psEc.executeUpdate();
+            } finally {
+                if (psEc != null) try { psEc.close(); } catch (Exception ignored) {}
+                if (connEc != null) try { connEc.close(); } catch (Exception ignored) {}
+            }
+            
+            if (competences != null) {
+                for (String idComp : competences) {
+                    if (idComp != null && !idComp.trim().isEmpty()) {
+                        EmploiCompetence ec = new EmploiCompetence();
+                        ec.setPost_id(postId);
+                        ec.setIdcompetence(idComp);
+                        CGenUtil.save(ec);
+                    }
+                }
+            }
 
             bute = "carriere/emploi-fiche.jsp";
         }
 
         // =====================================================================
-        // UPDATE STAGE : met a jour Post + PostStage
+        // UPDATE STAGE : met a jour Post + PostStage + competences
         // =====================================================================
         else if (acte.equalsIgnoreCase("updateStage")) {
 
@@ -135,6 +192,30 @@
             stageAvecValeurs.setNomTable("post_stage");
             stageAvecValeurs.setPost_id(postId);
             u.updateObject(stageAvecValeurs);
+            
+            // 3. Supprimer les anciennes competences et inserer les nouvelles
+            Connection connSc = null;
+            PreparedStatement psSc = null;
+            try {
+                connSc = new UtilDB().GetConn();
+                psSc = connSc.prepareStatement("DELETE FROM stage_competence WHERE post_id = ?");
+                psSc.setString(1, postId);
+                psSc.executeUpdate();
+            } finally {
+                if (psSc != null) try { psSc.close(); } catch (Exception ignored) {}
+                if (connSc != null) try { connSc.close(); } catch (Exception ignored) {}
+            }
+            
+            if (competences != null) {
+                for (String idComp : competences) {
+                    if (idComp != null && !idComp.trim().isEmpty()) {
+                        StageCompetence sc = new StageCompetence();
+                        sc.setPost_id(postId);
+                        sc.setIdcompetence(idComp);
+                        CGenUtil.save(sc);
+                    }
+                }
+            }
 
             bute = "carriere/stage-fiche.jsp";
         }

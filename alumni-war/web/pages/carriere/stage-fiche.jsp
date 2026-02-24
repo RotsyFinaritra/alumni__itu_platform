@@ -84,6 +84,10 @@
                            href="<%=lien%>?but=carriere/stage-modif.jsp&id=<%=postId%>">
                             <i class="fa fa-edit"></i> Modifier
                         </a>
+                        <a class="btn btn-info"
+                           href="<%=lien%>?but=carriere/post-fichiers.jsp&postId=<%=postId%>&type=stage">
+                            <i class="fa fa-file"></i> Fichiers
+                        </a>
                         <a class="btn btn-danger"
                            href="<%=lien%>?but=apresTarif.jsp&acte=delete&classe=bean.Post&nomtable=posts&bute=carriere/stage-liste.jsp&id=<%=postId%>"
                            onclick="return confirm('Supprimer cette offre de stage ?')">
