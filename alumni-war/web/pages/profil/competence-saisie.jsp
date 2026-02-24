@@ -104,15 +104,6 @@
             <input name="nombreLigne" type="hidden" value="<%= nombreLigne %>">
         </form>
 
-        <%-- Bouton retour --%>
-        <div class="row" style="padding: 0 30px; margin-top: 10px;">
-            <div class="col-md-12 text-right">
-                <a href="<%= lien %>?but=profil/mon-profil.jsp&refuser=<%= refuser %>" class="btn btn-default">
-                    <i class="fa fa-arrow-left"></i> Retour au profil
-                </a>
-            </div>
-        </div>
-
     </section>
 </div>
 <% } catch (Exception e) {
