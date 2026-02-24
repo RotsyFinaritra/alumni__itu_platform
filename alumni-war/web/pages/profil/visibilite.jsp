@@ -4,6 +4,7 @@
 <%@ page import="java.util.Map" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%
+    String _redirectUrl = null;
     try {
         UserEJB u = (UserEJB) session.getValue("u");
         String lien = (String) session.getValue("lien");
@@ -22,12 +23,17 @@
                 visibiliteMap.put(champ, "on".equals(valeur) || "true".equals(valeur));
             }
             VisibiliteService.sauvegarderVisibilite(refuserInt, champsConfig, visibiliteMap);
-            response.sendRedirect(lien + "?but=profil/mon-profil.jsp&refuser=" + refuser);
-            return;
+            _redirectUrl = lien + "?but=profil/mon-profil.jsp&refuser=" + refuser;
         }
 
+        if (_redirectUrl != null) {
+%>
+<script>document.location.replace("<%= _redirectUrl %>");</script>
+<%
+        } else {
         // Charger les param&egrave;tres de visibilit&eacute; actuels
         Map<String, Boolean> visibilite = VisibiliteService.getVisibilite(refuserInt);
+%>
 %>
 <style>
 .minimal-wrapper {
@@ -220,7 +226,8 @@ input:checked + .slider:before {
         </form>
     </div>
 </div>
-<%  } catch (Exception e) {
+<% } // end else (GET)
+   } catch (Exception e) {
         e.printStackTrace();
     }
 %>
