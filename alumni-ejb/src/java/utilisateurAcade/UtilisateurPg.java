@@ -125,7 +125,12 @@ public class UtilisateurPg extends ClassMAPTable {
             ps.setString(4, this.teluser);
             ps.setString(5, this.adruser);
             ps.setString(6, this.loginuser);
-            ps.setString(7, this.idpromotion);
+            // idpromotion peut être null pour les enseignants
+            if (this.idpromotion != null && !this.idpromotion.trim().isEmpty()) {
+                ps.setString(7, this.idpromotion);
+            } else {
+                ps.setNull(7, java.sql.Types.VARCHAR);
+            }
             ps.setString(8, this.idtypeutilisateur);
             ps.setString(9, this.photo);
             ps.setInt(10, this.refuser);

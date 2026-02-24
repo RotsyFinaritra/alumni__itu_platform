@@ -33,8 +33,14 @@
         listes[0] = new Liste("idtypeutilisateur", new TypeUtilisateur(), "libelle", "id");
         pi.getFormu().changerEnChamp(listes);
 
-        // Autocomplete dynamique pour Promotion (getMotCles cherche sur id + libelle)
-        pi.getFormu().getChamp("idpromotion").setPageAppelComplete("bean.Promotion", "id", "promotion");
+        // Vérifier si c'est un enseignant
+        String typeUtilisateur = utilisateur.getIdtypeutilisateur();
+        boolean isEnseignant = "TU0000003".equals(typeUtilisateur);
+
+        // Autocomplete dynamique pour Promotion (seulement pour les non-enseignants)
+        if (!isEnseignant) {
+            pi.getFormu().getChamp("idpromotion").setPageAppelComplete("bean.Promotion", "id", "promotion");
+        }
 
         // Libellés (null-safe : getChamp peut retourner null)
         Champ c;
@@ -53,8 +59,20 @@
         if (c != null) c.setPhoto(true);
 
         // Masquer les champs techniques (null-safe)
-        for (String hidden : new String[]{"pwduser", "idrole", "rang", "etu", "photo"}) {
+        for (String hidden : new String[]{"pwduser", "idrole", "rang", "photo"}) {
             c = pi.getFormu().getChamp(hidden);
+            if (c != null) c.setVisible(false);
+        }
+        
+        // Pour les enseignants, masquer etu et promotion
+        if (isEnseignant) {
+            for (String champEnseignant : new String[]{"etu", "idpromotion"}) {
+                c = pi.getFormu().getChamp(champEnseignant);
+                if (c != null) c.setVisible(false);
+            }
+        } else {
+            // Pour les étudiants, masquer seulement etu
+            c = pi.getFormu().getChamp("etu");
             if (c != null) c.setVisible(false);
         }
 
@@ -125,6 +143,24 @@
         <h1><i class="fa fa-pencil"></i> Modifier mon profil</h1>
     </section>
     <section class="content">
+        <%-- Affichage des messages d'erreur/succès --%>
+        <% String errorMessage = (String) session.getAttribute("errorMessage");
+           String successMessage = (String) session.getAttribute("successMessage");
+           if (errorMessage != null) {
+               session.removeAttribute("errorMessage");
+        %>
+        <div class="alert alert-danger alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <i class="fa fa-exclamation-circle"></i> <strong>Erreur :</strong> <%= errorMessage %>
+        </div>
+        <% } if (successMessage != null) {
+               session.removeAttribute("successMessage");
+        %>
+        <div class="alert alert-success alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <i class="fa fa-check-circle"></i> <%= successMessage %>
+        </div>
+        <% } %>
         <div class="row">
             <div class="col-md-12">
                 <form action="<%= lien %>?but=profil/update-profil.jsp" method="post" name="sortie" id="formProfil" enctype="multipart/form-data">
