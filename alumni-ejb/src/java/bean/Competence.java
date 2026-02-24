@@ -27,4 +27,14 @@ public class Competence extends ClassMAPTable {
         this.preparePk("COMP", "getseqcompetence");
         this.setId(makePK(c));
     }
+
+    @Override
+    public String[] getMotCles() {
+        return new String[]{"id", "libelle"};
+    }
+
+    @Override
+    public String[] getValMotCles() {
+        return new String[]{"libelle"};
+    }
 }

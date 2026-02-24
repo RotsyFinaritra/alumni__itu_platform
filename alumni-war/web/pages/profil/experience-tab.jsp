@@ -33,6 +33,8 @@
 .btn-exp i { margin-right: 4px; }
 .btn-exp-edit { background: #00a65a; color: #fff; }
 .btn-exp-edit:hover { background: #008d4c; }
+.btn-exp-edit { background: #00a65a; color: #fff; }
+.btn-exp-edit:hover { background: #008d4c; }
 .btn-exp-delete { background: #d32f2f; color: #fff; }
 .btn-exp-delete:hover { background: #c62828; }
 .exp-empty { text-align: center; padding: 40px 20px; color: #999; }
@@ -58,9 +60,9 @@
 <div class="experience-tab-content">
     <% if (isOwnProfile) { %>
     <div class="clearfix" style="margin-bottom:25px;">
-        <a href="<%= lien %>?but=profil/experience-saisie.jsp&acte=insert&refuser=<%= refuser %>"
+        <a href="<%= lien %>?but=profil/experience-saisie.jsp&refuser=<%= refuser %>"
            class="btn exp-add-btn pull-right">
-            <i class="fa fa-plus"></i> Ajouter une exp&eacute;rience
+            <i class="fa fa-pencil"></i> G&eacute;rer mes exp&eacute;riences
         </a>
     </div>
     <% } %>
@@ -122,11 +124,11 @@
             <% if (isOwnProfile) { %>
             <div class="exp-actions">
                 <a class="btn btn-exp btn-exp-edit"
-                   href="<%= lien %>?but=profil/experience-saisie.jsp&acte=update&classe=bean.Experience&nomtable=experience&id=<%= exp.getId() %>&refuser=<%= refuser %>">
+                   href="<%= lien %>?but=profil/experience-edit.jsp&id=<%= exp.getId() %>&refuser=<%= refuser %>">
                     <i class="fa fa-pencil"></i> Modifier
                 </a>
                 <a class="btn btn-exp btn-exp-delete"
-                   href="<%= lien %>?but=apresTarif.jsp&acte=delete&classe=bean.Experience&nomtable=experience&bute=profil/mon-profil.jsp&id=<%= exp.getId() %>&refuser=<%= refuser %>&rajoutLien=refuser"
+                   href="<%= lien %>?but=profil/save-experience-apj.jsp&acte=delete&id=<%= exp.getId() %>&refuser=<%= refuser %>"
                    onclick="return confirm('Supprimer cette exp&eacute;rience ?')">
                     <i class="fa fa-trash"></i> Supprimer
                 </a>

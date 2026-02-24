@@ -47,9 +47,13 @@
 <div class="comp-tab-content">
     <% if (isOwnProfile) { %>
     <div class="clearfix" style="margin-bottom:25px;">
+        <a href="<%= lien %>?but=profil/specialite-saisie.jsp&refuser=<%= refuser %>"
+           class="btn comp-add-btn pull-right" style="margin-left:10px; background:#00a65a;">
+            <i class="fa fa-tags"></i> G&eacute;rer mes sp&eacute;cialit&eacute;s
+        </a>
         <a href="<%= lien %>?but=profil/competence-saisie.jsp&refuser=<%= refuser %>"
            class="btn comp-add-btn pull-right">
-            <i class="fa fa-pencil"></i> G&eacute;rer mes comp&eacute;tences
+            <i class="fa fa-star"></i> G&eacute;rer mes comp&eacute;tences
         </a>
     </div>
     <% } %>
