@@ -9,7 +9,7 @@ public class Commentaire extends ClassMAPTable {
     private String post_id;
     private String parent_id;
     private String contenu;
-    private Boolean supprime;
+    private int supprime;
     private Timestamp created_at;
     private Timestamp edited_at;
 
@@ -74,11 +74,11 @@ public class Commentaire extends ClassMAPTable {
         this.contenu = contenu;
     }
 
-    public Boolean getSupprime() {
+    public int getSupprime() {
         return supprime;
     }
 
-    public void setSupprime(Boolean supprime) {
+    public void setSupprime(int supprime) {
         this.supprime = supprime;
     }
 

@@ -11,7 +11,7 @@ public class Groupe extends ClassMAPTable {
     private String photo_profil;
     private String type_groupe;
     private Integer created_by;
-    private Boolean actif;
+    private int actif;
     private Timestamp created_at;
 
     public Groupe() {
@@ -91,11 +91,11 @@ public class Groupe extends ClassMAPTable {
         this.created_by = created_by;
     }
 
-    public Boolean getActif() {
+    public int getActif() {
         return actif;
     }
 
-    public void setActif(Boolean actif) {
+    public void setActif(int actif) {
         this.actif = actif;
     }
 

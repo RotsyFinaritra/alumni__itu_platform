@@ -9,7 +9,7 @@ public class Topic extends ClassMAPTable {
     private String description;
     private String icon;
     private String couleur;
-    private Boolean actif;
+    private int actif;
     private Timestamp created_at;
 
     public Topic() {
@@ -73,11 +73,11 @@ public class Topic extends ClassMAPTable {
         this.couleur = couleur;
     }
 
-    public Boolean getActif() {
+    public int getActif() {
         return actif;
     }
 
-    public void setActif(Boolean actif) {
+    public void setActif(int actif) {
         this.actif = actif;
     }
 

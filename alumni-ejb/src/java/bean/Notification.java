@@ -13,7 +13,7 @@ public class Notification extends ClassMAPTable {
     private String groupe_id;
     private String contenu;
     private String lien;
-    private Boolean vu;
+    private int vu;
     private Timestamp lu_at;
     private Timestamp created_at;
 
@@ -110,11 +110,11 @@ public class Notification extends ClassMAPTable {
         this.lien = lien;
     }
 
-    public Boolean getVu() {
+    public int getVu() {
         return vu;
     }
 
-    public void setVu(Boolean vu) {
+    public void setVu(int vu) {
         this.vu = vu;
     }
 

@@ -12,7 +12,7 @@ public class MotifSignalement extends ClassMAPTable {
     private Integer gravite;
     private String action_automatique;
     private String description;
-    private Boolean actif;
+    private int actif;
     private Integer ordre;
     private Timestamp created_at;
 
@@ -101,11 +101,11 @@ public class MotifSignalement extends ClassMAPTable {
         this.description = description;
     }
 
-    public Boolean getActif() {
+    public int getActif() {
         return actif;
     }
 
-    public void setActif(Boolean actif) {
+    public void setActif(int actif) {
         this.actif = actif;
     }
 

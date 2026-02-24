@@ -11,7 +11,7 @@ public class TypeNotification extends ClassMAPTable {
     private String couleur;
     private String template_message;
     private String description;
-    private Boolean actif;
+    private int actif;
     private Integer ordre;
     private Timestamp created_at;
 
@@ -92,11 +92,11 @@ public class TypeNotification extends ClassMAPTable {
         this.description = description;
     }
 
-    public Boolean getActif() {
+    public int getActif() {
         return actif;
     }
 
-    public void setActif(Boolean actif) {
+    public void setActif(int actif) {
         this.actif = actif;
     }
 

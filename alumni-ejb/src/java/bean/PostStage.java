@@ -1,6 +1,6 @@
 package bean;
 
-import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.Date;
 
 public class PostStage extends ClassMAPTable {
@@ -10,10 +10,10 @@ public class PostStage extends ClassMAPTable {
     private String duree;
     private Date date_debut;
     private Date date_fin;
-    private BigDecimal indemnite;
+    private double indemnite;
     private String niveau_etude_requis;
     private String competences_requises;
-    private Boolean convention_requise;
+    private int convention_requise;
     private Integer places_disponibles;
     private String contact_email;
     private String contact_tel;
@@ -33,7 +33,10 @@ public class PostStage extends ClassMAPTable {
         return "post_id";
     }
 
-    // PAS de construirePK() car post_id est fourni depuis Post
+    @Override
+    public void construirePK(Connection c) throws Exception {
+        // post_id est fourni manuellement depuis Post, pas de sequence
+    }
 
     // Getters et Setters
     public String getPost_id() {
@@ -84,11 +87,11 @@ public class PostStage extends ClassMAPTable {
         this.date_fin = date_fin;
     }
 
-    public BigDecimal getIndemnite() {
+    public double getIndemnite() {
         return indemnite;
     }
 
-    public void setIndemnite(BigDecimal indemnite) {
+    public void setIndemnite(double indemnite) {
         this.indemnite = indemnite;
     }
 
@@ -108,11 +111,11 @@ public class PostStage extends ClassMAPTable {
         this.competences_requises = competences_requises;
     }
 
-    public Boolean getConvention_requise() {
+    public int getConvention_requise() {
         return convention_requise;
     }
 
-    public void setConvention_requise(Boolean convention_requise) {
+    public void setConvention_requise(int convention_requise) {
         this.convention_requise = convention_requise;
     }
 

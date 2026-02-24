@@ -11,8 +11,8 @@ public class Post extends ClassMAPTable {
     private String idstatutpublication;
     private String idvisibilite;
     private String contenu;
-    private Boolean epingle;
-    private Boolean supprime;
+    private int epingle;
+    private int supprime;
     private Timestamp date_suppression;
     private Integer nb_likes;
     private Integer nb_commentaires;
@@ -98,19 +98,19 @@ public class Post extends ClassMAPTable {
         this.contenu = contenu;
     }
 
-    public Boolean getEpingle() {
+    public int getEpingle() {
         return epingle;
     }
 
-    public void setEpingle(Boolean epingle) {
+    public void setEpingle(int epingle) {
         this.epingle = epingle;
     }
 
-    public Boolean getSupprime() {
+    public int getSupprime() {
         return supprime;
     }
 
-    public void setSupprime(Boolean supprime) {
+    public void setSupprime(int supprime) {
         this.supprime = supprime;
     }
 

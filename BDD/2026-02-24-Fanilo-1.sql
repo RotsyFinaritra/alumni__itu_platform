@@ -166,7 +166,7 @@ CREATE TABLE type_publication (
     icon VARCHAR(50),
     couleur VARCHAR(20),
     description TEXT,
-    actif BOOLEAN DEFAULT true,
+    actif INTEGER DEFAULT 1,
     ordre INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -179,7 +179,7 @@ CREATE TABLE statut_publication (
     icon VARCHAR(50),
     couleur VARCHAR(20),
     description TEXT,
-    actif BOOLEAN DEFAULT true,
+    actif INTEGER DEFAULT 1,
     ordre INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -192,7 +192,7 @@ CREATE TABLE visibilite_publication (
     icon VARCHAR(50),
     couleur VARCHAR(20),
     description TEXT,
-    actif BOOLEAN DEFAULT true,
+    actif INTEGER DEFAULT 1,
     ordre INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -207,7 +207,7 @@ CREATE TABLE type_fichier (
     extensions_acceptees VARCHAR(200),
     taille_max_mo INTEGER,
     description TEXT,
-    actif BOOLEAN DEFAULT true,
+    actif INTEGER DEFAULT 1,
     ordre INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -221,7 +221,7 @@ CREATE TABLE type_notification (
     couleur VARCHAR(20),
     template_message TEXT,
     description TEXT,
-    actif BOOLEAN DEFAULT true,
+    actif INTEGER DEFAULT 1,
     ordre INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -236,7 +236,7 @@ CREATE TABLE motif_signalement (
     gravite INTEGER,
     action_automatique VARCHAR(100),
     description TEXT,
-    actif BOOLEAN DEFAULT true,
+    actif INTEGER DEFAULT 1,
     ordre INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -249,7 +249,7 @@ CREATE TABLE statut_signalement (
     icon VARCHAR(50),
     couleur VARCHAR(20),
     description TEXT,
-    actif BOOLEAN DEFAULT true,
+    actif INTEGER DEFAULT 1,
     ordre INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -264,7 +264,7 @@ CREATE TABLE role_groupe (
     permissions TEXT,
     niveau_acces INTEGER,
     description TEXT,
-    actif BOOLEAN DEFAULT true,
+    actif INTEGER DEFAULT 1,
     ordre INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -281,8 +281,8 @@ CREATE TABLE posts (
     idstatutpublication VARCHAR(50) NOT NULL REFERENCES statut_publication(id),
     idvisibilite VARCHAR(50) NOT NULL REFERENCES visibilite_publication(id),
     contenu TEXT NOT NULL,
-    epingle BOOLEAN DEFAULT false,
-    supprime BOOLEAN DEFAULT false,
+    epingle INTEGER DEFAULT 0,
+    supprime INTEGER DEFAULT 0,
     date_suppression TIMESTAMP,
     nb_likes INTEGER DEFAULT 0,
     nb_commentaires INTEGER DEFAULT 0,
@@ -307,7 +307,7 @@ CREATE TABLE post_stage (
     indemnite DECIMAL(10,2),
     niveau_etude_requis VARCHAR(100),
     competences_requises TEXT,
-    convention_requise BOOLEAN DEFAULT false,
+    convention_requise INTEGER DEFAULT 0,
     places_disponibles INTEGER,
     contact_email VARCHAR(200),
     contact_tel VARCHAR(50),
@@ -327,7 +327,7 @@ CREATE TABLE post_emploi (
     experience_requise VARCHAR(100),
     competences_requises TEXT,
     niveau_etude_requis VARCHAR(100),
-    teletravail_possible BOOLEAN DEFAULT false,
+    teletravail_possible INTEGER DEFAULT 0,
     date_limite DATE,
     contact_email VARCHAR(200),
     contact_tel VARCHAR(50),
@@ -371,7 +371,7 @@ CREATE TABLE commentaires (
     post_id VARCHAR(50) NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
     parent_id VARCHAR(50) REFERENCES commentaires(id) ON DELETE CASCADE,
     contenu TEXT NOT NULL,
-    supprime BOOLEAN DEFAULT false,
+    supprime INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     edited_at TIMESTAMP
 );
@@ -398,7 +398,7 @@ CREATE TABLE groupes (
     photo_profil VARCHAR(500),
     type_groupe VARCHAR(50) DEFAULT 'ouvert',
     created_by INTEGER NOT NULL REFERENCES utilisateur(refuser),
-    actif BOOLEAN DEFAULT true,
+    actif INTEGER DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
@@ -423,7 +423,7 @@ CREATE TABLE topics (
     description TEXT,
     icon VARCHAR(50),
     couleur VARCHAR(20),
-    actif BOOLEAN DEFAULT true,
+    actif INTEGER DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -457,7 +457,7 @@ CREATE TABLE notifications (
     groupe_id VARCHAR(50) REFERENCES groupes(id) ON DELETE CASCADE,
     contenu TEXT,
     lien VARCHAR(500),
-    vu BOOLEAN DEFAULT false,
+    vu INTEGER DEFAULT 0,
     lu_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
@@ -590,7 +590,7 @@ EXECUTE FUNCTION decrement_likes();
 -- 13.2 Triggers pour commentaires
 CREATE OR REPLACE FUNCTION increment_commentaires() RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.supprime = false THEN
+    IF NEW.supprime = 0 THEN
         UPDATE posts SET nb_commentaires = nb_commentaires + 1 WHERE id = NEW.post_id;
     END IF;
     RETURN NEW;
@@ -604,9 +604,9 @@ EXECUTE FUNCTION increment_commentaires();
 
 CREATE OR REPLACE FUNCTION handle_commentaire_suppression() RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.supprime = true AND OLD.supprime = false THEN
+    IF NEW.supprime = 1 AND OLD.supprime = 0 THEN
         UPDATE posts SET nb_commentaires = nb_commentaires - 1 WHERE id = NEW.post_id;
-    ELSIF NEW.supprime = false AND OLD.supprime = true THEN
+    ELSIF NEW.supprime = 0 AND OLD.supprime = 1 THEN
         UPDATE posts SET nb_commentaires = nb_commentaires + 1 WHERE id = NEW.post_id;
     END IF;
     RETURN NEW;
@@ -679,7 +679,7 @@ SELECT
     vp.code as visibilite_code,
     g.nom as groupe_nom,
     (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as nb_likes_reel,
-    (SELECT COUNT(*) FROM commentaires WHERE post_id = p.id AND supprime = false) as nb_commentaires_reel,
+    (SELECT COUNT(*) FROM commentaires WHERE post_id = p.id AND supprime = 0) as nb_commentaires_reel,
     (SELECT COUNT(*) FROM partages WHERE post_id = p.id) as nb_partages_reel,
     (SELECT COUNT(*) FROM post_fichiers WHERE post_id = p.id) as nb_fichiers
 FROM posts p
@@ -688,7 +688,7 @@ LEFT JOIN type_publication tp ON tp.id = p.idtypepublication
 LEFT JOIN statut_publication sp ON sp.id = p.idstatutpublication
 LEFT JOIN visibilite_publication vp ON vp.id = p.idvisibilite
 LEFT JOIN groupes g ON g.id = p.idgroupe
-WHERE p.supprime = false;
+WHERE p.supprime = 0;
 
 -- 14.2 Vue des statistiques par type de publication
 CREATE OR REPLACE VIEW v_statistiques_posts AS
@@ -704,7 +704,7 @@ SELECT
 FROM posts p
 INNER JOIN type_publication tp ON tp.id = p.idtypepublication
 INNER JOIN statut_publication sp ON sp.id = p.idstatutpublication
-WHERE p.supprime = false
+WHERE p.supprime = 0
 GROUP BY tp.libelle, sp.libelle
 ORDER BY nb_posts DESC;
 
@@ -720,8 +720,8 @@ SELECT
     COALESCE(SUM(p.nb_likes), 0) as total_likes_recus,
     MAX(p.created_at) as dernier_post
 FROM utilisateur u
-LEFT JOIN posts p ON p.idutilisateur = u.refuser AND p.supprime = false
-LEFT JOIN commentaires c ON c.idutilisateur = u.refuser AND c.supprime = false
+LEFT JOIN posts p ON p.idutilisateur = u.refuser AND p.supprime = 0
+LEFT JOIN commentaires c ON c.idutilisateur = u.refuser AND c.supprime = 0
 GROUP BY u.refuser
 HAVING COUNT(DISTINCT p.id) > 0 OR COUNT(DISTINCT c.id) > 0
 ORDER BY (COUNT(DISTINCT p.id) * 10 + COUNT(DISTINCT c.id) + COALESCE(SUM(p.nb_likes), 0)) DESC;
@@ -732,11 +732,11 @@ ORDER BY (COUNT(DISTINCT p.id) * 10 + COUNT(DISTINCT c.id) + COALESCE(SUM(p.nb_l
 
 -- 15.1 Types de publication
 INSERT INTO type_publication (id, libelle, code, icon, couleur, actif, ordre) VALUES
-('TYP00001', 'Stage', 'stage', 'fa-briefcase', '#3498db', true, 1),
-('TYP00002', 'Emploi', 'emploi', 'fa-suitcase', '#2ecc71', true, 2),
-('TYP00003', 'Activité', 'activite', 'fa-calendar', '#e74c3c', true, 3),
-('TYP00004', 'Projet', 'projet', 'fa-rocket', '#9b59b6', true, 4),
-('TYP00005', 'Discussion', 'discussion', 'fa-comments', '#34495e', true, 5);
+('TYP00001', 'Stage', 'stage', 'fa-briefcase', '#3498db', 1, 1),
+('TYP00002', 'Emploi', 'emploi', 'fa-suitcase', '#2ecc71', 1, 2),
+('TYP00003', 'Activité', 'activite', 'fa-calendar', '#e74c3c', 1, 3),
+('TYP00004', 'Projet', 'projet', 'fa-rocket', '#9b59b6', 1, 4),
+('TYP00005', 'Discussion', 'discussion', 'fa-comments', '#34495e', 1, 5);
 
 -- Mettre à jour la séquence
 SELECT setval('seq_type_publication', 5, true);

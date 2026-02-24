@@ -1,6 +1,6 @@
 package bean;
 
-import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.Date;
 
 public class PostEmploi extends ClassMAPTable {
@@ -9,13 +9,13 @@ public class PostEmploi extends ClassMAPTable {
     private String localisation;
     private String poste;
     private String type_contrat;
-    private BigDecimal salaire_min;
-    private BigDecimal salaire_max;
+    private double salaire_min;
+    private double salaire_max;
     private String devise;
     private String experience_requise;
     private String competences_requises;
     private String niveau_etude_requis;
-    private Boolean teletravail_possible;
+    private int teletravail_possible;
     private Date date_limite;
     private String contact_email;
     private String contact_tel;
@@ -35,7 +35,10 @@ public class PostEmploi extends ClassMAPTable {
         return "post_id";
     }
 
-    // PAS de construirePK() car post_id est fourni depuis Post
+    @Override
+    public void construirePK(Connection c) throws Exception {
+        // post_id est fourni manuellement depuis Post, pas de sequence
+    }
 
     // Getters et Setters
     public String getPost_id() {
@@ -78,19 +81,19 @@ public class PostEmploi extends ClassMAPTable {
         this.type_contrat = type_contrat;
     }
 
-    public BigDecimal getSalaire_min() {
+    public double getSalaire_min() {
         return salaire_min;
     }
 
-    public void setSalaire_min(BigDecimal salaire_min) {
+    public void setSalaire_min(double salaire_min) {
         this.salaire_min = salaire_min;
     }
 
-    public BigDecimal getSalaire_max() {
+    public double getSalaire_max() {
         return salaire_max;
     }
 
-    public void setSalaire_max(BigDecimal salaire_max) {
+    public void setSalaire_max(double salaire_max) {
         this.salaire_max = salaire_max;
     }
 
@@ -126,11 +129,11 @@ public class PostEmploi extends ClassMAPTable {
         this.niveau_etude_requis = niveau_etude_requis;
     }
 
-    public Boolean getTeletravail_possible() {
+    public int getTeletravail_possible() {
         return teletravail_possible;
     }
 
-    public void setTeletravail_possible(Boolean teletravail_possible) {
+    public void setTeletravail_possible(int teletravail_possible) {
         this.teletravail_possible = teletravail_possible;
     }
 
