@@ -131,9 +131,10 @@
         <div class="row">
             <div class="col-md-1"></div>
             <div class="col-md-10">
-                <form method="post" action="CarriereFormServlet" enctype="multipart/form-data">
+                <form method="post" action="<%=lien%>?but=carriere/apresCarriere.jsp">
                     <input type="hidden" name="acte" value="updateEmploi">
                     <input type="hidden" name="bute" value="carriere/emploi-fiche.jsp">
+                    <input type="hidden" name="post_id" value="<%=postId%>">
                     <input type="hidden" name="id" value="<%=postId%>">
 
                     <!-- Section Post -->
@@ -182,68 +183,64 @@
                             </div>
                         </div>
                         <div class="box-body">
-                            <p class="text-muted">Vous pouvez ajouter jusqu'&agrave; 3 fichiers suppl&eacute;mentaires (PDF, images, documents...)</p>
+                            <p class="text-muted">Ajoutez des fichiers en cliquant sur le bouton +</p>
                             
-                            <!-- Fichier 1 -->
-                            <div class="row mb-2" style="margin-bottom: 10px;">
-                                <div class="col-md-4">
-                                    <select name="typeFichier1" class="form-control input-sm">
-                                        <option value="">-- Type de fichier --</option>
-                                        <% if (typesFichiers != null) {
-                                            for (Object o : typesFichiers) {
-                                                TypeFichier tf = (TypeFichier) o;
-                                        %>
-                                        <option value="<%= tf.getId() %>"><%= tf.getLibelle() %></option>
-                                        <% }} %>
-                                    </select>
-                                </div>
-                                <div class="col-md-8">
-                                    <input type="file" name="fichier1" class="form-control input-sm">
-                                </div>
+                            <div id="fichiers-container">
+                                <!-- Les lignes de fichiers seront ajoutées ici dynamiquement -->
                             </div>
                             
-                            <!-- Fichier 2 -->
-                            <div class="row mb-2" style="margin-bottom: 10px;">
-                                <div class="col-md-4">
-                                    <select name="typeFichier2" class="form-control input-sm">
-                                        <option value="">-- Type de fichier --</option>
-                                        <% if (typesFichiers != null) {
-                                            for (Object o : typesFichiers) {
-                                                TypeFichier tf = (TypeFichier) o;
-                                        %>
-                                        <option value="<%= tf.getId() %>"><%= tf.getLibelle() %></option>
-                                        <% }} %>
-                                    </select>
-                                </div>
-                                <div class="col-md-8">
-                                    <input type="file" name="fichier2" class="form-control input-sm">
-                                </div>
-                            </div>
+                            <button type="button" class="btn btn-sm btn-success" onclick="ajouterLigneFichier()" style="margin-top: 10px;">
+                                <i class="fa fa-plus"></i> Ajouter un fichier
+                            </button>
                             
-                            <!-- Fichier 3 -->
-                            <div class="row mb-2" style="margin-bottom: 10px;">
-                                <div class="col-md-4">
-                                    <select name="typeFichier3" class="form-control input-sm">
-                                        <option value="">-- Type de fichier --</option>
-                                        <% if (typesFichiers != null) {
-                                            for (Object o : typesFichiers) {
-                                                TypeFichier tf = (TypeFichier) o;
-                                        %>
-                                        <option value="<%= tf.getId() %>"><%= tf.getLibelle() %></option>
-                                        <% }} %>
-                                    </select>
-                                </div>
-                                <div class="col-md-8">
-                                    <input type="file" name="fichier3" class="form-control input-sm">
-                                </div>
-                            </div>
-                            
-                            <p class="text-info">
+                            <p class="text-info" style="margin-top: 10px;">
                                 <i class="fa fa-info-circle"></i> 
                                 Pour g&eacute;rer les fichiers existants, utilisez le bouton "G&eacute;rer les fichiers" ci-dessous.
                             </p>
                         </div>
                     </div>
+                    
+                    <script>
+                    var compteurFichier = 0;
+                    var typesFichiersOptions = '<option value="">-- Type de fichier --</option>';
+                    <% if (typesFichiers != null) {
+                        for (Object o : typesFichiers) {
+                            TypeFichier tf = (TypeFichier) o;
+                    %>
+                    typesFichiersOptions += '<option value="<%= tf.getId() %>"><%= tf.getLibelle() %></option>';
+                    <% }} %>
+                    
+                    function ajouterLigneFichier() {
+                        compteurFichier++;
+                        var container = document.getElementById('fichiers-container');
+                        var div = document.createElement('div');
+                        div.className = 'row fichier-ligne';
+                        div.id = 'fichier-ligne-' + compteurFichier;
+                        div.style.marginBottom = '10px';
+                        div.innerHTML = 
+                            '<div class="col-md-4">' +
+                                '<select name="typeFichier[]" class="form-control input-sm">' +
+                                    typesFichiersOptions +
+                                '</select>' +
+                            '</div>' +
+                            '<div class="col-md-6">' +
+                                '<input type="text" name="fichierNom[]" class="form-control input-sm" placeholder="Nom ou URL du fichier">' +
+                            '</div>' +
+                            '<div class="col-md-2">' +
+                                '<button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigneFichier(' + compteurFichier + ')">' +
+                                    '<i class="fa fa-trash"></i>' +
+                                '</button>' +
+                            '</div>';
+                        container.appendChild(div);
+                    }
+                    
+                    function supprimerLigneFichier(id) {
+                        var ligne = document.getElementById('fichier-ligne-' + id);
+                        if (ligne) {
+                            ligne.remove();
+                        }
+                    }
+                    </script>
 
                     <div class="box-footer">
                         <button type="submit" class="btn btn-warning">
