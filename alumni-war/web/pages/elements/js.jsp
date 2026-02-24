@@ -119,19 +119,81 @@
 
     function removeLineByIndex(iLigne) {
         var nomId = "ligne-multiple-" + iLigne;
-
         var ligne = document.getElementById(nomId);
-        ligne.parentNode.removeChild(ligne);
-        var nbrLigne = document.getElementById('nbrLigne').value;
-        document.getElementById('nbrLigne').value = nbrLigne - 1;
+        if (ligne) {
+            ligne.parentNode.removeChild(ligne);
+            var nbrLigne = document.getElementById('nbrLigne').value;
+            document.getElementById('nbrLigne').value = parseInt(nbrLigne) - 1;
+        }
     }
-    function add_line() {
 
+    // Supprime la ligne d'index iLigne dans le tableau multiple APJ
+    function delete_line(iLigne) {
+        removeLineByIndex(iLigne);
+    }
+
+    // Remplace l'ancien index par le nouveau dans le HTML d'une cellule
+    function _apj_replaceIndex(html, oldIdx, newIdx) {
+        return html.replace(new RegExp('_' + oldIdx + '(?!\\d)', 'g'), '_' + newIdx);
+    }
+
+    // Ajoute une ligne dans le tableau multiple APJ
+    // json : JSON.stringify du tableau Champ[] sérialisé côté serveur par Gson
+    function add_line_tab(json) {
+        var champs = JSON.parse(json);
+        var indexEl = document.getElementById('indexMultiple');
+        var nbrEl   = document.getElementById('nbrLigne');
+        var newIdx  = parseInt(indexEl.value);
+
+        // Déterminer l'ancien index depuis le premier champ qui a un nom
+        var oldIdx = null;
+        for (var i = 0; i < champs.length; i++) {
+            if (champs[i] && champs[i].nom) {
+                var lastU = champs[i].nom.lastIndexOf('_');
+                if (lastU >= 0) { oldIdx = champs[i].nom.substring(lastU + 1); break; }
+            }
+        }
+
+        var row = '<tr id="ligne-multiple-' + newIdx + '">';
+        row += '<td style="text-align:center;vertical-align:middle;" align="center">'
+             + '<input type="checkbox" value="' + newIdx + '" name="ids" id="checkbox' + newIdx + '"/>'
+             + '</td>';
+
+        for (var j = 0; j < champs.length; j++) {
+            var ch = champs[j];
+            if (!ch || !ch.visible) continue;
+            var cellHtml = ch.html || ch.htmlTableauInsert || '';
+            if (oldIdx !== null) {
+                cellHtml = _apj_replaceIndex(cellHtml, oldIdx, newIdx);
+            }
+            row += '<td>' + cellHtml + '</td>';
+        }
+
+        row += '<td style="text-align:center;vertical-align:middle;">'
+             + '<a href="javascript:void(0)" onclick="delete_line(' + newIdx + ')">'
+             + '<span class="glyphicon glyphicon-remove"></span></a>'
+             + '</td>';
+        row += '</tr>';
+
+        var tbody = document.getElementById('ajout_multiple_ligne');
+        if (tbody) tbody.insertAdjacentHTML('beforeend', row);
+
+        indexEl.value = newIdx + 1;
+        nbrEl.value   = parseInt(nbrEl.value) + 1;
+    }
+
+    // Ajoute dix lignes dans le tableau multiple APJ
+    function add_line_tabs(json) {
+        for (var i = 0; i < 10; i++) {
+            add_line_tab(json);
+        }
+    }
+
+    function add_line() {
         var indexMultiple = document.getElementById('indexMultiple').value;
-        alert('indexMultiple' + indexMultiple);
         var nbrLigne = document.getElementById('nbrLigne').value;
-        var html = genererLigneFromIndex(indexMultiple);
-        $('#ajout_multiple_ligne').append(html);
+        var html = typeof genererLigneFromIndex === 'function' ? genererLigneFromIndex(indexMultiple) : '';
+        if (html) $('#ajout_multiple_ligne').append(html);
         document.getElementById('indexMultiple').value = parseInt(indexMultiple) + 1;
         document.getElementById('nbrLigne').value = parseInt(nbrLigne) + 1;
     }
