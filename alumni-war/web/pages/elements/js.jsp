@@ -194,7 +194,7 @@
         var lesValeur=[];
         $.ajax({
             type:'GET',
-            url:'/donation/Deroulante',
+            url: _CONTEXT_PATH + '/Deroulante',
             contentType: 'application/json',
             data:param,
             success:function(ma){
@@ -217,7 +217,7 @@
         var lesValeur=[];
         $.ajax({
             type:'GET',
-            url:'/donation/Deroulante',
+            url: _CONTEXT_PATH + '/Deroulante',
             contentType: 'application/json',
             data:param,
             success:function(ma){
@@ -244,7 +244,7 @@
         var lesValeur=[];
         $.ajax({
             type:'GET',
-            url:'/donation/Deroulante',
+            url: _CONTEXT_PATH + '/Deroulante',
             contentType: 'application/json',
             data:param,
             success:function(ma){
