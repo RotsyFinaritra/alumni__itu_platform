@@ -1,18 +1,19 @@
 <%@page import="java.sql.Connection"%>
-<%@page import="java.sql.PreparedStatement"%>
 <%@page import="java.text.SimpleDateFormat"%>
 <%@page import="java.util.Date"%>
-<%@page import="web.SingletonConn"%>
+<%@page import="utilitaire.UtilDB"%>
 <%@page import="moderation.ModerationUtilisateur"%>
+<%@page import="utilisateurAcade.UtilisateurPg"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <% 
+Connection con = null;
 try {
-    // Vérifier l'authentification et les droits (rang = 1)
+    // Vérifier l'authentification et les droits (admin uniquement)
     user.UserEJB currentUser = (user.UserEJB) session.getValue("u");
     String lien = (String) session.getValue("lien");
     
-    if (currentUser == null || currentUser.getRole().getRang() > 1) {
-        out.println("<div class='alert alert-danger'>Accès refusé.</div>");
+    if (currentUser == null || !"admin".equals(currentUser.getUser().getIdrole())) {
+        out.println("<div class='alert alert-danger'>Accès réservé aux administrateurs.</div>");
         return;
     }
     
@@ -31,13 +32,16 @@ try {
     int refuser = Integer.parseInt(refuserStr);
     int idModerateur = Integer.parseInt(currentUser.getUser().getTuppleID());
     
-    Connection con = SingletonConn.getInstance().getConnection();
+    // Connexion avec gestion de transaction (pattern APJ)
+    con = new UtilDB().GetConn();
+    con.setAutoCommit(false);
+    
     String message = "";
     String alertType = "success";
     
     switch (action) {
         case "ban":
-            // Bannir l'utilisateur
+            // Bannir l'utilisateur via le framework
             Date dateExpiration = null;
             if ("temporaire".equals(type) && dateExpirationStr != null && !dateExpirationStr.isEmpty()) {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -51,34 +55,21 @@ try {
             break;
             
         case "unban":
-            // Lever le bannissement
-            ModerationUtilisateur.lever(con, refuser, idModerateur, "Débannissement par modérateur");
+            // Lever le bannissement via le framework
+            ModerationUtilisateur.lever(con, refuser, idModerateur, "Débannissement par administrateur");
             message = "Utilisateur débanni avec succès.";
             break;
             
         case "promote":
-            // Promouvoir en modérateur
-            String sqlPromote = "UPDATE utilisateur SET idrole = 'moderateur', rang = 1 WHERE refuser = ?";
-            PreparedStatement psPromote = con.prepareStatement(sqlPromote);
-            psPromote.setInt(1, refuser);
-            psPromote.executeUpdate();
-            psPromote.close();
-            message = "Utilisateur promu modérateur avec succès.";
+            // Promouvoir en admin via le framework
+            UtilisateurPg.promouvoir(refuser, con);
+            message = "Utilisateur promu administrateur avec succès.";
             break;
             
         case "demote":
-            // Rétrograder en utilisateur simple (seulement si admin)
-            if (currentUser.getRole().getRang() != 0) {
-                message = "Seuls les administrateurs peuvent rétrograder un modérateur.";
-                alertType = "danger";
-            } else {
-                String sqlDemote = "UPDATE utilisateur SET idrole = 'utilisateur', rang = 2 WHERE refuser = ?";
-                PreparedStatement psDemote = con.prepareStatement(sqlDemote);
-                psDemote.setInt(1, refuser);
-                psDemote.executeUpdate();
-                psDemote.close();
-                message = "Utilisateur rétrogradé avec succès.";
-            }
+            // Rétrograder en utilisateur simple via le framework
+            UtilisateurPg.retrograder(refuser, con);
+            message = "Utilisateur rétrogradé avec succès.";
             break;
             
         default:
@@ -86,17 +77,27 @@ try {
             alertType = "warning";
     }
     
+    // Valider la transaction
+    con.commit();
+    
     // Stocker le message en session pour l'afficher après redirection
     session.setAttribute("moderationMessage", message);
     session.setAttribute("moderationAlertType", alertType);
     
-    // Rediriger vers la liste
-    response.sendRedirect(lien + "pages/moderation/moderation-liste.jsp");
+    // Rediriger vers la liste via module.jsp
+    response.sendRedirect(request.getContextPath() + "/pages/module.jsp?but=moderation/moderation-liste.jsp");
     
 } catch(Exception e) {
+    if (con != null) {
+        try { con.rollback(); } catch(Exception ex) {}
+    }
     out.println("<div class='alert alert-danger'>");
     out.println("<strong>Erreur:</strong> " + e.getMessage());
     out.println("</div>");
     e.printStackTrace();
+} finally {
+    if (con != null) {
+        try { con.close(); } catch(Exception ex) {}
+    }
 }
 %>

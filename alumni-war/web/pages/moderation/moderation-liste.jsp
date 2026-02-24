@@ -1,15 +1,14 @@
 <%@page import="affichage.PageRecherche"%>
 <%@page import="affichage.Liste"%>
 <%@page import="moderation.UtilisateurModerationLibCPL"%>
-<%@page import="bean.RoleUser"%>
 <%@page import="bean.CGenUtil"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <% 
 try {
-    // Vérifier que l'utilisateur est modérateur/admin (rang <= 1)
+    // Vérifier que l'utilisateur est admin (idrole='admin')
     user.UserEJB currentUser = (user.UserEJB) session.getValue("u");
-    if (currentUser == null || currentUser.getRole().getRang() > 1) {
-        out.println("<div class='alert alert-danger'>Accès réservé aux modérateurs.</div>");
+    if (currentUser == null || !"admin".equals(currentUser.getUser().getIdrole())) {
+        out.println("<div class='alert alert-danger'>Accès réservé aux administrateurs.</div>");
         return;
     }
     
@@ -40,10 +39,7 @@ try {
     // Exclure l'utilisateur connecté et les admins (rang < 1)
     pr.setAWhere(" AND refuser <> " + currentUser.getUser().getTuppleID());
     
-    // Convertir les champs FK en listes déroulantes
-    Liste[] listes = new Liste[1];
-    listes[0] = new Liste("idrole", new RoleUser(), "libelle", "id");
-    pr.getFormu().changerEnChamp(listes);
+    // Labels des champs de recherche (pas de liste déroulante pour idrole)
     
     // Labels des champs de recherche
     pr.getFormu().getChamp("nomuser").setLibelle("Nom");
@@ -60,10 +56,11 @@ try {
     String lien = (String) session.getValue("lien");
 %>
 <style>
+/* Liste en ligne - chaque utilisateur sur une ligne horizontale */
 .moderation-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
     padding: 20px 0;
 }
 .user-card {
@@ -72,6 +69,9 @@ try {
     box-shadow: 0 2px 12px rgba(0,0,0,0.08);
     overflow: hidden;
     transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 .user-card:hover {
     transform: translateY(-2px);
@@ -82,11 +82,12 @@ try {
     display: flex;
     align-items: center;
     gap: 15px;
-    border-bottom: 1px solid #eee;
+    border-right: 1px solid #eee;
+    min-width: 300px;
 }
 .user-photo {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     object-fit: cover;
     background: #e9ecef;
@@ -95,24 +96,28 @@ try {
     flex: 1;
 }
 .user-name {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     color: #333;
     margin: 0 0 3px 0;
 }
 .user-email {
-    font-size: 13px;
+    font-size: 12px;
     color: #666;
     margin: 0;
 }
 .user-card-body {
     padding: 15px;
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 20px;
 }
 .user-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 15px;
+    gap: 8px;
+    min-width: 180px;
 }
 .badge-role {
     padding: 4px 10px;
@@ -122,10 +127,6 @@ try {
 }
 .badge-admin {
     background: #3c8dbc;
-    color: #fff;
-}
-.badge-moderateur {
-    background: #9c27b0;
     color: #fff;
 }
 .badge-user {
@@ -153,17 +154,18 @@ try {
 .user-details {
     font-size: 12px;
     color: #666;
-    margin-bottom: 15px;
+    flex: 1;
+    min-width: 150px;
 }
 .user-details p {
-    margin: 5px 0;
+    margin: 3px 0;
 }
 .user-actions {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 8px;
-    border-top: 1px solid #eee;
-    padding-top: 15px;
+    padding-left: 15px;
+    border-left: 1px solid #eee;
 }
 .btn-action {
     padding: 6px 12px;
@@ -231,6 +233,30 @@ try {
     font-size: 14px;
 }
 
+/* Responsive: liste verticale sur petits écrans */
+@media (max-width: 900px) {
+    .user-card {
+        flex-direction: column;
+    }
+    .user-card-header {
+        border-right: none;
+        border-bottom: 1px solid #eee;
+        min-width: auto;
+        width: 100%;
+    }
+    .user-card-body {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .user-actions {
+        border-left: none;
+        border-top: 1px solid #eee;
+        padding-left: 0;
+        padding-top: 15px;
+        flex-wrap: wrap;
+    }
+}
+
 /* Modal styles */
 .modal-overlay {
     display: none;
@@ -288,45 +314,50 @@ try {
 }
 </style>
 
-<div class="container-fluid">
-    <!-- Section de recherche -->
-    <div class="search-section">
-        <h4><i class="fa fa-search"></i> Rechercher des utilisateurs</h4>
-        <%=pr.getFormulaire()%>
-    </div>
+<div class="content-wrapper">
+    <section class="content-header">
+        <h1><i class="fa fa-shield"></i> Modération des utilisateurs</h1>
+    </section>
+    <section class="content">
+        <!-- Section de recherche -->
+        <div class="search-section">
+            <h4><i class="fa fa-search"></i> Rechercher des utilisateurs</h4>
+            <%=pr.getFormu().getHtml()%>
+        </div>
     
-    <!-- Compteur de résultats -->
-    <div class="results-count">
-        <strong><%=(resultats != null ? resultats.length : 0)%></strong> utilisateur(s) trouvé(s)
-    </div>
+        <!-- Compteur de résultats -->
+        <div class="results-count">
+            <strong><%=(resultats != null ? resultats.length : 0)%></strong> utilisateur(s) trouvé(s)
+        </div>
     
-    <!-- Pagination -->
-    <%=pr.getPagination()%>
+        <!-- Pagination -->
+        <%=pr.getPagination()%>
     
-    <!-- Grille d'utilisateurs -->
-    <div class="moderation-grid">
+        <!-- Grille d'utilisateurs -->
+        <div class="moderation-grid">
         <% 
         if (resultats != null && resultats.length > 0) {
             for (int i = 0; i < resultats.length; i++) {
                 UtilisateurModerationLibCPL u = (UtilisateurModerationLibCPL) resultats[i];
+                String contextPath = request.getContextPath();
                 String photoUrl = (u.getPhoto() != null && !u.getPhoto().isEmpty()) 
-                    ? lien + "assets/images/users/" + u.getPhoto() 
-                    : lien + "assets/images/users/default-avatar.png";
+                    ? contextPath + "/assets/images/users/" + u.getPhoto() 
+                    : contextPath + "/assets/images/users/default-avatar.png";
+                String defaultPhoto = contextPath + "/assets/images/users/default-avatar.png";
                 String statut = (u.getStatut() != null) ? u.getStatut() : "actif";
                 String badgeStatut = "badge-actif";
                 if ("banni".equalsIgnoreCase(statut)) badgeStatut = "badge-banni";
                 else if ("suspendu".equalsIgnoreCase(statut)) badgeStatut = "badge-suspendu";
                 
                 String badgeRole = "badge-user";
-                if (u.getRole_rang() == 0) badgeRole = "badge-admin";
-                else if (u.getRole_rang() == 1) badgeRole = "badge-moderateur";
+                if (u.getRole_rang() == 1) badgeRole = "badge-admin";
                 
                 boolean estBanni = "banni".equalsIgnoreCase(statut);
-                boolean estModerateur = (u.getRole_rang() <= 1);
+                boolean estAdmin = (u.getRole_rang() == 1);
         %>
         <div class="user-card" data-refuser="<%=u.getRefuser()%>">
             <div class="user-card-header">
-                <img src="<%=photoUrl%>" alt="Photo" class="user-photo" onerror="this.src='<%=lien%>assets/images/users/default-avatar.png';">
+                <img src="<%=photoUrl%>" alt="Photo" class="user-photo" onerror="this.onerror=null; this.src='<%=defaultPhoto%>';">
                 <div class="user-info">
                     <h5 class="user-name"><%=u.getNomuser()%> <%=u.getPrenom()%></h5>
                     <p class="user-email"><%=u.getMail()%></p>
@@ -349,7 +380,7 @@ try {
                 
                 <div class="user-actions">
                     <!-- Voir profil -->
-                    <a href="<%=lien%>pages/profil/profil-fiche.jsp?refuser=<%=u.getRefuser()%>" class="btn-action btn-view">
+                    <a href="<%=lien%>?but=profil/mon-profil.jsp&refuser=<%=u.getRefuser()%>" class="btn-action btn-view">
                         <i class="fa fa-eye"></i> Voir
                     </a>
                     
@@ -360,7 +391,7 @@ try {
                     </button>
                     <% } else { %>
                     <!-- Débannir -->
-                    <form action="<%=lien%>pages/moderation/moderation-action.jsp" method="post" style="display:inline;">
+                    <form action="<%=request.getContextPath()%>/pages/moderation/moderation-action.jsp" method="post" style="display:inline;">
                         <input type="hidden" name="action" value="unban">
                         <input type="hidden" name="refuser" value="<%=u.getRefuser()%>">
                         <button type="submit" class="btn-action btn-unban">
@@ -369,18 +400,18 @@ try {
                     </form>
                     <% } %>
                     
-                    <% if (!estModerateur) { %>
-                    <!-- Promouvoir modérateur -->
-                    <form action="<%=lien%>pages/moderation/moderation-action.jsp" method="post" style="display:inline;">
+                    <% if (!estAdmin) { %>
+                    <!-- Promouvoir admin -->
+                    <form action="<%=request.getContextPath()%>/pages/moderation/moderation-action.jsp" method="post" style="display:inline;">
                         <input type="hidden" name="action" value="promote">
                         <input type="hidden" name="refuser" value="<%=u.getRefuser()%>">
                         <button type="submit" class="btn-action btn-promote">
                             <i class="fa fa-arrow-up"></i> Promouvoir
                         </button>
                     </form>
-                    <% } else if (u.getRole_rang() == 1 && currentUser.getRole().getRang() == 0) { %>
-                    <!-- Rétrograder (seulement admin peut rétrograder un modérateur) -->
-                    <form action="<%=lien%>pages/moderation/moderation-action.jsp" method="post" style="display:inline;">
+                    <% } else if (u.getRole_rang() == 1 && "admin".equals(currentUser.getUser().getIdrole())) { %>
+                    <!-- Rétrograder (seulement admin peut rétrograder un admin) -->
+                    <form action="<%=request.getContextPath()%>/pages/moderation/moderation-action.jsp" method="post" style="display:inline;">
                         <input type="hidden" name="action" value="demote">
                         <input type="hidden" name="refuser" value="<%=u.getRefuser()%>">
                         <button type="submit" class="btn-action btn-demote">
@@ -402,8 +433,9 @@ try {
         <% } %>
     </div>
     
-    <!-- Pagination bas -->
-    <%=pr.getPagination()%>
+        <!-- Pagination bas -->
+        <%=pr.getPagination()%>
+    </section>
 </div>
 
 <!-- Modal Bannissement -->
@@ -412,7 +444,7 @@ try {
         <div class="modal-header">
             <i class="fa fa-ban" style="color:#dc3545;"></i> Bannir l'utilisateur
         </div>
-        <form action="<%=lien%>pages/moderation/moderation-action.jsp" method="post">
+        <form action="<%=request.getContextPath()%>/pages/moderation/moderation-action.jsp" method="post">
             <input type="hidden" name="action" value="ban">
             <input type="hidden" name="refuser" id="banRefuser">
             <div class="modal-body">

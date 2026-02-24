@@ -2,10 +2,10 @@ package moderation;
 
 import bean.ClassMAPTable;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
-import java.util.Date;
 
 /**
  * Bean APJ pour la table moderation_utilisateur.
@@ -53,48 +53,49 @@ public class ModerationUtilisateur extends ClassMAPTable {
     public String getAttributIDName() { return "id"; }
 
     /**
-     * Génère un nouvel ID via la séquence PostgreSQL.
+     * Construit la clé primaire selon le pattern APJ.
      */
-    public static String genererNouvelId(Connection con) throws Exception {
-        String sql = "SELECT getseqmoderationutilisateur()";
-        PreparedStatement ps = con.prepareStatement(sql);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            return "MOD" + String.format("%010d", rs.getInt(1));
-        }
-        throw new Exception("Erreur lors de la génération de l'ID de modération");
+    public void construirePK(Connection c) throws Exception {
+        super.setNomTable("moderation_utilisateur");
+        this.preparePk("MOD", "getseqmoderationutilisateur");
+        this.setId(makePK(c));
     }
 
     /**
      * Bannit un utilisateur.
-     * @param con Connexion BDD
-     * @param idUtilisateur ID de l'utilisateur à bannir
-     * @param idModerateur ID du modérateur effectuant l'action
-     * @param motif Raison du bannissement
-     * @param dateExpiration Date d'expiration (null = permanent)
+     * L'insertion dans moderation_utilisateur met automatiquement à jour
+     * la vue utilisateur_statut (dernière action = statut actuel).
      */
-    public static void bannir(Connection con, int idUtilisateur, int idModerateur, String motif, Date dateExpiration) throws Exception {
+    public static void bannir(Connection con, int idUtilisateur, int idModerateur, String motif, java.util.Date dateExpiration) throws Exception {
         ModerationUtilisateur m = new ModerationUtilisateur();
-        m.setId(genererNouvelId(con));
+        m.construirePK(con);
         m.setIdutilisateur(idUtilisateur);
         m.setIdmoderateur(idModerateur);
         m.setType_action("banni");
         m.setMotif(motif);
-        m.setDate_expiration(dateExpiration);
+        m.setDate_action(new Timestamp(System.currentTimeMillis()));
+        // Convertir java.util.Date en java.sql.Date
+        if (dateExpiration != null) {
+            m.setDate_expiration(new Date(dateExpiration.getTime()));
+        }
         m.insertToTable(con);
     }
 
     /**
      * Suspend temporairement un utilisateur.
      */
-    public static void suspendre(Connection con, int idUtilisateur, int idModerateur, String motif, Date dateExpiration) throws Exception {
+    public static void suspendre(Connection con, int idUtilisateur, int idModerateur, String motif, java.util.Date dateExpiration) throws Exception {
         ModerationUtilisateur m = new ModerationUtilisateur();
-        m.setId(genererNouvelId(con));
+        m.construirePK(con);
         m.setIdutilisateur(idUtilisateur);
         m.setIdmoderateur(idModerateur);
         m.setType_action("suspendu");
         m.setMotif(motif);
-        m.setDate_expiration(dateExpiration);
+        m.setDate_action(new Timestamp(System.currentTimeMillis()));
+        // Convertir java.util.Date en java.sql.Date
+        if (dateExpiration != null) {
+            m.setDate_expiration(new Date(dateExpiration.getTime()));
+        }
         m.insertToTable(con);
     }
 
@@ -103,12 +104,13 @@ public class ModerationUtilisateur extends ClassMAPTable {
      */
     public static void lever(Connection con, int idUtilisateur, int idModerateur, String motif) throws Exception {
         ModerationUtilisateur m = new ModerationUtilisateur();
-        m.setId(genererNouvelId(con));
+        m.construirePK(con);
         m.setIdutilisateur(idUtilisateur);
         m.setIdmoderateur(idModerateur);
         m.setType_action("leve");
         m.setMotif(motif != null ? motif : "Sanction levée");
-        m.setDate_expiration(null);
+        m.setDate_action(new Timestamp(System.currentTimeMillis()));
+        // date_expiration reste null pour levée
         m.insertToTable(con);
     }
 

@@ -3,10 +3,10 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <% 
 try {
-    // Vérifier que l'utilisateur est modérateur/admin (rang <= 1)
+    // Vérifier que l'utilisateur est admin (idrole='admin')
     user.UserEJB currentUser = (user.UserEJB) session.getValue("u");
-    if (currentUser == null || currentUser.getRole().getRang() > 1) {
-        out.println("<div class='alert alert-danger'>Accès réservé aux modérateurs.</div>");
+    if (currentUser == null || !"admin".equals(currentUser.getUser().getIdrole())) {
+        out.println("<div class='alert alert-danger'>Accès réservé aux administrateurs.</div>");
         return;
     }
     
@@ -94,22 +94,26 @@ try {
 }
 </style>
 
-<div class="container-fluid">
-    <!-- Section de recherche -->
-    <div class="search-section">
-        <h4><i class="fa fa-search"></i> Rechercher dans l'historique</h4>
-        <%=pr.getFormulaire()%>
-    </div>
+<div class="content-wrapper">
+    <section class="content-header">
+        <h1><i class="fa fa-history"></i> Historique de modération</h1>
+    </section>
+    <section class="content">
+        <!-- Section de recherche -->
+        <div class="search-section">
+            <h4><i class="fa fa-search"></i> Rechercher dans l'historique</h4>
+            <%=pr.getFormu().getHtml()%>
+        </div>
     
-    <!-- Compteur de résultats -->
-    <div class="results-count">
-        <strong><%=(resultats != null ? resultats.length : 0)%></strong> action(s) trouvée(s)
-    </div>
+        <!-- Compteur de résultats -->
+        <div class="results-count">
+            <strong><%=(resultats != null ? resultats.length : 0)%></strong> action(s) trouvée(s)
+        </div>
     
-    <!-- Pagination -->
-    <%=pr.getPagination()%>
+        <!-- Pagination -->
+        <%=pr.getPagination()%>
     
-    <!-- Tableau d'historique -->
+        <!-- Tableau d'historique -->
     <table class="historique-table">
         <thead>
             <tr>
@@ -133,7 +137,7 @@ try {
             <tr>
                 <td><%=h.getDate_action() != null ? h.getDate_action() : "-"%></td>
                 <td>
-                    <a href="<%=lien%>pages/profil/profil-fiche.jsp?refuser=<%=h.getIdutilisateur()%>">
+                    <a href="<%=lien%>?but=profil/mon-profil.jsp&refuser=<%=h.getIdutilisateur()%>">
                         <%=h.getUtilisateur_nom()%> <%=h.getUtilisateur_prenom()%>
                     </a>
                 </td>
@@ -158,10 +162,11 @@ try {
         </tbody>
     </table>
     
-    <!-- Pagination bas -->
-    <div style="margin-top: 20px;">
-        <%=pr.getPagination()%>
-    </div>
+        <!-- Pagination bas -->
+        <div style="margin-top: 20px;">
+            <%=pr.getPagination()%>
+        </div>
+    </section>
 </div>
 
 <% 
