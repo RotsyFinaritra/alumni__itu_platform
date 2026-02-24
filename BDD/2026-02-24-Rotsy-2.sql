@@ -11,27 +11,27 @@
 --    Les beans Post.java, PostStage.java, PostEmploi.java utilisent int.
 -- =============================================================================
 
--- ALTER TABLE posts
---     ALTER COLUMN epingle   TYPE INTEGER USING (CASE WHEN epingle THEN 1 ELSE 0 END),
---     ALTER COLUMN epingle   SET DEFAULT 0,
---     ALTER COLUMN supprime  TYPE INTEGER USING (CASE WHEN supprime THEN 1 ELSE 0 END),
---     ALTER COLUMN supprime  SET DEFAULT 0;
+ALTER TABLE posts
+    ALTER COLUMN epingle   TYPE INTEGER USING (CASE WHEN epingle THEN 1 ELSE 0 END),
+    ALTER COLUMN epingle   SET DEFAULT 0,
+    ALTER COLUMN supprime  TYPE INTEGER USING (CASE WHEN supprime THEN 1 ELSE 0 END),
+    ALTER COLUMN supprime  SET DEFAULT 0;
 
--- ALTER TABLE post_stage
---     ALTER COLUMN convention_requise TYPE INTEGER USING (CASE WHEN convention_requise THEN 1 ELSE 0 END),
---     ALTER COLUMN convention_requise SET DEFAULT 0;
+ALTER TABLE post_stage
+    ALTER COLUMN convention_requise TYPE INTEGER USING (CASE WHEN convention_requise THEN 1 ELSE 0 END),
+    ALTER COLUMN convention_requise SET DEFAULT 0;
 
--- ALTER TABLE post_emploi
---     ALTER COLUMN teletravail_possible TYPE INTEGER USING (CASE WHEN teletravail_possible THEN 1 ELSE 0 END),
---     ALTER COLUMN teletravail_possible SET DEFAULT 0;
+ALTER TABLE post_emploi
+    ALTER COLUMN teletravail_possible TYPE INTEGER USING (CASE WHEN teletravail_possible THEN 1 ELSE 0 END),
+    ALTER COLUMN teletravail_possible SET DEFAULT 0;
 
--- -- Correction type pour double Java (NUMERIC compatible avec double)
--- ALTER TABLE post_emploi
---     ALTER COLUMN salaire_min TYPE NUMERIC(15,2),
---     ALTER COLUMN salaire_max TYPE NUMERIC(15,2);
+-- Correction type pour double Java (NUMERIC compatible avec double)
+ALTER TABLE post_emploi
+    ALTER COLUMN salaire_min TYPE NUMERIC(15,2),
+    ALTER COLUMN salaire_max TYPE NUMERIC(15,2);
 
--- ALTER TABLE post_stage
---     ALTER COLUMN indemnite TYPE NUMERIC(15,2);
+ALTER TABLE post_stage
+    ALTER COLUMN indemnite TYPE NUMERIC(15,2);
 
 -- =============================================================================
 -- 2. VUES ENRICHIES POUR APJ PageRecherche / PageConsulte

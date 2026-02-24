@@ -1,110 +1,9 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
-<%@ page import="affichage.PageInsert" %>
-<%@ page import="affichage.Liste" %>
-<%@ page import="bean.Post" %>
-<%@ page import="bean.PostEmploi" %>
-<%@ page import="bean.VisibilitePublication" %>
 <%@ page import="user.UserEJB" %>
 <%
     try {
         UserEJB u = (UserEJB) session.getValue("u");
         String lien = (String) session.getValue("lien");
-
-        // --------------------------------------------------------
-        // Section 1 : Formulaire Post (contenu, visibilite)
-        // --------------------------------------------------------
-        Post post = new Post();
-        PageInsert piPost = new PageInsert(post, request, u);
-        piPost.setLien(lien);
-
-        // Listes deroulantes
-        Liste[] listesPost = new Liste[1];
-        VisibilitePublication vis = new VisibilitePublication();
-        listesPost[0] = new Liste("idvisibilite", vis, "libelle", "id");
-        piPost.getFormu().changerEnChamp(listesPost);
-
-        // Libelles
-        piPost.getFormu().getChamp("contenu").setLibelle("Description de l'offre");
-        piPost.getFormu().getChamp("contenu").setType("editor");
-        piPost.getFormu().getChamp("idvisibilite").setLibelle("Visibilite");
-
-        // Masquer les champs geres automatiquement
-        piPost.getFormu().getChamp("id").setVisible(false);
-        piPost.getFormu().getChamp("idutilisateur").setVisible(false);
-        piPost.getFormu().getChamp("idtypepublication").setVisible(false);
-        piPost.getFormu().getChamp("idstatutpublication").setVisible(false);
-        piPost.getFormu().getChamp("idgroupe").setVisible(false);
-        piPost.getFormu().getChamp("epingle").setVisible(false);
-        piPost.getFormu().getChamp("supprime").setVisible(false);
-        piPost.getFormu().getChamp("date_suppression").setVisible(false);
-        piPost.getFormu().getChamp("nb_likes").setVisible(false);
-        piPost.getFormu().getChamp("nb_commentaires").setVisible(false);
-        piPost.getFormu().getChamp("nb_partages").setVisible(false);
-        piPost.getFormu().getChamp("created_at").setVisible(false);
-        piPost.getFormu().getChamp("edited_at").setVisible(false);
-        piPost.getFormu().getChamp("edited_by").setVisible(false);
-
-        piPost.getFormu().setOrdre(new String[]{"contenu", "idvisibilite"});
-        piPost.preparerDataFormu();
-        piPost.getFormu().makeHtmlInsertTabIndex();
-
-        // --------------------------------------------------------
-        // Section 2 : Formulaire PostEmploi (details specifiques)
-        // --------------------------------------------------------
-        PostEmploi emploi = new PostEmploi();
-        PageInsert piEmploi = new PageInsert(emploi, request, u);
-        piEmploi.setLien(lien);
-
-        // Liste type_contrat via valeurs statiques
-        Liste listeContrat = new Liste("type_contrat");
-        listeContrat.makeListeString(
-            new String[]{"CDI", "CDD", "Freelance", "Alternance", "Autre"},
-            new String[]{"CDI", "CDD", "Freelance", "Alternance", "Autre"}
-        );
-
-        // Liste teletravail_possible
-        Liste listeTeletravail = new Liste("teletravail_possible");
-        listeTeletravail.makeListeString(
-            new String[]{"Non", "Oui"},
-            new String[]{"0",   "1"}
-        );
-
-        Liste[] listesEmploi = new Liste[]{listeContrat, listeTeletravail};
-        piEmploi.getFormu().changerEnChamp(listesEmploi);
-
-        // Libelles
-        piEmploi.getFormu().getChamp("entreprise").setLibelle("Entreprise");
-        piEmploi.getFormu().getChamp("entreprise").setAutre("required");
-        piEmploi.getFormu().getChamp("poste").setLibelle("Intitule du poste");
-        piEmploi.getFormu().getChamp("poste").setAutre("required");
-        piEmploi.getFormu().getChamp("localisation").setLibelle("Localisation");
-        piEmploi.getFormu().getChamp("type_contrat").setLibelle("Type de contrat");
-        piEmploi.getFormu().getChamp("salaire_min").setLibelle("Salaire minimum (MGA)");
-        piEmploi.getFormu().getChamp("salaire_max").setLibelle("Salaire maximum (MGA)");
-        piEmploi.getFormu().getChamp("devise").setLibelle("Devise");
-        piEmploi.getFormu().getChamp("devise").setDefaut("MGA");
-        piEmploi.getFormu().getChamp("experience_requise").setLibelle("Experience requise");
-        piEmploi.getFormu().getChamp("competences_requises").setLibelle("Competences requises");
-        piEmploi.getFormu().getChamp("competences_requises").setType("editor");
-        piEmploi.getFormu().getChamp("niveau_etude_requis").setLibelle("Niveau d'etude requis");
-        piEmploi.getFormu().getChamp("teletravail_possible").setLibelle("Teletravail possible");
-        piEmploi.getFormu().getChamp("date_limite").setLibelle("Date limite candidature");
-        piEmploi.getFormu().getChamp("contact_email").setLibelle("Email de contact");
-        piEmploi.getFormu().getChamp("contact_tel").setLibelle("Telephone de contact");
-        piEmploi.getFormu().getChamp("lien_candidature").setLibelle("Lien de candidature");
-
-        // Masquer post_id (auto-rempli par apresCarriere.jsp)
-        piEmploi.getFormu().getChamp("post_id").setVisible(false);
-
-        piEmploi.getFormu().setOrdre(new String[]{
-            "entreprise", "poste", "localisation", "type_contrat",
-            "salaire_min", "salaire_max", "devise",
-            "experience_requise", "niveau_etude_requis",
-            "competences_requises", "teletravail_possible",
-            "date_limite", "contact_email", "contact_tel", "lien_candidature"
-        });
-        piEmploi.preparerDataFormu();
-        piEmploi.getFormu().makeHtmlInsertTabIndex();
 %>
 <div class="content-wrapper">
     <section class="content-header">
@@ -115,15 +14,26 @@
         </ol>
     </section>
     <section class="content">
-        <form action="<%=lien%>?but=apresCarriere.jsp" method="post" data-parsley-validate>
+        <form action="<%=lien%>?but=apresCarriere.jsp" method="post">
 
-            <!-- Section : Publication -->
+            <!-- Section : Description -->
             <div class="box box-primary">
                 <div class="box-header with-border">
                     <h3 class="box-title"><i class="fa fa-pencil"></i> Description de l'offre</h3>
                 </div>
                 <div class="box-body">
-                    <%= piPost.getFormu().getHtmlInsert() %>
+                    <div class="form-group">
+                        <label>Description de l'offre *</label>
+                        <textarea name="contenu" class="form-control" rows="6" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Visibilite</label>
+                        <select name="idvisibilite" class="form-control">
+                            <option value="VIS00001">Public</option>
+                            <option value="VIS00002">Membres uniquement</option>
+                            <option value="VIS00003">Prive</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -133,26 +43,135 @@
                     <h3 class="box-title"><i class="fa fa-suitcase"></i> Details de l'offre d'emploi</h3>
                 </div>
                 <div class="box-body">
-                    <%= piEmploi.getFormu().getHtmlInsert() %>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Entreprise *</label>
+                                <input type="text" name="entreprise" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Intitule du poste *</label>
+                                <input type="text" name="poste" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Localisation</label>
+                                <input type="text" name="localisation" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Type de contrat</label>
+                                <select name="type_contrat" class="form-control">
+                                    <option value="">-- Choisir --</option>
+                                    <option value="CDI">CDI</option>
+                                    <option value="CDD">CDD</option>
+                                    <option value="Freelance">Freelance</option>
+                                    <option value="Alternance">Alternance</option>
+                                    <option value="Stage">Stage</option>
+                                    <option value="Autre">Autre</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Salaire minimum</label>
+                                <input type="number" step="0.01" name="salaire_min" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Salaire maximum</label>
+                                <input type="number" step="0.01" name="salaire_max" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Devise</label>
+                                <input type="text" name="devise" class="form-control" value="MGA">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Experience requise</label>
+                                <input type="text" name="experience_requise" class="form-control" placeholder="ex: 2 ans">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Niveau d'etude requis</label>
+                                <input type="text" name="niveau_etude_requis" class="form-control" placeholder="ex: Bac+3">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Competences requises</label>
+                        <textarea name="competences_requises" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Teletravail possible</label>
+                                <select name="teletravail_possible" class="form-control">
+                                    <option value="0">Non</option>
+                                    <option value="1">Oui</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Date limite candidature</label>
+                                <input type="date" name="date_limite" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Email de contact</label>
+                                <input type="email" name="contact_email" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Telephone de contact</label>
+                                <input type="text" name="contact_tel" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Lien de candidature</label>
+                                <input type="url" name="lien_candidature" class="form-control">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Champs caches obligatoires -->
-            <input type="hidden" name="acte"  value="insertEmploi" />
-            <input type="hidden" name="bute"  value="carriere/emploi-fiche.jsp" />
+            <!-- Champs caches -->
+            <input type="hidden" name="acte" value="insertEmploi" />
+            <input type="hidden" name="bute" value="carriere/emploi-liste.jsp" />
 
             <!-- Boutons -->
             <div class="box">
                 <div class="box-footer">
                     <button type="submit" class="btn btn-primary">
-                        <i class="fa fa-check"></i> Publier l'offre d'emploi
+                        <i class="fa fa-check"></i> Publier l'offre
                     </button>
                     <a href="<%=lien%>?but=carriere/emploi-liste.jsp" class="btn btn-default" style="margin-left:10px">
                         <i class="fa fa-times"></i> Annuler
                     </a>
                 </div>
             </div>
-
         </form>
     </section>
 </div>
@@ -161,10 +180,7 @@
         e.printStackTrace();
         String msgErr = (e.getMessage() != null) ? e.getMessage() : "Erreur inconnue";
 %>
-<script language="JavaScript">
-    alert('Erreur emploi-saisie : <%=msgErr.replace("'", "\\'")%>');
-    history.back();
-</script>
+<script>alert('Erreur : <%=msgErr.replace("'", "\\'")%>'); history.back();</script>
 <%
     }
 %>

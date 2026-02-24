@@ -1,62 +1,84 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
-<%@ page import="affichage.PageRecherche" %>
-<%@ page import="affichage.Champ" %>
-<%@ page import="bean.PostStageLib" %>
 <%@ page import="user.UserEJB" %>
+<%@ page import="java.sql.Connection" %>
+<%@ page import="java.sql.PreparedStatement" %>
+<%@ page import="java.sql.ResultSet" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
+<%@ page import="utilitaire.UtilDB" %>
 <%
+    Connection conn = null;
     try {
+        conn = new UtilDB().GetConn();
         UserEJB u = (UserEJB) session.getValue("u");
         String lien = (String) session.getValue("lien");
 
-        PostStageLib objet = new PostStageLib();
-        PageRecherche pr = new PageRecherche(objet, request, u);
-        pr.setTitre("Offres de stage");
-        pr.setNpp(20);
-        pr.setListeCrt(new String[]{"entreprise", "localisation", "duree", "auteur_nom"});
-        pr.setListeInt(new String[]{"date_debut", "created_at"});
-        pr.setApresWhere(" AND supprime = 0");
-
-        // Colonnes a afficher dans la liste
-        pr.setListeCol(new String[]{
-            "created_at", "entreprise", "localisation",
-            "duree", "date_debut", "date_fin",
-            "indemnite", "auteur_nom"
-        });
-        pr.setListeLibCol(new String[]{
-            "Date", "Entreprise / Organisme", "Localisation",
-            "Duree", "Debut", "Fin",
-            "Indemnite", "Publie par"
-        });
-
-        // Lien vers la fiche sur la colonne entreprise
-        pr.setLienColonne("entreprise",
-                lien + "?but=carriere/stage-fiche.jsp&id=", "post_id");
+        // Charger les offres de stage via SQL direct
+        List<String[]> listStage = new ArrayList<String[]>();
+        try {
+            PreparedStatement ps = conn.prepareStatement(
+                "SELECT id, contenu, nb_likes, nb_commentaires, created_at FROM posts WHERE idtypepublication = 'TYP00003' AND supprime = 0 ORDER BY created_at DESC");
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String[] row = new String[5];
+                row[0] = rs.getString("id");
+                row[1] = rs.getString("contenu");
+                row[2] = String.valueOf(rs.getInt("nb_likes"));
+                row[3] = String.valueOf(rs.getInt("nb_commentaires"));
+                row[4] = rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString().substring(0,10) : "";
+                listStage.add(row);
+            }
+            rs.close(); ps.close();
+        } catch(Exception ex) { ex.printStackTrace(); }
 %>
 <div class="content-wrapper">
     <section class="content-header">
-        <h1><i class="fa fa-graduation-cap"></i> <%= pr.getTitre() %></h1>
+        <h1><i class="fa fa-graduation-cap"></i> Offres de stage</h1>
         <ol class="breadcrumb">
             <li><a href="<%=lien%>?but=carriere/carriere-accueil.jsp"><i class="fa fa-home"></i> Espace Carriere</a></li>
             <li class="active">Offres de stage</li>
         </ol>
     </section>
     <section class="content">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="box box-success">
-                    <div class="box-header with-border">
-                        <h3 class="box-title"><%= pr.getTitre() %></h3>
-                        <div class="box-tools pull-right">
-                            <a class="btn btn-success btn-sm"
-                               href="<%=lien%>?but=carriere/stage-saisie.jsp">
-                                <i class="fa fa-plus"></i> Publier un stage
-                            </a>
-                        </div>
-                    </div>
-                    <div class="box-body">
-                        <%= pr.getHtml() %>
-                    </div>
-                </div>
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title"><i class="fa fa-list"></i> Liste des stages</h3>
+            </div>
+            <div class="box-body">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Contenu</th>
+                            <th>Likes</th>
+                            <th>Commentaires</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (listStage != null && listStage.size() > 0) {
+                            for (String[] row : listStage) {
+                                String id = row[0];
+                                String contenu = row[1] != null ? row[1] : "";
+                                if (contenu.length() > 100) contenu = contenu.substring(0, 100) + "...";
+                        %>
+                        <tr>
+                            <td><%=row[4]%></td>
+                            <td><%=contenu%></td>
+                            <td><span class="badge bg-green"><%=row[2]%></span></td>
+                            <td><span class="badge bg-blue"><%=row[3]%></span></td>
+                            <td>
+                                <a href="<%=lien%>?but=carriere/stage-fiche.jsp&id=<%=id%>" class="btn btn-xs btn-info">
+                                    <i class="fa fa-eye"></i> Voir
+                                </a>
+                            </td>
+                        </tr>
+                        <% }
+                           } else { %>
+                        <tr><td colspan="5" class="text-center text-muted">Aucune offre de stage.</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
             </div>
         </div>
     </section>
@@ -68,5 +90,7 @@
 %>
 <script language="JavaScript">alert('Erreur stage-liste : <%=msgErr.replace("'", "\\'")%>');</script>
 <%
+    } finally {
+        if (conn != null) try { conn.close(); } catch(Exception ex) {}
     }
 %>

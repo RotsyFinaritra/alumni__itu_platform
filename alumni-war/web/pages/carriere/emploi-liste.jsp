@@ -1,52 +1,35 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
-<%@ page import="affichage.PageRecherche" %>
-<%@ page import="bean.PostEmploiLib" %>
 <%@ page import="user.UserEJB" %>
-<%@ page import="utilitaire.Utilitaire" %>
+<%@ page import="java.sql.Connection" %>
+<%@ page import="java.sql.PreparedStatement" %>
+<%@ page import="java.sql.ResultSet" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
+<%@ page import="utilitaire.UtilDB" %>
 <%
+    Connection conn = null;
     try {
+        conn = new UtilDB().GetConn();
         UserEJB u = (UserEJB) session.getValue("u");
         String lien = (String) session.getValue("lien");
 
-        PostEmploiLib t = new PostEmploiLib();
-
-        String[] listeCrt = {"entreprise", "poste", "localisation", "type_contrat", "auteur_nom"};
-        String[] listeInt = {"created_at"};
-        String[] libEntete = {"created_at", "entreprise", "poste", "localisation", "type_contrat", "auteur_nom", "nb_likes", "nb_commentaires"};
-
-        PageRecherche pr = new PageRecherche(t, request, listeCrt, listeInt, 3, libEntete, libEntete.length);
-        pr.setTitre("Offres d'emploi");
-        pr.setUtilisateur(u);
-        pr.setLien(lien);
-        pr.setApres("carriere/emploi-liste.jsp");
-
-        // Libelles des criteres
-        pr.getFormu().getChamp("entreprise").setLibelle("Entreprise");
-        pr.getFormu().getChamp("poste").setLibelle("Poste");
-        pr.getFormu().getChamp("localisation").setLibelle("Localisation");
-        pr.getFormu().getChamp("type_contrat").setLibelle("Type de contrat");
-        pr.getFormu().getChamp("auteur_nom").setLibelle("Publie par");
-        pr.getFormu().getChamp("created_at1").setLibelle("Date min");
-        pr.getFormu().getChamp("created_at2").setLibelle("Date max");
-        pr.getFormu().getChamp("created_at2").setDefaut(Utilitaire.dateDuJour());
-
-        // Filtre : offres actives uniquement (non supprimees, publiees)
-        pr.setAWhere(" AND supprime = 0");
-
-        pr.setNpp(20);
-
-        String[] colSomme = null;
-        pr.creerObjetPage(libEntete, colSomme);
-
-        // Lien cliquable sur post_id (colonne principale d'identifiant)
-        String[] lienTableau  = {lien + "?but=carriere/emploi-fiche.jsp"};
-        String[] colonneLien  = {"post_id"};
-        pr.getTableau().setLien(lienTableau);
-        pr.getTableau().setColonneLien(colonneLien);
-
-        // En-tetes affiches
-        String[] libEnteteAffiche = {"Date", "Entreprise", "Poste", "Localisation", "Contrat", "Publie par", "Likes", "Commentaires"};
-        pr.getTableau().setLibelleAffiche(libEnteteAffiche);
+        // Charger les offres d'emploi via SQL direct
+        List<String[]> listEmploi = new ArrayList<String[]>();
+        try {
+            PreparedStatement ps = conn.prepareStatement(
+                "SELECT id, contenu, nb_likes, nb_commentaires, created_at FROM posts WHERE idtypepublication = 'TYP00002' AND supprime = 0 ORDER BY created_at DESC");
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String[] row = new String[5];
+                row[0] = rs.getString("id");
+                row[1] = rs.getString("contenu");
+                row[2] = String.valueOf(rs.getInt("nb_likes"));
+                row[3] = String.valueOf(rs.getInt("nb_commentaires"));
+                row[4] = rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString().substring(0,10) : "";
+                listEmploi.add(row);
+            }
+            rs.close(); ps.close();
+        } catch(Exception ex) { ex.printStackTrace(); }
 %>
 <div class="content-wrapper">
     <section class="content-header">
@@ -59,29 +42,45 @@
     <section class="content">
         <div class="box box-primary">
             <div class="box-header with-border">
-                <h3 class="box-title"><i class="fa fa-search"></i> Rechercher</h3>
-                <div class="box-tools pull-right">
-                    <a href="<%=lien%>?but=carriere/emploi-saisie.jsp" class="btn btn-success btn-sm">
-                        <i class="fa fa-plus"></i> Publier une offre
-                    </a>
-                </div>
+                <h3 class="box-title"><i class="fa fa-list"></i> Liste des offres</h3>
             </div>
             <div class="box-body">
-                <form action="<%=lien%>?but=carriere/emploi-liste.jsp" method="post">
-                    <%= pr.getFormu().getHtmlEnsemble() %>
-                </form>
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Contenu</th>
+                            <th>Likes</th>
+                            <th>Commentaires</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (listEmploi != null && listEmploi.size() > 0) {
+                            for (String[] row : listEmploi) {
+                                String id = row[0];
+                                String contenu = row[1] != null ? row[1] : "";
+                                if (contenu.length() > 100) contenu = contenu.substring(0, 100) + "...";
+                        %>
+                        <tr>
+                            <td><%=row[4]%></td>
+                            <td><%=contenu%></td>
+                            <td><span class="badge bg-green"><%=row[2]%></span></td>
+                            <td><span class="badge bg-blue"><%=row[3]%></span></td>
+                            <td>
+                                <a href="<%=lien%>?but=carriere/emploi-fiche.jsp&id=<%=id%>" class="btn btn-xs btn-info">
+                                    <i class="fa fa-eye"></i> Voir
+                                </a>
+                            </td>
+                        </tr>
+                        <% }
+                           } else { %>
+                        <tr><td colspan="5" class="text-center text-muted">Aucune offre d'emploi.</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
             </div>
         </div>
-
-        <%= pr.getTableauRecap().getHtml() %>
-
-        <div class="box">
-            <div class="box-body no-padding">
-                <%= pr.getTableau().getHtml() %>
-            </div>
-        </div>
-
-        <%= pr.getBasPage() %>
     </section>
 </div>
 <%
@@ -91,5 +90,7 @@
 %>
 <script language="JavaScript">alert('Erreur emploi-liste : <%=msgErr.replace("'", "\\'")%>');</script>
 <%
+    } finally {
+        if (conn != null) try { conn.close(); } catch(Exception ex) {}
     }
 %>

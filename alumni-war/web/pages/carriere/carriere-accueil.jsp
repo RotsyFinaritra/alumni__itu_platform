@@ -1,197 +1,197 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
-<%@ page import="affichage.PageRecherche" %>
-<%@ page import="bean.PostEmploiLib" %>
-<%@ page import="bean.PostStageLib" %>
 <%@ page import="user.UserEJB" %>
-<%@ page import="utilitaire.CGenUtil" %>
+<%@ page import="java.sql.Connection" %>
+<%@ page import="java.sql.PreparedStatement" %>
+<%@ page import="java.sql.ResultSet" %>
+<%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
+<%@ page import="utilitaire.UtilDB" %>
 <%
+    Connection conn = null;
     try {
+        conn = new UtilDB().GetConn();
         UserEJB u = (UserEJB) session.getValue("u");
         String lien = (String) session.getValue("lien");
 
-        // Compter les offres d'emploi actives (supprime=0)
-        PostEmploiLib emploiCount = new PostEmploiLib();
-        List listEmploi = CGenUtil.rechercher(emploiCount, u, "supprime = 0");
-        int nbEmploi = (listEmploi != null) ? listEmploi.size() : 0;
-
-        // Compter les offres de stage actives
-        PostStageLib stageCount = new PostStageLib();
-        List listStage = CGenUtil.rechercher(stageCount, u, "supprime = 0");
-        int nbStage = (listStage != null) ? listStage.size() : 0;
-
-        // 5 dernieres offres d'emploi
-        PostEmploiLib emploiRecent = new PostEmploiLib();
-        List listeRecentsEmploi = CGenUtil.rechercher(emploiRecent, u,
-                "supprime = 0 ORDER BY created_at DESC LIMIT 5");
-
-        // 5 dernieres offres de stage
-        PostStageLib stageRecent = new PostStageLib();
-        List listeRecentsStage = CGenUtil.rechercher(stageRecent, u,
-                "supprime = 0 ORDER BY created_at DESC LIMIT 5");
+        int nbEmploi = 0, nbStage = 0;
+        List<String[]> listeRecentsEmploi = new ArrayList<String[]>();
+        List<String[]> listeRecentsStage = new ArrayList<String[]>();
+        
+        // Charger emplois
+        try {
+            PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM posts WHERE idtypepublication = 'TYP00002' AND supprime = 0");
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) nbEmploi = rs.getInt(1);
+            rs.close(); ps.close();
+            
+            ps = conn.prepareStatement("SELECT id, contenu, nb_likes, created_at FROM posts WHERE idtypepublication = 'TYP00002' AND supprime = 0 ORDER BY created_at DESC LIMIT 5");
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                String[] row = {rs.getString("id"), rs.getString("contenu"), String.valueOf(rs.getInt("nb_likes")), 
+                    rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString().substring(0,10) : ""};
+                listeRecentsEmploi.add(row);
+            }
+            rs.close(); ps.close();
+        } catch(Exception ex) { ex.printStackTrace(); }
+        
+        // Charger stages
+        try {
+            PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM posts WHERE idtypepublication = 'TYP00003' AND supprime = 0");
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) nbStage = rs.getInt(1);
+            rs.close(); ps.close();
+            
+            ps = conn.prepareStatement("SELECT id, contenu, nb_likes, created_at FROM posts WHERE idtypepublication = 'TYP00003' AND supprime = 0 ORDER BY created_at DESC LIMIT 5");
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                String[] row = {rs.getString("id"), rs.getString("contenu"), String.valueOf(rs.getInt("nb_likes")),
+                    rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toString().substring(0,10) : ""};
+                listeRecentsStage.add(row);
+            }
+            rs.close(); ps.close();
+        } catch(Exception ex) { ex.printStackTrace(); }
 %>
-<div class="content-wrapper">
-    <section class="content-header">
-        <h1><i class="fa fa-briefcase"></i> Espace Carriere</h1>
-        <ol class="breadcrumb">
-            <li class="active"><i class="fa fa-home"></i> Espace Carriere</li>
-        </ol>
-    </section>
-    <section class="content">
+<style>
+    .career-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 8px; color: #fff; margin-bottom: 25px; }
+    .career-header h1 { margin: 0; font-weight: 300; font-size: 28px; }
+    .career-header p { margin: 8px 0 0; opacity: 0.9; }
+    .stat-card { background: #fff; border-radius: 12px; padding: 25px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s; border: none; margin-bottom: 20px; }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
+    .stat-card .icon { width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; }
+    .stat-card .icon.blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .stat-card .icon.green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+    .stat-card .icon.orange { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .stat-card h3 { font-size: 32px; font-weight: 600; margin: 15px 0 5px; color: #2d3748; }
+    .stat-card p { color: #718096; margin: 0; font-size: 14px; }
+    .action-btn { display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; border-radius: 8px; font-weight: 500; transition: all 0.2s; border: none; }
+    .action-btn.primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
+    .action-btn.success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: #fff; }
+    .action-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.2); color: #fff; }
+    .modern-box { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); border: none; overflow: hidden; }
+    .modern-box .box-header { background: #f8fafc; padding: 18px 20px; border-bottom: 1px solid #e2e8f0; }
+    .modern-box .box-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: #2d3748; }
+    .modern-box .box-body { padding: 0; }
+    .modern-table { margin: 0; }
+    .modern-table th { background: #f8fafc; font-weight: 600; color: #4a5568; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 16px; border: none; }
+    .modern-table td { padding: 14px 16px; border-bottom: 1px solid #edf2f7; color: #4a5568; vertical-align: middle; }
+    .modern-table tr:last-child td { border-bottom: none; }
+    .modern-table tr:hover { background: #f7fafc; }
+    .modern-table a { color: #667eea; font-weight: 500; }
+    .badge-modern { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .badge-modern.green { background: #c6f6d5; color: #22543d; }
+    .badge-modern.blue { background: #bee3f8; color: #2a4365; }
+    .empty-state { padding: 40px; text-align: center; color: #a0aec0; }
+    .empty-state i { font-size: 48px; margin-bottom: 15px; opacity: 0.5; }
+</style>
 
-        <!-- Cartes de statistiques -->
+<div class="content-wrapper" style="background: #f4f6f9;">
+    <section class="content" style="padding: 25px;">
+        
+        <!-- Header -->
+        <div class="career-header">
+            <h1><i class="fa fa-rocket"></i> Espace Carriere</h1>
+            <p>Decouvrez les opportunites professionnelles et stages pour les alumni ITU</p>
+        </div>
+
+        <!-- Stats -->
         <div class="row">
-            <div class="col-lg-4 col-xs-6">
-                <div class="small-box bg-aqua">
-                    <div class="inner">
-                        <h3><%= nbEmploi %></h3>
-                        <p>Offres d'emploi actives</p>
-                    </div>
-                    <div class="icon"><i class="fa fa-suitcase"></i></div>
-                    <a href="<%=lien%>?but=carriere/emploi-liste.jsp" class="small-box-footer">
-                        Voir toutes <i class="fa fa-arrow-circle-right"></i>
-                    </a>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="icon blue"><i class="fa fa-suitcase"></i></div>
+                    <h3><%= nbEmploi %></h3>
+                    <p>Offres d'emploi actives</p>
                 </div>
             </div>
-            <div class="col-lg-4 col-xs-6">
-                <div class="small-box bg-green">
-                    <div class="inner">
-                        <h3><%= nbStage %></h3>
-                        <p>Offres de stage actives</p>
-                    </div>
-                    <div class="icon"><i class="fa fa-graduation-cap"></i></div>
-                    <a href="<%=lien%>?but=carriere/stage-liste.jsp" class="small-box-footer">
-                        Voir toutes <i class="fa fa-arrow-circle-right"></i>
-                    </a>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="icon green"><i class="fa fa-graduation-cap"></i></div>
+                    <h3><%= nbStage %></h3>
+                    <p>Offres de stage actives</p>
                 </div>
             </div>
-            <div class="col-lg-4 col-xs-6">
-                <div class="small-box bg-yellow">
-                    <div class="inner">
-                        <h3><%= nbEmploi + nbStage %></h3>
-                        <p>Total des opportunites</p>
-                    </div>
-                    <div class="icon"><i class="fa fa-star"></i></div>
-                    <a href="#" class="small-box-footer">
-                        &nbsp;
-                    </a>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="icon orange"><i class="fa fa-star"></i></div>
+                    <h3><%= nbEmploi + nbStage %></h3>
+                    <p>Total des opportunites</p>
                 </div>
             </div>
         </div>
 
-        <!-- Actions rapides -->
-        <div class="row">
-            <div class="col-md-6">
-                <a href="<%=lien%>?but=carriere/emploi-saisie.jsp"
-                   class="btn btn-app bg-aqua">
-                    <i class="fa fa-plus-circle"></i>
-                    Publier une offre d'emploi
+        <!-- Actions -->
+        <div class="row" style="margin-bottom: 25px;">
+            <div class="col-md-12">
+                <a href="<%=lien%>?but=carriere/emploi-saisie.jsp" class="action-btn primary">
+                    <i class="fa fa-plus"></i> Publier une offre d'emploi
                 </a>
-                <a href="<%=lien%>?but=carriere/stage-saisie.jsp"
-                   class="btn btn-app bg-green">
-                    <i class="fa fa-plus-circle"></i>
-                    Publier une offre de stage
+                <a href="<%=lien%>?but=carriere/stage-saisie.jsp" class="action-btn success" style="margin-left: 10px;">
+                    <i class="fa fa-plus"></i> Publier une offre de stage
                 </a>
             </div>
         </div>
 
-        <!-- Dernieres offres d'emploi -->
+        <!-- Listes recentes -->
         <div class="row">
             <div class="col-md-6">
-                <div class="box box-aqua">
-                    <div class="box-header with-border">
-                        <h3 class="box-title">
-                            <i class="fa fa-suitcase"></i> Dernieres offres d'emploi
-                        </h3>
-                        <div class="box-tools pull-right">
-                            <a href="<%=lien%>?but=carriere/emploi-liste.jsp"
-                               class="btn btn-xs btn-default">
-                                Voir tout
-                            </a>
-                        </div>
+                <div class="modern-box">
+                    <div class="box-header">
+                        <h3><i class="fa fa-suitcase" style="color: #667eea;"></i> &nbsp;Dernieres offres d'emploi</h3>
                     </div>
-                    <div class="box-body no-padding">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Entreprise</th>
-                                    <th>Poste</th>
-                                    <th>Contrat</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
+                    <div class="box-body">
+                        <% if (listeRecentsEmploi.size() > 0) { %>
+                        <table class="table modern-table">
+                            <thead><tr><th>Publication</th><th>Date</th><th>Likes</th></tr></thead>
                             <tbody>
-                                <% if (listeRecentsEmploi != null && !listeRecentsEmploi.isEmpty()) {
-                                    for (Object obj : listeRecentsEmploi) {
-                                        PostEmploiLib e = (PostEmploiLib) obj;
-                                        String id = e.getTuppleID();
-                                %>
-                                <tr>
-                                    <td>
-                                        <a href="<%=lien%>?but=carriere/emploi-fiche.jsp&id=<%=id%>">
-                                            <%=e.getEntreprise() != null ? e.getEntreprise() : ""%>
-                                        </a>
-                                    </td>
-                                    <td><%=e.getPoste() != null ? e.getPoste() : ""%></td>
-                                    <td><%=e.getType_contrat() != null ? e.getType_contrat() : ""%></td>
-                                    <td><%=e.getCreated_at() != null ? e.getCreated_at().toString().substring(0,10) : ""%></td>
-                                </tr>
-                                <% }
-                                   } else { %>
-                                <tr><td colspan="4" class="text-center text-muted">Aucune offre d'emploi.</td></tr>
-                                <% } %>
+                            <% for (String[] row : listeRecentsEmploi) {
+                                String contenu = row[1] != null ? row[1].replaceAll("<[^>]*>", "") : "";
+                                if (contenu.length() > 40) contenu = contenu.substring(0, 40) + "...";
+                            %>
+                            <tr>
+                                <td><a href="<%=lien%>?but=carriere/emploi-fiche.jsp&id=<%=row[0]%>"><%=contenu%></a></td>
+                                <td style="white-space:nowrap;"><%=row[3]%></td>
+                                <td><span class="badge-modern green"><%=row[2]%> <i class="fa fa-heart"></i></span></td>
+                            </tr>
+                            <% } %>
                             </tbody>
                         </table>
+                        <% } else { %>
+                        <div class="empty-state">
+                            <i class="fa fa-inbox"></i>
+                            <p>Aucune offre d'emploi pour le moment</p>
+                        </div>
+                        <% } %>
                     </div>
                 </div>
             </div>
 
-            <!-- Dernieres offres de stage -->
             <div class="col-md-6">
-                <div class="box box-success">
-                    <div class="box-header with-border">
-                        <h3 class="box-title">
-                            <i class="fa fa-graduation-cap"></i> Dernieres offres de stage
-                        </h3>
-                        <div class="box-tools pull-right">
-                            <a href="<%=lien%>?but=carriere/stage-liste.jsp"
-                               class="btn btn-xs btn-default">
-                                Voir tout
-                            </a>
-                        </div>
+                <div class="modern-box">
+                    <div class="box-header">
+                        <h3><i class="fa fa-graduation-cap" style="color: #38ef7d;"></i> &nbsp;Dernieres offres de stage</h3>
                     </div>
-                    <div class="box-body no-padding">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Entreprise</th>
-                                    <th>Duree</th>
-                                    <th>Debut</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
+                    <div class="box-body">
+                        <% if (listeRecentsStage.size() > 0) { %>
+                        <table class="table modern-table">
+                            <thead><tr><th>Publication</th><th>Date</th><th>Likes</th></tr></thead>
                             <tbody>
-                                <% if (listeRecentsStage != null && !listeRecentsStage.isEmpty()) {
-                                    for (Object obj : listeRecentsStage) {
-                                        PostStageLib s = (PostStageLib) obj;
-                                        String id = s.getTuppleID();
-                                %>
-                                <tr>
-                                    <td>
-                                        <a href="<%=lien%>?but=carriere/stage-fiche.jsp&id=<%=id%>">
-                                            <%=s.getEntreprise() != null ? s.getEntreprise() : ""%>
-                                        </a>
-                                    </td>
-                                    <td><%=s.getDuree() != null ? s.getDuree() : ""%></td>
-                                    <td><%=s.getDate_debut() != null ? s.getDate_debut().toString() : ""%></td>
-                                    <td><%=s.getCreated_at() != null ? s.getCreated_at().toString().substring(0,10) : ""%></td>
-                                </tr>
-                                <% }
-                                   } else { %>
-                                <tr><td colspan="4" class="text-center text-muted">Aucune offre de stage.</td></tr>
-                                <% } %>
+                            <% for (String[] row : listeRecentsStage) {
+                                String contenu = row[1] != null ? row[1].replaceAll("<[^>]*>", "") : "";
+                                if (contenu.length() > 40) contenu = contenu.substring(0, 40) + "...";
+                            %>
+                            <tr>
+                                <td><a href="<%=lien%>?but=carriere/stage-fiche.jsp&id=<%=row[0]%>"><%=contenu%></a></td>
+                                <td style="white-space:nowrap;"><%=row[3]%></td>
+                                <td><span class="badge-modern blue"><%=row[2]%> <i class="fa fa-heart"></i></span></td>
+                            </tr>
+                            <% } %>
                             </tbody>
                         </table>
+                        <% } else { %>
+                        <div class="empty-state">
+                            <i class="fa fa-inbox"></i>
+                            <p>Aucune offre de stage pour le moment</p>
+                        </div>
+                        <% } %>
                     </div>
                 </div>
             </div>
@@ -202,9 +202,11 @@
 <%
     } catch (Exception e) {
         e.printStackTrace();
-        String msgErr = (e.getMessage() != null) ? e.getMessage() : "Erreur inconnue";
 %>
-<script language="JavaScript">alert('Erreur carriere-accueil : <%=msgErr.replace("'", "\\'")%>');</script>
+<div class="alert alert-danger" style="margin:20px;"><i class="fa fa-exclamation-circle"></i> Une erreur est survenue.</div>
 <%
+    } finally {
+        if (conn != null) try { conn.close(); } catch(Exception ex) {}
     }
 %>
+

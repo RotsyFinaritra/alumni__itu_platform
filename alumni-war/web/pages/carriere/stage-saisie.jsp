@@ -1,135 +1,156 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
-<%@ page import="affichage.PageInsert" %>
-<%@ page import="affichage.Champ" %>
-<%@ page import="affichage.Liste" %>
-<%@ page import="bean.Post" %>
-<%@ page import="bean.PostStage" %>
-<%@ page import="bean.VisibilitePublication" %>
 <%@ page import="user.UserEJB" %>
 <%
     try {
         UserEJB u = (UserEJB) session.getValue("u");
         String lien = (String) session.getValue("lien");
-
-        // --- Section 1 : formulaire Post parent ---
-        Post postModele = new Post();
-        postModele.setNomTable("posts");
-        PageInsert piPost = new PageInsert(postModele, request, u);
-        piPost.setTitre("Publier une offre de stage");
-
-        Champ c;
-        c = piPost.getChampByName("post_id");        if (c != null) c.setVisible(false);
-        c = piPost.getChampByName("idutilisateur");  if (c != null) c.setVisible(false);
-        c = piPost.getChampByName("type");           if (c != null) c.setVisible(false);
-        c = piPost.getChampByName("idstatutpublication"); if (c != null) c.setVisible(false);
-        c = piPost.getChampByName("idgroupe");       if (c != null) c.setVisible(false);
-        c = piPost.getChampByName("epingle");        if (c != null) c.setVisible(false);
-        c = piPost.getChampByName("supprime");       if (c != null) c.setVisible(false);
-        c = piPost.getChampByName("edited_at");      if (c != null) c.setVisible(false);
-        c = piPost.getChampByName("created_at");     if (c != null) c.setVisible(false);
-
-        Champ champContenu = piPost.getChampByName("contenu");
-        if (champContenu != null) {
-            champContenu.setLibelle("Description du stage");
-            champContenu.setType("editor");
-            champContenu.setObligatoire(true);
-        }
-
-        Champ champVisi = piPost.getChampByName("idvisibilite");
-        if (champVisi != null) {
-            champVisi.setLibelle("Visibilite");
-            champVisi.setObligatoire(true);
-            Liste listeVisi = new Liste(new VisibilitePublication(), u,
-                    "idvisibilite", "libelle");
-            champVisi.setListe(listeVisi);
-        }
-
-        // --- Section 2 : formulaire PostStage ---
-        PostStage stageModele = new PostStage();
-        PageInsert piStage = new PageInsert(stageModele, request, u);
-
-        c = piStage.getChampByName("post_id");       if (c != null) c.setVisible(false);
-
-        piStage.getChampByName("entreprise").setLibelle("Entreprise / Organisme");
-        piStage.getChampByName("entreprise").setObligatoire(true);
-        piStage.getChampByName("localisation").setLibelle("Localisation");
-        piStage.getChampByName("duree").setLibelle("Duree (ex: 3 mois)");
-        piStage.getChampByName("date_debut").setLibelle("Date de debut");
-        piStage.getChampByName("date_fin").setLibelle("Date de fin");
-        piStage.getChampByName("indemnite").setLibelle("Indemnite mensuelle");
-        piStage.getChampByName("places_disponibles").setLibelle("Nombre de places");
-        piStage.getChampByName("contact_email").setLibelle("Email de contact");
-        piStage.getChampByName("contact_tel").setLibelle("Telephone");
-        piStage.getChampByName("lien_candidature").setLibelle("Lien de candidature");
-
-        Champ champConvention = piStage.getChampByName("convention_requise");
-        if (champConvention != null) {
-            champConvention.setLibelle("Convention requise");
-            Liste listeConv = new Liste();
-            listeConv.ajouterLigne("0", "Non");
-            listeConv.ajouterLigne("1", "Oui");
-            champConvention.setListe(listeConv);
-        }
-
-        Champ champComp = piStage.getChampByName("competences_requises");
-        if (champComp != null) {
-            champComp.setLibelle("Competences requises");
-            champComp.setType("editor");
-        }
-
-        Champ champNiveau = piStage.getChampByName("niveau_etude_requis");
-        if (champNiveau != null) champNiveau.setLibelle("Niveau d etude requis");
 %>
 <div class="content-wrapper">
     <section class="content-header">
-        <h1><i class="fa fa-graduation-cap"></i> <%= piPost.getTitre() %></h1>
+        <h1><i class="fa fa-graduation-cap"></i> Publier une offre de stage</h1>
         <ol class="breadcrumb">
             <li><a href="<%=lien%>?but=carriere/carriere-accueil.jsp"><i class="fa fa-home"></i> Espace Carriere</a></li>
-            <li><a href="<%=lien%>?but=carriere/stage-liste.jsp">Offres de stage</a></li>
-            <li class="active">Publier</li>
+            <li class="active">Publier stage</li>
         </ol>
     </section>
     <section class="content">
-        <div class="row">
-            <div class="col-md-1"></div>
-            <div class="col-md-10">
-                <form method="post" action="<%=lien%>">
-                    <input type="hidden" name="but" value="apresCarriere.jsp">
-                    <input type="hidden" name="acte" value="insertStage">
-                    <input type="hidden" name="bute" value="carriere/stage-fiche.jsp">
+        <form action="<%=lien%>?but=apresCarriere.jsp" method="post">
 
-                    <!-- Section Post -->
-                    <div class="box box-primary">
-                        <div class="box-header with-border">
-                            <h3 class="box-title">Publication</h3>
-                        </div>
-                        <div class="box-body">
-                            <%= piPost.getHtml() %>
-                        </div>
+            <!-- Section : Description -->
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title"><i class="fa fa-pencil"></i> Description du stage</h3>
+                </div>
+                <div class="box-body">
+                    <div class="form-group">
+                        <label>Description du stage *</label>
+                        <textarea name="contenu" class="form-control" rows="6" required></textarea>
                     </div>
-
-                    <!-- Section PostStage -->
-                    <div class="box box-success">
-                        <div class="box-header with-border">
-                            <h3 class="box-title">Details du stage</h3>
-                        </div>
-                        <div class="box-body">
-                            <%= piStage.getHtml() %>
-                        </div>
+                    <div class="form-group">
+                        <label>Visibilite</label>
+                        <select name="idvisibilite" class="form-control">
+                            <option value="VIS00001">Public</option>
+                            <option value="VIS00002">Membres uniquement</option>
+                            <option value="VIS00003">Prive</option>
+                        </select>
                     </div>
-
-                    <div class="box-footer">
-                        <button type="submit" class="btn btn-success">
-                            <i class="fa fa-paper-plane"></i> Publier
-                        </button>
-                        <a class="btn btn-default pull-right"
-                           href="<%=lien%>?but=carriere/stage-liste.jsp">
-                            <i class="fa fa-times"></i> Annuler
-                        </a>
-                    </div>
-                </form>
+                </div>
             </div>
-        </div>
+
+            <!-- Section : Details stage -->
+            <div class="box box-success">
+                <div class="box-header with-border">
+                    <h3 class="box-title"><i class="fa fa-graduation-cap"></i> Details du stage</h3>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Entreprise / Organisme *</label>
+                                <input type="text" name="entreprise" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Localisation</label>
+                                <input type="text" name="localisation" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Duree (ex: 3 mois)</label>
+                                <input type="text" name="duree" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Date de debut</label>
+                                <input type="date" name="date_debut" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Date de fin</label>
+                                <input type="date" name="date_fin" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Indemnite mensuelle</label>
+                                <input type="number" step="0.01" name="indemnite" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Nombre de places</label>
+                                <input type="number" name="places_disponibles" class="form-control" value="1">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Convention requise</label>
+                                <select name="convention_requise" class="form-control">
+                                    <option value="0">Non</option>
+                                    <option value="1">Oui</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Niveau d'etude requis</label>
+                                <input type="text" name="niveau_etude_requis" class="form-control" placeholder="ex: Bac+3">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Competences requises</label>
+                        <textarea name="competences_requises" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Email de contact</label>
+                                <input type="email" name="contact_email" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Telephone</label>
+                                <input type="text" name="contact_tel" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Lien de candidature</label>
+                                <input type="url" name="lien_candidature" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Champs caches -->
+            <input type="hidden" name="acte" value="insertStage" />
+            <input type="hidden" name="bute" value="carriere/stage-liste.jsp" />
+
+            <!-- Boutons -->
+            <div class="box">
+                <div class="box-footer">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa fa-check"></i> Publier le stage
+                    </button>
+                    <a href="<%=lien%>?but=carriere/stage-liste.jsp" class="btn btn-default" style="margin-left:10px">
+                        <i class="fa fa-times"></i> Annuler
+                    </a>
+                </div>
+            </div>
+        </form>
     </section>
 </div>
 <%
@@ -137,7 +158,7 @@
         e.printStackTrace();
         String msgErr = (e.getMessage() != null) ? e.getMessage() : "Erreur inconnue";
 %>
-<script language="JavaScript">alert('Erreur stage-saisie : <%=msgErr.replace("'", "\\'")%>');</script>
+<script>alert('Erreur : <%=msgErr.replace("'", "\\'")%>'); history.back();</script>
 <%
     }
 %>
