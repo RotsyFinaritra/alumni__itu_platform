@@ -4,8 +4,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     try {
-        UserEJB u = (UserEJB) session.getAttribute("u");
-        String lien = (String) session.getAttribute("lien");
+        UserEJB u = (UserEJB) session.getValue("u");
+        String lien = (String) session.getValue("lien");
         
         // Détection mode popup - si lien est null ou contient modulePopup
         boolean isPopup = lien == null || lien.contains("modulePopup");
@@ -21,14 +21,22 @@
         PageInsert pi = new PageInsert(a, request, u);
         pi.setLien(lien);
 
-        // Configuration des libellés
-        pi.getFormu().getChamp("libelle").setLibelle("Nom de l'entreprise *");
-        pi.getFormu().getChamp("description").setLibelle("Description");
-        pi.getFormu().getChamp("idville").setLibelle("Ville");
-        pi.getFormu().getChamp("idville").setPageAppelComplete("bean.Ville", "id", "ville");
+        // Configuration des libellés - avec null checks
+        if (pi.getFormu().getChamp("libelle") != null) {
+            pi.getFormu().getChamp("libelle").setLibelle("Nom de l'entreprise *");
+        }
+        if (pi.getFormu().getChamp("description") != null) {
+            pi.getFormu().getChamp("description").setLibelle("Description");
+        }
+        if (pi.getFormu().getChamp("idville") != null) {
+            pi.getFormu().getChamp("idville").setLibelle("Ville");
+            pi.getFormu().getChamp("idville").setPageAppelComplete("bean.Ville", "id", "ville");
+        }
 
         // Masquer l'ID (auto-généré)
-        pi.getFormu().getChamp("id").setVisible(false);
+        if (pi.getFormu().getChamp("id") != null) {
+            pi.getFormu().getChamp("id").setVisible(false);
+        }
 
         // Ordre des champs
         String[] ordre = {"libelle", "idville", "description"};
