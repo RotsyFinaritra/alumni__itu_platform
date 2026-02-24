@@ -5,6 +5,7 @@ import java.sql.Date;
 
 public class PostEmploi extends ClassMAPTable {
     private String post_id;
+    private String identreprise;
     private String entreprise;
     private String localisation;
     private String poste;
@@ -55,6 +56,14 @@ public class PostEmploi extends ClassMAPTable {
 
     public void setEntreprise(String entreprise) {
         this.entreprise = entreprise;
+    }
+
+    public String getIdentreprise() {
+        return identreprise;
+    }
+
+    public void setIdentreprise(String identreprise) {
+        this.identreprise = identreprise;
     }
 
     public String getLocalisation() {

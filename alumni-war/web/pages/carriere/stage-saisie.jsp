@@ -1,164 +1,116 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
-<%@ page import="user.UserEJB" %>
+﻿<%@ page import="user.*" %>
+<%@ page import="bean.*" %>
+<%@ page import="utilitaire.*" %>
+<%@ page import="affichage.*" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     try {
         UserEJB u = (UserEJB) session.getValue("u");
-        String lien = (String) session.getValue("lien");
+        PostStage a = new PostStage();
+        PageInsert pi = new PageInsert(a, request, u);
+        pi.setLien((String) session.getValue("lien"));
+
+        // Pas de listes déroulantes spécifiques pour PostStage
+
+        // Configuration des libellés
+        pi.getFormu().getChamp("duree").setLibelle("Dur&eacute;e du stage *");
+        pi.getFormu().getChamp("localisation").setLibelle("Localisation");
+        pi.getFormu().getChamp("date_debut").setLibelle("Date de d&eacute;but");
+        pi.getFormu().getChamp("date_fin").setLibelle("Date de fin");
+        pi.getFormu().getChamp("indemnite").setLibelle("Indemnit&eacute; (MGA)");
+        pi.getFormu().getChamp("niveau_etude_requis").setLibelle("Niveau d'&eacute;tude requis");
+        pi.getFormu().getChamp("competences_requises").setLibelle("Comp&eacute;tences requises");
+        pi.getFormu().getChamp("convention_requise").setLibelle("Convention requise");
+        pi.getFormu().getChamp("places_disponibles").setLibelle("Places disponibles");
+        pi.getFormu().getChamp("contact_email").setLibelle("Email de contact");
+        pi.getFormu().getChamp("contact_tel").setLibelle("T&eacute;l&eacute;phone de contact");
+        pi.getFormu().getChamp("lien_candidature").setLibelle("Lien de candidature");
+        pi.getFormu().getChamp("identreprise").setLibelle("Entreprise *");
+
+        // Configuration des autocomplete (nomClasse, colId, tableName)
+        // Entreprise avec bouton + pour ajouter
+        pi.getFormu().getChamp("identreprise").setPageAppelCompleteInsert(
+            "bean.Entreprise", "id", "entreprise",
+            "carriere/entreprise-saisie.jsp", "id;libelle"
+        );
+        pi.getFormu().getChamp("localisation").setPageAppelComplete("bean.Ville", "id", "ville");
+        pi.getFormu().getChamp("niveau_etude_requis").setPageAppelComplete("bean.Diplome", "id", "diplome");
+        pi.getFormu().getChamp("competences_requises").setPageAppelComplete("bean.Competence", "id", "competence");
+
+        // Valeurs par défaut
+        pi.getFormu().getChamp("convention_requise").setDefaut("0");
+        pi.getFormu().getChamp("places_disponibles").setDefaut("1");
+
+        // Ordre des champs
+        String[] ordre = {
+            "identreprise",
+            "duree",
+            "localisation",
+            "date_debut",
+            "date_fin",
+            "indemnite",
+            "niveau_etude_requis",
+            "competences_requises",
+            "convention_requise",
+            "places_disponibles",
+            "contact_email",
+            "contact_tel",
+            "lien_candidature"
+        };
+        pi.getFormu().setOrdre(ordre);
+
+        // Variables de navigation
+        String classe = "bean.PostStage";
+        String butApresPost = "carriere/stage-liste.jsp";
+        String nomTable = "POST_STAGE";
+
+        // Générer les affichages
+        pi.preparerDataFormu();
+        pi.getFormu().makeHtmlInsertTabIndex();
 %>
 <div class="content-wrapper">
     <section class="content-header">
-        <h1><i class="fa fa-graduation-cap"></i> Publier une offre de stage</h1>
-        <ol class="breadcrumb">
-            <li><a href="<%=lien%>?but=carriere/carriere-accueil.jsp"><i class="fa fa-home"></i> Espace Carriere</a></li>
-            <li class="active">Publier stage</li>
-        </ol>
+        <div class="container-fluid">
+            <h1><i class="fas fa-graduation-cap"></i> Publier une offre de stage</h1>
+        </div>
     </section>
     <section class="content">
-        <form action="<%=lien%>?but=apresCarriere.jsp" method="post">
-
-            <!-- Section : Description -->
-            <div class="box box-primary">
-                <div class="box-header with-border">
-                    <h3 class="box-title"><i class="fa fa-pencil"></i> Description du stage</h3>
+        <div class="container-fluid">
+            <div class="card card-success">
+                <div class="card-header">
+                    <h3 class="card-title">Informations du stage</h3>
                 </div>
-                <div class="box-body">
-                    <div class="form-group">
-                        <label>Description du stage *</label>
-                        <textarea name="contenu" class="form-control" rows="6" required></textarea>
+                <form action="<%=pi.getLien()%>?but=apresCarriere.jsp" method="post" name="<%=nomTable%>" id="<%=nomTable%>" data-parsley-validate>
+                    <div class="card-body">
+                        <%
+                            out.println(pi.getFormu().getHtmlInsert());
+                            out.println(pi.getHtmlAddOnPopup());
+                        %>
+                        <input name="acte" type="hidden" value="insertStage">
+                        <input name="bute" type="hidden" value="<%= butApresPost %>">
+                        <input name="classe" type="hidden" value="<%= classe %>">
+                        <input name="nomtable" type="hidden" value="<%= nomTable %>">
                     </div>
-                    <div class="form-group">
-                        <label>Visibilite</label>
-                        <select name="idvisibilite" class="form-control">
-                            <option value="VIS00001">Public</option>
-                            <option value="VIS00002">Membres uniquement</option>
-                            <option value="VIS00003">Prive</option>
-                        </select>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Enregistrer
+                        </button>
+                        <a href="<%=pi.getLien()%>?but=carriere/stage-liste.jsp" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Retour
+                        </a>
                     </div>
-                </div>
+                </form>
             </div>
-
-            <!-- Section : Details stage -->
-            <div class="box box-success">
-                <div class="box-header with-border">
-                    <h3 class="box-title"><i class="fa fa-graduation-cap"></i> Details du stage</h3>
-                </div>
-                <div class="box-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Entreprise / Organisme *</label>
-                                <input type="text" name="entreprise" class="form-control" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Localisation</label>
-                                <input type="text" name="localisation" class="form-control">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Duree (ex: 3 mois)</label>
-                                <input type="text" name="duree" class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Date de debut</label>
-                                <input type="date" name="date_debut" class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Date de fin</label>
-                                <input type="date" name="date_fin" class="form-control">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Indemnite mensuelle</label>
-                                <input type="number" step="0.01" name="indemnite" class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Nombre de places</label>
-                                <input type="number" name="places_disponibles" class="form-control" value="1">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Convention requise</label>
-                                <select name="convention_requise" class="form-control">
-                                    <option value="0">Non</option>
-                                    <option value="1">Oui</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Niveau d'etude requis</label>
-                                <input type="text" name="niveau_etude_requis" class="form-control" placeholder="ex: Bac+3">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Competences requises</label>
-                        <textarea name="competences_requises" class="form-control" rows="3"></textarea>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Email de contact</label>
-                                <input type="email" name="contact_email" class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Telephone</label>
-                                <input type="text" name="contact_tel" class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Lien de candidature</label>
-                                <input type="url" name="lien_candidature" class="form-control">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Champs caches -->
-            <input type="hidden" name="acte" value="insertStage" />
-            <input type="hidden" name="bute" value="carriere/stage-liste.jsp" />
-
-            <!-- Boutons -->
-            <div class="box">
-                <div class="box-footer">
-                    <button type="submit" class="btn btn-success">
-                        <i class="fa fa-check"></i> Publier le stage
-                    </button>
-                    <a href="<%=lien%>?but=carriere/stage-liste.jsp" class="btn btn-default" style="margin-left:10px">
-                        <i class="fa fa-times"></i> Annuler
-                    </a>
-                </div>
-            </div>
-        </form>
+        </div>
     </section>
 </div>
 <%
     } catch (Exception e) {
         e.printStackTrace();
-        String msgErr = (e.getMessage() != null) ? e.getMessage() : "Erreur inconnue";
 %>
-<script>alert('Erreur : <%=msgErr.replace("'", "\\'")%>'); history.back();</script>
+<div class="alert alert-danger">
+    Erreur : <%= e.getMessage() %>
+</div>
 <%
     }
 %>
