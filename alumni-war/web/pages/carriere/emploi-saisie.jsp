@@ -13,7 +13,6 @@
         // Configuration des libellés
         pi.getFormu().getChamp("poste").setLibelle("Intitul&eacute; du poste *");
         pi.getFormu().getChamp("type_contrat").setLibelle("Type de contrat");
-        pi.getFormu().getChamp("localisation").setLibelle("Localisation");
         pi.getFormu().getChamp("salaire_min").setLibelle("Salaire minimum");
         pi.getFormu().getChamp("salaire_max").setLibelle("Salaire maximum");
         pi.getFormu().getChamp("devise").setLibelle("Devise");
@@ -33,7 +32,6 @@
             "bean.Entreprise", "id", "entreprise",
             "carriere/entreprise-saisie.jsp", "id;libelle"
         );
-        pi.getFormu().getChamp("localisation").setPageAppelComplete("bean.Ville", "id", "ville");
         pi.getFormu().getChamp("niveau_etude_requis").setPageAppelComplete("bean.Diplome", "id", "diplome");
         pi.getFormu().getChamp("competences_requises").setPageAppelComplete("bean.Competence", "id", "competence");
 
@@ -46,7 +44,6 @@
             "identreprise",
             "poste",
             "type_contrat",
-            "localisation",
             "salaire_min",
             "salaire_max",
             "devise",

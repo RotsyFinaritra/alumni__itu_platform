@@ -44,6 +44,12 @@
     <meta charset="UTF-8">
     <title>Popup - Alumni ITU</title>
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <script type="text/javascript">
+        const _CONTEXT_PATH = '<%= request.getContextPath() %>';
+        // Stub functions that may be called by generated HTML before js.jsp is loaded
+        function checkbox() {}
+        function synchro() {}
+    </script>
     <jsp:include page='elements/css.jsp'/>
     <style>
         body {

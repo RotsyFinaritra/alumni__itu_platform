@@ -29,7 +29,9 @@
             postAvecValeurs.setNomTable("posts");
             postAvecValeurs.setIdtypepublication("TYP00002");
             postAvecValeurs.setIdstatutpublication("STAT00002");
+            postAvecValeurs.setIdvisibilite("VISI00001"); // Public par defaut
             postAvecValeurs.setIdutilisateur(Integer.parseInt(u.getUser().getTuppleID()));
+            postAvecValeurs.setContenu(""); // Contenu vide par defaut pour emploi
             postAvecValeurs.setEpingle(0);
             postAvecValeurs.setSupprime(0);
             postAvecValeurs.setNb_likes(0);
@@ -62,7 +64,9 @@
             postAvecValeurs.setNomTable("posts");
             postAvecValeurs.setIdtypepublication("TYP00001");
             postAvecValeurs.setIdstatutpublication("STAT00002");
+            postAvecValeurs.setIdvisibilite("VISI00001"); // Public par defaut
             postAvecValeurs.setIdutilisateur(Integer.parseInt(u.getUser().getTuppleID()));
+            postAvecValeurs.setContenu(""); // Contenu vide par defaut pour stage
             postAvecValeurs.setEpingle(0);
             postAvecValeurs.setSupprime(0);
             postAvecValeurs.setNb_likes(0);

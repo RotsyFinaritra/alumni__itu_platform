@@ -177,4 +177,14 @@ public class PostEmploi extends ClassMAPTable {
     public void setLien_candidature(String lien_candidature) {
         this.lien_candidature = lien_candidature;
     }
+
+    @Override
+    public String[] getMotCles() {
+        return new String[]{"post_id", "poste"};
+    }
+
+    @Override
+    public String[] getValMotCles() {
+        return new String[]{"post_id", "poste"};
+    }
 }

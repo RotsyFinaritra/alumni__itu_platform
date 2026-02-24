@@ -14,7 +14,6 @@
 
         // Configuration des libellés
         pi.getFormu().getChamp("duree").setLibelle("Dur&eacute;e du stage *");
-        pi.getFormu().getChamp("localisation").setLibelle("Localisation");
         pi.getFormu().getChamp("date_debut").setLibelle("Date de d&eacute;but");
         pi.getFormu().getChamp("date_fin").setLibelle("Date de fin");
         pi.getFormu().getChamp("indemnite").setLibelle("Indemnit&eacute; (MGA)");
@@ -33,7 +32,6 @@
             "bean.Entreprise", "id", "entreprise",
             "carriere/entreprise-saisie.jsp", "id;libelle"
         );
-        pi.getFormu().getChamp("localisation").setPageAppelComplete("bean.Ville", "id", "ville");
         pi.getFormu().getChamp("niveau_etude_requis").setPageAppelComplete("bean.Diplome", "id", "diplome");
         pi.getFormu().getChamp("competences_requises").setPageAppelComplete("bean.Competence", "id", "competence");
 
@@ -45,7 +43,6 @@
         String[] ordre = {
             "identreprise",
             "duree",
-            "localisation",
             "date_debut",
             "date_fin",
             "indemnite",
