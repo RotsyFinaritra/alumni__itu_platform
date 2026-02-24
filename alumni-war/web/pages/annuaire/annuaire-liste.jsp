@@ -29,12 +29,14 @@ try {
     pr.setAWhere(" AND refuser <> " + currentUser.getUser().getTuppleID());
     
     // Convertir les champs FK en listes déroulantes
-    Liste[] listes = new Liste[4];
-    listes[0] = new Liste("idpromotion", new Promotion(), "libelle", "id");
-    listes[1] = new Liste("idtypeutilisateur", new TypeUtilisateur(), "libelle", "id");
-    listes[2] = new Liste("idpays", new Pays(), "libelle", "id");
-    listes[3] = new Liste("idville", new Ville(), "libelle", "id");
+    Liste[] listes = new Liste[3];
+    listes[0] = new Liste("idtypeutilisateur", new TypeUtilisateur(), "libelle", "id");
+    listes[1] = new Liste("idpays", new Pays(), "libelle", "id");
+    listes[2] = new Liste("idville", new Ville(), "libelle", "id");
     pr.getFormu().changerEnChamp(listes);
+    
+    // Promotion avec autocomplete recherchable
+    pr.getFormu().getChamp("idpromotion").setPageAppelComplete("bean.Promotion", "id", "promotion");
     
     // Labels des champs de recherche
     pr.getFormu().getChamp("nomuser").setLibelle("Nom");

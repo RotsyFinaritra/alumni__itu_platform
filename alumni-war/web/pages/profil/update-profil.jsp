@@ -68,7 +68,13 @@
         if (formParams.containsKey("teluser")) utilisateur.setTeluser(formParams.get("teluser"));
         if (formParams.containsKey("adruser")) utilisateur.setAdruser(formParams.get("adruser"));
         if (formParams.containsKey("loginuser")) utilisateur.setLoginuser(formParams.get("loginuser"));
-        if (formParams.containsKey("idpromotion")) utilisateur.setIdpromotion(formParams.get("idpromotion"));
+        
+        // Gérer idpromotion : chaîne vide = null (pour les enseignants ou si non renseigné)
+        if (formParams.containsKey("idpromotion")) {
+            String idpromo = formParams.get("idpromotion");
+            utilisateur.setIdpromotion((idpromo != null && !idpromo.trim().isEmpty()) ? idpromo : null);
+        }
+        
         if (formParams.containsKey("idtypeutilisateur")) utilisateur.setIdtypeutilisateur(formParams.get("idtypeutilisateur"));
         if (photoPath != null) {
             utilisateur.setPhoto(photoPath);

@@ -57,9 +57,23 @@
         if (champPhoto != null) { champPhoto.setPhoto(true); }
 
         // Masquer les champs techniques (null-safe)
-        for (String hidden : new String[]{"pwduser", "idrole", "rang", "refuser", "etu", "interdit"}) {
+        for (String hidden : new String[]{"pwduser", "idrole", "rang", "refuser", "interdit"}) {
             Champ c = pc.getChampByName(hidden);
             if (c != null) { c.setVisible(false); }
+        }
+        
+        // Pour les enseignants (TU0000003), masquer etu et promotion
+        String typeUtilisateur = utilisateur.getIdtypeutilisateur();
+        boolean isEnseignant = "TU0000003".equals(typeUtilisateur);
+        if (isEnseignant) {
+            for (String champEtu : new String[]{"etu", "idpromotion"}) {
+                Champ c = pc.getChampByName(champEtu);
+                if (c != null) { c.setVisible(false); }
+            }
+        } else {
+            // Pour les étudiants, masquer seulement etu dans l'affichage
+            Champ champEtu = pc.getChampByName("etu");
+            if (champEtu != null) { champEtu.setVisible(false); }
         }
 
         // Charger les pr&eacute;f&eacute;rences de visibilit&eacute; pour cet utilisateur
