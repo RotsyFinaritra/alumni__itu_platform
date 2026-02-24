@@ -5,31 +5,31 @@
 
 -- 1. Menu Modération (parent)
 INSERT INTO menudynamique (id, libelle, icone, href, rang, niveau, id_pere)
-VALUES ('MENDYN003', 'Modération', 'fa-shield', '#', 3, 1, NULL)
+VALUES ('MENDYN006', 'Modération', 'shield', '#', 3, 1, NULL)
 ON CONFLICT (id) DO NOTHING;
 
 -- 1.1 Sous-menu : Gestion des utilisateurs
 INSERT INTO menudynamique (id, libelle, icone, href, rang, niveau, id_pere)
-VALUES ('MENDYN003-1', 'Gestion utilisateurs', 'fa-users-cog', 'module.jsp?but=moderation/moderation-liste.jsp', 1, 2, 'MENDYN003')
+VALUES ('MENDYN006-1', 'Gestion utilisateurs', 'group', 'module.jsp?but=moderation/moderation-liste.jsp', 1, 2, 'MENDYN006')
 ON CONFLICT (id) DO NOTHING;
 
 -- 1.2 Sous-menu : Historique modération
 INSERT INTO menudynamique (id, libelle, icone, href, rang, niveau, id_pere)
-VALUES ('MENDYN003-2', 'Historique', 'fa-history', 'module.jsp?but=moderation/moderation-historique.jsp', 2, 2, 'MENDYN003')
+VALUES ('MENDYN006-2', 'Historique', 'history', 'module.jsp?but=moderation/moderation-historique.jsp', 2, 2, 'MENDYN006')
 ON CONFLICT (id) DO NOTHING;
 
 -- 2. Assignation du menu Modération au rôle admin UNIQUEMENT
 -- Note: refuser doit être NULL (pas '*') pour que seul le rôle soit vérifié
 INSERT INTO usermenu (id, refuser, idmenu, idrole, codeservice, codedir, interdit) 
-VALUES ('USRM_MOD_ADMIN', NULL, 'MENDYN003', 'admin', NULL, NULL, 0)
+VALUES ('USRM_MOD_ADMIN', NULL, 'MENDYN006', 'admin', NULL, NULL, 0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO usermenu (id, refuser, idmenu, idrole, codeservice, codedir, interdit) 
-VALUES ('USRM_MOD_ADMIN_1', NULL, 'MENDYN003-1', 'admin', NULL, NULL, 0)
+VALUES ('USRM_MOD_ADMIN_1', NULL, 'MENDYN006-1', 'admin', NULL, NULL, 0)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO usermenu (id, refuser, idmenu, idrole, codeservice, codedir, interdit) 
-VALUES ('USRM_MOD_ADMIN_2', NULL, 'MENDYN003-2', 'admin', NULL, NULL, 0)
+VALUES ('USRM_MOD_ADMIN_2', NULL, 'MENDYN006-2', 'admin', NULL, NULL, 0)
 ON CONFLICT (id) DO NOTHING;
 
 -- 3. Vue pour la liste des utilisateurs avec leur statut
