@@ -65,9 +65,15 @@
         Competence compFiltre = new Competence();
         Object[] competences = CGenUtil.rechercher(compFiltre, null, null, " ORDER BY libelle");
 
-        // Charger les types de fichiers pour la liste déroulante
-        TypeFichier tfCritere = new TypeFichier();
-        Object[] typesFichiers = CGenUtil.rechercher(tfCritere, null, null, " ORDER BY libelle");
+        // Charger les types de fichiers pour la liste déroulante (avec protection si table n'existe pas)
+        Object[] typesFichiers = null;
+        try {
+            TypeFichier tfCritere = new TypeFichier();
+            typesFichiers = CGenUtil.rechercher(tfCritere, null, null, " ORDER BY libelle");
+        } catch (Exception e) {
+            // Table type_fichier n'existe pas encore
+            typesFichiers = new Object[0];
+        }
 
         // Générer les affichages
         pi.preparerDataFormu();

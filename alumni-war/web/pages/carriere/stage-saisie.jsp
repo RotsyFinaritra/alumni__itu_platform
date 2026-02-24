@@ -6,9 +6,10 @@
 <%
     try {
         UserEJB u = (UserEJB) session.getValue("u");
+        String lien = (String) session.getValue("lien");
         PostStage a = new PostStage();
         PageInsert pi = new PageInsert(a, request, u);
-        pi.setLien((String) session.getValue("lien"));
+        pi.setLien(lien);
 
         // Pas de listes déroulantes spécifiques pour PostStage
 
@@ -62,6 +63,16 @@
         Competence compFiltre = new Competence();
         Object[] competences = CGenUtil.rechercher(compFiltre, null, null, " ORDER BY libelle");
 
+        // Charger les types de fichiers pour la liste déroulante (avec protection si table n'existe pas)
+        Object[] typesFichiers = null;
+        try {
+            TypeFichier tfCritere = new TypeFichier();
+            typesFichiers = CGenUtil.rechercher(tfCritere, null, null, " ORDER BY libelle");
+        } catch (Exception e) {
+            // Table type_fichier n'existe pas encore
+            typesFichiers = new Object[0];
+        }
+
         // Générer les affichages
         pi.preparerDataFormu();
         pi.getFormu().makeHtmlInsertTabIndex();
@@ -78,7 +89,8 @@
                 <div class="card-header">
                     <h3 class="card-title">Informations du stage</h3>
                 </div>
-                <form action="<%=pi.getLien()%>?but=apresCarriere.jsp" method="post" name="<%=nomTable%>" id="<%=nomTable%>" data-parsley-validate>
+                <form action="CarriereFormServlet" method="post" name="<%=nomTable%>" id="<%=nomTable%>" 
+                      enctype="multipart/form-data" data-parsley-validate>
                     <div class="card-body">
                         <%
                             out.println(pi.getFormu().getHtmlInsert());
@@ -100,6 +112,75 @@
                             <small class="form-text text-muted">Maintenez Ctrl pour s&eacute;lectionner plusieurs comp&eacute;tences</small>
                         </div>
                         
+                        <!-- Section fichiers -->
+                        <div class="card card-outline card-info mt-3">
+                            <div class="card-header">
+                                <h4 class="card-title"><i class="fas fa-paperclip"></i> Fichiers joints (optionnel)</h4>
+                                <div class="card-tools">
+                                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted">Vous pouvez joindre jusqu'&agrave; 3 fichiers (PDF, images, documents...)</p>
+                                
+                                <!-- Fichier 1 -->
+                                <div class="row mb-2">
+                                    <div class="col-md-4">
+                                        <select name="typeFichier1" class="form-control form-control-sm">
+                                            <option value="">-- Type de fichier --</option>
+                                            <% if (typesFichiers != null) {
+                                                for (Object o : typesFichiers) {
+                                                    TypeFichier tf = (TypeFichier) o;
+                                            %>
+                                            <option value="<%= tf.getId() %>"><%= tf.getLibelle() %></option>
+                                            <% }} %>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <input type="file" name="fichier1" class="form-control form-control-sm">
+                                    </div>
+                                </div>
+                                
+                                <!-- Fichier 2 -->
+                                <div class="row mb-2">
+                                    <div class="col-md-4">
+                                        <select name="typeFichier2" class="form-control form-control-sm">
+                                            <option value="">-- Type de fichier --</option>
+                                            <% if (typesFichiers != null) {
+                                                for (Object o : typesFichiers) {
+                                                    TypeFichier tf = (TypeFichier) o;
+                                            %>
+                                            <option value="<%= tf.getId() %>"><%= tf.getLibelle() %></option>
+                                            <% }} %>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <input type="file" name="fichier2" class="form-control form-control-sm">
+                                    </div>
+                                </div>
+                                
+                                <!-- Fichier 3 -->
+                                <div class="row mb-2">
+                                    <div class="col-md-4">
+                                        <select name="typeFichier3" class="form-control form-control-sm">
+                                            <option value="">-- Type de fichier --</option>
+                                            <% if (typesFichiers != null) {
+                                                for (Object o : typesFichiers) {
+                                                    TypeFichier tf = (TypeFichier) o;
+                                            %>
+                                            <option value="<%= tf.getId() %>"><%= tf.getLibelle() %></option>
+                                            <% }} %>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <input type="file" name="fichier3" class="form-control form-control-sm">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <input name="acte" type="hidden" value="insertStage">
                         <input name="bute" type="hidden" value="<%= butApresPost %>">
                         <input name="classe" type="hidden" value="<%= classe %>">
@@ -109,7 +190,7 @@
                         <button type="submit" class="btn btn-success">
                             <i class="fas fa-save"></i> Enregistrer
                         </button>
-                        <a href="<%=pi.getLien()%>?but=carriere/stage-liste.jsp" class="btn btn-secondary">
+                        <a href="<%=lien%>?but=carriere/stage-liste.jsp" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Retour
                         </a>
                     </div>

@@ -284,13 +284,13 @@ public class CarriereFormServlet extends HttpServlet {
      * Met à jour un poste emploi existant
      */
     private void updateEmploi(Connection conn, UserEJB u, HashMap<String, String> params, String postId) throws Exception {
-        // 1. Update Post
-        Post post = new Post();
-        post.setId(postId);
-        if (params.get("contenu") != null) {
-            post.setContenu(params.get("contenu"));
-        }
-        post.updateToTable(conn, new String[]{"contenu"}, new String[]{post.getContenu()});
+        // 1. Update Post (contenu)
+        String sqlPost = "UPDATE posts SET contenu = ?, edited_at = CURRENT_TIMESTAMP WHERE id = ?";
+        PreparedStatement psPost = conn.prepareStatement(sqlPost);
+        psPost.setString(1, params.get("contenu") != null ? params.get("contenu") : "");
+        psPost.setString(2, postId);
+        psPost.executeUpdate();
+        psPost.close();
 
         // 2. Update PostEmploi
         String sql = "UPDATE post_emploi SET identreprise=?, poste=?, type_contrat=?, localisation=?, " +
@@ -339,13 +339,13 @@ public class CarriereFormServlet extends HttpServlet {
      * Met à jour un poste stage existant
      */
     private void updateStage(Connection conn, UserEJB u, HashMap<String, String> params, String postId) throws Exception {
-        // 1. Update Post
-        Post post = new Post();
-        post.setId(postId);
-        if (params.get("contenu") != null) {
-            post.setContenu(params.get("contenu"));
-        }
-        post.updateToTable(conn, new String[]{"contenu"}, new String[]{post.getContenu()});
+        // 1. Update Post (contenu)
+        String sqlPost = "UPDATE posts SET contenu = ?, edited_at = CURRENT_TIMESTAMP WHERE id = ?";
+        PreparedStatement psPost = conn.prepareStatement(sqlPost);
+        psPost.setString(1, params.get("contenu") != null ? params.get("contenu") : "");
+        psPost.setString(2, postId);
+        psPost.executeUpdate();
+        psPost.close();
 
         // 2. Update PostStage
         String sql = "UPDATE post_stage SET identreprise=?, duree=?, date_debut=?, date_fin=?, " +

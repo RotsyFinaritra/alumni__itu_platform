@@ -7,6 +7,7 @@
 <%@ page import="bean.VisibilitePublication" %>
 <%@ page import="bean.Competence" %>
 <%@ page import="bean.EmploiCompetence" %>
+<%@ page import="bean.TypeFichier" %>
 <%@ page import="bean.CGenUtil" %>
 <%@ page import="java.util.HashSet" %>
 <%@ page import="java.util.Set" %>
@@ -107,6 +108,15 @@
                 selectedCompetences.add(ec.getIdcompetence());
             }
         }
+        
+        // Charger les types de fichiers pour la liste déroulante (avec protection si table n'existe pas)
+        Object[] typesFichiers = null;
+        try {
+            TypeFichier tfCritere = new TypeFichier();
+            typesFichiers = CGenUtil.rechercher(tfCritere, null, null, " ORDER BY libelle");
+        } catch (Exception e) {
+            typesFichiers = new Object[0];
+        }
 %>
 <div class="content-wrapper">
     <section class="content-header">
@@ -121,8 +131,7 @@
         <div class="row">
             <div class="col-md-1"></div>
             <div class="col-md-10">
-                <form method="post" action="<%=lien%>">
-                    <input type="hidden" name="but" value="apresCarriere.jsp">
+                <form method="post" action="CarriereFormServlet" enctype="multipart/form-data">
                     <input type="hidden" name="acte" value="updateEmploi">
                     <input type="hidden" name="bute" value="carriere/emploi-fiche.jsp">
                     <input type="hidden" name="id" value="<%=postId%>">
@@ -161,6 +170,80 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Section Fichiers joints -->
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title"><i class="fa fa-paperclip"></i> Ajouter des fichiers</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                    <i class="fa fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <p class="text-muted">Vous pouvez ajouter jusqu'&agrave; 3 fichiers suppl&eacute;mentaires (PDF, images, documents...)</p>
+                            
+                            <!-- Fichier 1 -->
+                            <div class="row mb-2" style="margin-bottom: 10px;">
+                                <div class="col-md-4">
+                                    <select name="typeFichier1" class="form-control input-sm">
+                                        <option value="">-- Type de fichier --</option>
+                                        <% if (typesFichiers != null) {
+                                            for (Object o : typesFichiers) {
+                                                TypeFichier tf = (TypeFichier) o;
+                                        %>
+                                        <option value="<%= tf.getId() %>"><%= tf.getLibelle() %></option>
+                                        <% }} %>
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="file" name="fichier1" class="form-control input-sm">
+                                </div>
+                            </div>
+                            
+                            <!-- Fichier 2 -->
+                            <div class="row mb-2" style="margin-bottom: 10px;">
+                                <div class="col-md-4">
+                                    <select name="typeFichier2" class="form-control input-sm">
+                                        <option value="">-- Type de fichier --</option>
+                                        <% if (typesFichiers != null) {
+                                            for (Object o : typesFichiers) {
+                                                TypeFichier tf = (TypeFichier) o;
+                                        %>
+                                        <option value="<%= tf.getId() %>"><%= tf.getLibelle() %></option>
+                                        <% }} %>
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="file" name="fichier2" class="form-control input-sm">
+                                </div>
+                            </div>
+                            
+                            <!-- Fichier 3 -->
+                            <div class="row mb-2" style="margin-bottom: 10px;">
+                                <div class="col-md-4">
+                                    <select name="typeFichier3" class="form-control input-sm">
+                                        <option value="">-- Type de fichier --</option>
+                                        <% if (typesFichiers != null) {
+                                            for (Object o : typesFichiers) {
+                                                TypeFichier tf = (TypeFichier) o;
+                                        %>
+                                        <option value="<%= tf.getId() %>"><%= tf.getLibelle() %></option>
+                                        <% }} %>
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <input type="file" name="fichier3" class="form-control input-sm">
+                                </div>
+                            </div>
+                            
+                            <p class="text-info">
+                                <i class="fa fa-info-circle"></i> 
+                                Pour g&eacute;rer les fichiers existants, utilisez le bouton "G&eacute;rer les fichiers" ci-dessous.
+                            </p>
+                        </div>
+                    </div>
 
                     <div class="box-footer">
                         <button type="submit" class="btn btn-warning">
@@ -168,7 +251,7 @@
                         </button>
                         <a class="btn btn-info"
                            href="<%=lien%>?but=carriere/post-fichiers.jsp&postId=<%=postId%>&type=emploi">
-                            <i class="fa fa-file"></i> Gerer les fichiers
+                            <i class="fa fa-file"></i> G&eacute;rer les fichiers
                         </a>
                         <a class="btn btn-default pull-right"
                            href="<%=lien%>?but=carriere/emploi-fiche.jsp&id=<%=postId%>">
