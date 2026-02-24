@@ -138,4 +138,40 @@ public class UtilisateurPg extends ClassMAPTable {
             if (conn != null) try { conn.close(); } catch (Exception e) {}
         }
     }
+
+    /**
+     * Change le rôle d'un utilisateur.
+     * @param refuserCible ID de l'utilisateur cible
+     * @param nouveauRole Nouveau rôle ('admin', 'utilisateur')
+     * @param con Connection BDD
+     */
+    public static void changerRole(int refuserCible, String nouveauRole, Connection con) throws Exception {
+        String sql = "UPDATE utilisateur SET idrole = ? WHERE refuser = ?";
+        PreparedStatement ps = null;
+        try {
+            ps = con.prepareStatement(sql);
+            ps.setString(1, nouveauRole);
+            ps.setInt(2, refuserCible);
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                throw new Exception("Utilisateur introuvable (refuser=" + refuserCible + ")");
+            }
+        } finally {
+            if (ps != null) try { ps.close(); } catch (Exception e) {}
+        }
+    }
+
+    /**
+     * Promouvoir un utilisateur en admin.
+     */
+    public static void promouvoir(int refuserCible, Connection con) throws Exception {
+        changerRole(refuserCible, "admin", con);
+    }
+
+    /**
+     * Rétrograder un utilisateur en utilisateur simple.
+     */
+    public static void retrograder(int refuserCible, Connection con) throws Exception {
+        changerRole(refuserCible, "utilisateur", con);
+    }
 }
