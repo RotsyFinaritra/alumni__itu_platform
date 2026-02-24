@@ -26,6 +26,16 @@ public class Ville extends ClassMAPTable {
     @Override
     public String getAttributIDName() { return "id"; }
 
+    @Override
+    public String[] getMotCles() {
+        return new String[]{"id", "libelle"};
+    }
+
+    @Override
+    public String[] getValMotCles() {
+        return new String[]{"libelle"};
+    }
+
     public void construirePK(Connection c) throws Exception {
         super.setNomTable("ville");
         this.preparePk("VILL", "getseqville");
