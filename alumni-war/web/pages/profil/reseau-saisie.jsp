@@ -49,6 +49,11 @@
 %>
 <div class="content-wrapper">
     <section class="content-header">
+        <div style="margin-bottom: 15px;">
+            <a href="<%= lien %>?but=profil/mon-profil.jsp&tab=reseaux" class="btn btn-default">
+                <i class="fa fa-arrow-left"></i> Retour au profil
+            </a>
+        </div>
         <h1><%= "update".equals(acte) ? "Modifier le r&eacute;seau social" : "Ajouter un r&eacute;seau social" %></h1>
     </section>
     <section class="content">

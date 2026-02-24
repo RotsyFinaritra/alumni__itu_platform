@@ -434,6 +434,13 @@
         }
     });
 
+    // Activer le bon onglet si passé en param URL
+    var urlParams = new URLSearchParams(window.location.search);
+    var tabParam = urlParams.get('tab');
+    if (tabParam && ['parcours', 'experience', 'competence', 'reseaux'].indexOf(tabParam) !== -1) {
+        $('.instagram-tab[data-tab="' + tabParam + '"]').click();
+    }
+
     // Toggle visibilité
     $(document).on('click', '.toggle-icon', function() {
         var $icon = $(this);

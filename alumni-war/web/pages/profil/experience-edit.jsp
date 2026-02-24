@@ -68,6 +68,11 @@
 %>
 <div class="content-wrapper">
     <section class="content-header">
+        <div style="margin-bottom: 15px;">
+            <a href="<%= lien %>?but=profil/mon-profil.jsp&tab=experience" class="btn btn-default">
+                <i class="fa fa-arrow-left"></i> Retour au profil
+            </a>
+        </div>
         <h1><i class="fa fa-briefcase"></i> Modifier l'exp&eacute;rience</h1>
     </section>
     <section class="content">
