@@ -102,12 +102,23 @@
         <div class="create-post-compact">
             <div class="create-header">
                 <img class="avatar-sm" src="<%= photoUser %>" alt="Photo">
-                <form action="<%= lien %>?but=publication/apresPublication.jsp" method="post" id="formPublication" class="create-form">
-                    <input type="text" name="contenu" class="create-input" placeholder="Quoi de neuf, <%= prenomUser %> ?" required>
+                <form action="<%= lien %>?but=publication/apresPublicationFichier.jsp" method="post" id="formPublication" class="create-form" enctype="multipart/form-data">
+                    <div class="create-input-container">
+                        <textarea name="contenu" class="create-input" placeholder="Quoi de neuf, <%= prenomUser %> ?" required rows="1" oninput="autoResize(this)"></textarea>
+                        <div id="file-preview-container" class="file-preview-container" style="display:none;">
+                            <div class="file-preview-item">
+                                <i class="fa fa-file file-icon"></i>
+                                <span id="file-preview-name" class="file-preview-name"></span>
+                                <button type="button" class="file-remove-btn" onclick="removeFile()"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div>
+                    </div>
                     <input type="hidden" name="idtypepublication" value="TYP00004">
                     <input type="hidden" name="idvisibilite" value="VISI00001">
                     <input type="hidden" name="acte" value="insert">
                     <input type="hidden" name="bute" value="accueil.jsp">
+                    <input type="file" id="fileInput" name="fichier" style="display:none;" onchange="previewFile(this)" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx">
+                    <button type="button" class="btn-attach" onclick="document.getElementById('fileInput').click()" title="Joindre un fichier"><i class="fa fa-paperclip"></i></button>
                     <button type="submit" class="btn-post"><i class="fa fa-paper-plane"></i></button>
                 </form>
             </div>
@@ -497,6 +508,10 @@
                     <span>Raccourcis</span>
                 </div>
                 <nav class="sidebar-nav">
+                    <a href="<%= lien %>?but=chatbot/alumni-chat.jsp" class="chat-link">
+                        <i class="fa fa-comments"></i> Assistant Alumni
+                        <span class="badge-new">IA</span>
+                    </a>
                     <a href="<%= lien %>?but=carriere/emploi-liste.jsp">
                         <i class="fa fa-briefcase"></i> Offres d'emploi
                     </a>
@@ -563,7 +578,7 @@
 
 .create-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
 }
 
@@ -577,19 +592,8 @@
 .create-form {
     flex: 1;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
-}
-
-.create-input {
-    flex: 1;
-    border: 1px solid #e0e0e0;
-    border-radius: 20px;
-    padding: 10px 16px;
-    font-size: 14px;
-    background: #f5f5f5;
-    outline: none;
-    transition: all 0.2s;
 }
 
 .create-input:focus {
@@ -646,6 +650,93 @@
 
 .action-link:nth-child(1) i { color: #0a66c2; }
 .action-link:nth-child(2) i { color: #7c3aed; }
+
+/* ========== FILE PREVIEW & ATTACH ========== */
+.create-input-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.create-input {
+    width: 100%;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    padding: 10px 16px;
+    font-size: 14px;
+    background: #f5f5f5;
+    outline: none;
+    transition: all 0.2s;
+    resize: none;
+    min-height: 38px;
+    max-height: 120px;
+    overflow-y: auto;
+    font-family: inherit;
+    line-height: 1.4;
+}
+
+.btn-attach {
+    background: transparent;
+    color: #65676b;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 16px;
+}
+
+.btn-attach:hover {
+    background: #f0f2f5;
+    color: #0095f6;
+}
+
+.file-preview-container {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+.file-preview-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.file-icon {
+    color: #0095f6;
+    font-size: 18px;
+}
+
+.file-preview-name {
+    flex: 1;
+    font-size: 13px;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.file-remove-btn {
+    background: transparent;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.file-remove-btn:hover {
+    background: #ffebee;
+}
 
 /* ========== POST CARDS ========== */
 .post-card {
@@ -1053,6 +1144,29 @@
     font-size: 11px;
     padding: 2px 8px;
     border-radius: 10px;
+}
+
+.badge-new {
+    margin-left: auto;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.chat-link {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8edf5 100%) !important;
+    border-left: 3px solid #667eea !important;
+}
+
+.chat-link:hover {
+    background: linear-gradient(135deg, #e8edf5 0%, #dce3f0 100%) !important;
+}
+
+.chat-link i {
+    color: #667eea !important;
 }
 
 .sidebar-footer {
@@ -1481,6 +1595,49 @@ document.getElementById('commentInput').addEventListener('keydown', function(e) 
         addComment();
     }
 });
+
+// ========== FONCTIONS POUR LE FORMULAIRE DE PUBLICATION ==========
+function autoResize(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+}
+
+function previewFile(input) {
+    var container = document.getElementById('file-preview-container');
+    var nameSpan = document.getElementById('file-preview-name');
+    var iconElem = container.querySelector('.file-icon');
+    
+    if (input.files && input.files[0]) {
+        var file = input.files[0];
+        nameSpan.textContent = file.name;
+        
+        // Changer l'icône selon le type
+        var ext = file.name.split('.').pop().toLowerCase();
+        var iconClass = 'fa-file';
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+            iconClass = 'fa-image';
+        } else if (ext === 'pdf') {
+            iconClass = 'fa-file-pdf-o';
+        } else if (['doc', 'docx'].includes(ext)) {
+            iconClass = 'fa-file-word-o';
+        } else if (['xls', 'xlsx'].includes(ext)) {
+            iconClass = 'fa-file-excel-o';
+        } else if (['ppt', 'pptx'].includes(ext)) {
+            iconClass = 'fa-file-powerpoint-o';
+        }
+        iconElem.className = 'fa ' + iconClass + ' file-icon';
+        
+        container.style.display = 'block';
+    } else {
+        container.style.display = 'none';
+    }
+}
+
+function removeFile() {
+    var input = document.getElementById('fileInput');
+    input.value = '';
+    document.getElementById('file-preview-container').style.display = 'none';
+}
 </script>
 
 <%

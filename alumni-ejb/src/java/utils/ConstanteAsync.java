@@ -4,9 +4,9 @@ import chatbot.ClassIA;
 
 public class ConstanteAsync {
 //    public static Class<? extends ClassIA>[] iaClasses = new Class[]{CreationProjetLibComplet.class, DevisLib.class, Tache.class};
-    public static final String API_KEY = "AIzaSyBI_ODzzxbn5Ea9qGbyxvFzRJekwTl2epw";
-    public static final String API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=" + API_KEY;
-    public static final String ADK_URL = "http://localhost:8000";
+    public static final String API_KEY = "AIzaSyBcHszGpntbebBUTFv1QWz9LrPWhVnxW28";
+    public static final String API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
+    public static final String ADK_URL = "http://localhost:1234";
     public static final String AI_CONTEXT = "C'est une application de gestion des projets , donc tout ce qui est projet, tache, devis par projet, etc etc";
     public static final String AI_DEFINITIONS = "";
     public static final String GIT_USERNAME = "";

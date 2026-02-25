@@ -34,7 +34,9 @@
     post.setId(postId);
     Object[] postResult = CGenUtil.rechercher(post, null, null, "");
     if (postResult == null || postResult.length == 0) {
-        throw new Exception("Publication introuvable");
+        // Redirection vers la liste si publication introuvable
+        response.sendRedirect(lien + "?but=publication/publication-liste.jsp&erreur=Publication%20introuvable");
+        return;
     }
     post = (Post) postResult[0];
     
