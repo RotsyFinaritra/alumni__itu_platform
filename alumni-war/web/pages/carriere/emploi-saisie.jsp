@@ -92,7 +92,7 @@
                     <h3 class="card-title">Informations de l'offre</h3>
                 </div>
                 <form action="<%=pi.getLien()%>?but=carriere/apresCarriere.jsp" method="post" name="<%=nomTable%>" id="<%=nomTable%>" 
-                      data-parsley-validate>
+                      enctype="multipart/form-data" data-parsley-validate>
                     <div class="card-body">
                         <%
                             out.println(pi.getFormu().getHtmlInsert());
@@ -151,23 +151,78 @@
                             compteurFichier++;
                             var container = document.getElementById('fichiers-container');
                             var div = document.createElement('div');
-                            div.className = 'row mb-2 fichier-ligne';
+                            div.className = 'fichier-ligne mb-3 p-2 border rounded';
                             div.id = 'fichier-ligne-' + compteurFichier;
                             div.innerHTML = 
-                                '<div class="col-md-4">' +
-                                    '<select name="typeFichier[]" class="form-control form-control-sm">' +
-                                        typesFichiersOptions +
-                                    '</select>' +
+                                '<div class="row mb-2">' +
+                                    '<div class="col-md-4">' +
+                                        '<select name="typeFichier[]" class="form-control form-control-sm">' +
+                                            typesFichiersOptions +
+                                        '</select>' +
+                                    '</div>' +
+                                    '<div class="col-md-6">' +
+                                        '<input type="file" name="fichier[]" class="form-control form-control-sm" ' +
+                                               'onchange="previewFichier(this, ' + compteurFichier + ')" accept="image/*,.pdf,.doc,.docx">' +
+                                    '</div>' +
+                                    '<div class="col-md-2">' +
+                                        '<button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigneFichier(' + compteurFichier + ')">' +
+                                            '<i class="fas fa-trash"></i>' +
+                                        '</button>' +
+                                    '</div>' +
                                 '</div>' +
-                                '<div class="col-md-6">' +
-                                    '<input type="text" name="fichierNom[]" class="form-control form-control-sm" placeholder="Nom ou URL du fichier">' +
-                                '</div>' +
-                                '<div class="col-md-2">' +
-                                    '<button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigneFichier(' + compteurFichier + ')">' +
-                                        '<i class="fas fa-trash"></i>' +
-                                    '</button>' +
+                                '<div class="row">' +
+                                    '<div class="col-12">' +
+                                        '<div id="preview-' + compteurFichier + '" class="preview-container" style="display:none;">' +
+                                            '<img id="preview-img-' + compteurFichier + '" src="" alt="Aperçu" ' +
+                                                 'style="max-width:200px; max-height:150px; border-radius:5px; box-shadow:0 2px 5px rgba(0,0,0,0.2);">' +
+                                            '<span id="preview-file-' + compteurFichier + '" class="badge badge-secondary ml-2" style="display:none;">' +
+                                                '<i class="fas fa-file"></i> <span class="filename"></span>' +
+                                            '</span>' +
+                                        '</div>' +
+                                    '</div>' +
                                 '</div>';
                             container.appendChild(div);
+                        }
+                        
+                        function previewFichier(input, id) {
+                            var previewContainer = document.getElementById('preview-' + id);
+                            var previewImg = document.getElementById('preview-img-' + id);
+                            var previewFile = document.getElementById('preview-file-' + id);
+                            
+                            if (input.files && input.files[0]) {
+                                var file = input.files[0];
+                                var fileType = file.type;
+                                
+                                previewContainer.style.display = 'block';
+                                
+                                if (fileType.startsWith('image/')) {
+                                    // Aperçu image
+                                    var reader = new FileReader();
+                                    reader.onload = function(e) {
+                                        previewImg.src = e.target.result;
+                                        previewImg.style.display = 'inline-block';
+                                        previewFile.style.display = 'none';
+                                    };
+                                    reader.readAsDataURL(file);
+                                } else {
+                                    // Fichier non-image (PDF, DOC, etc.)
+                                    previewImg.style.display = 'none';
+                                    previewFile.style.display = 'inline-block';
+                                    previewFile.querySelector('.filename').textContent = file.name;
+                                    
+                                    // Icône selon le type
+                                    var icon = previewFile.querySelector('i');
+                                    if (fileType === 'application/pdf') {
+                                        icon.className = 'fas fa-file-pdf text-danger';
+                                    } else if (fileType.includes('word') || fileType.includes('document')) {
+                                        icon.className = 'fas fa-file-word text-primary';
+                                    } else {
+                                        icon.className = 'fas fa-file text-secondary';
+                                    }
+                                }
+                            } else {
+                                previewContainer.style.display = 'none';
+                            }
                         }
                         
                         function supprimerLigneFichier(id) {

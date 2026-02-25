@@ -119,7 +119,7 @@
         <div class="row">
             <div class="col-md-1"></div>
             <div class="col-md-10">
-                <form method="post" action="<%=lien%>?but=carriere/apresCarriere.jsp">
+                <form method="post" action="<%=lien%>?but=carriere/apresCarriere.jsp" enctype="multipart/form-data">
                     <input type="hidden" name="acte" value="updateStage">
                     <input type="hidden" name="bute" value="carriere/stage-fiche.jsp">
                     <input type="hidden" name="post_id" value="<%=postId%>">
@@ -202,24 +202,79 @@
                         compteurFichier++;
                         var container = document.getElementById('fichiers-container');
                         var div = document.createElement('div');
-                        div.className = 'row fichier-ligne';
+                        div.className = 'fichier-ligne';
                         div.id = 'fichier-ligne-' + compteurFichier;
-                        div.style.marginBottom = '10px';
+                        div.style.marginBottom = '15px';
+                        div.style.padding = '10px';
+                        div.style.border = '1px solid #ddd';
+                        div.style.borderRadius = '5px';
                         div.innerHTML = 
-                            '<div class="col-md-4">' +
-                                '<select name="typeFichier[]" class="form-control input-sm">' +
-                                    typesFichiersOptions +
-                                '</select>' +
+                            '<div class="row" style="margin-bottom:10px;">' +
+                                '<div class="col-md-4">' +
+                                    '<select name="typeFichier[]" class="form-control input-sm">' +
+                                        typesFichiersOptions +
+                                    '</select>' +
+                                '</div>' +
+                                '<div class="col-md-6">' +
+                                    '<input type="file" name="fichier[]" class="form-control input-sm" ' +
+                                           'onchange="previewFichier(this, ' + compteurFichier + ')" accept="image/*,.pdf,.doc,.docx">' +
+                                '</div>' +
+                                '<div class="col-md-2">' +
+                                    '<button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigneFichier(' + compteurFichier + ')">' +
+                                        '<i class="fa fa-trash"></i>' +
+                                    '</button>' +
+                                '</div>' +
                             '</div>' +
-                            '<div class="col-md-6">' +
-                                '<input type="text" name="fichierNom[]" class="form-control input-sm" placeholder="Nom ou URL du fichier">' +
-                            '</div>' +
-                            '<div class="col-md-2">' +
-                                '<button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigneFichier(' + compteurFichier + ')">' +
-                                    '<i class="fa fa-trash"></i>' +
-                                '</button>' +
+                            '<div class="row">' +
+                                '<div class="col-xs-12">' +
+                                    '<div id="preview-' + compteurFichier + '" class="preview-container" style="display:none;">' +
+                                        '<img id="preview-img-' + compteurFichier + '" src="" alt="Aperçu" ' +
+                                             'style="max-width:200px; max-height:150px; border-radius:5px; box-shadow:0 2px 5px rgba(0,0,0,0.2);">' +
+                                        '<span id="preview-file-' + compteurFichier + '" class="label label-default" style="display:none; margin-left:10px;">' +
+                                            '<i class="fa fa-file"></i> <span class="filename"></span>' +
+                                        '</span>' +
+                                    '</div>' +
+                                '</div>' +
                             '</div>';
                         container.appendChild(div);
+                    }
+                    
+                    function previewFichier(input, id) {
+                        var previewContainer = document.getElementById('preview-' + id);
+                        var previewImg = document.getElementById('preview-img-' + id);
+                        var previewFile = document.getElementById('preview-file-' + id);
+                        
+                        if (input.files && input.files[0]) {
+                            var file = input.files[0];
+                            var fileType = file.type;
+                            
+                            previewContainer.style.display = 'block';
+                            
+                            if (fileType.startsWith('image/')) {
+                                var reader = new FileReader();
+                                reader.onload = function(e) {
+                                    previewImg.src = e.target.result;
+                                    previewImg.style.display = 'inline-block';
+                                    previewFile.style.display = 'none';
+                                };
+                                reader.readAsDataURL(file);
+                            } else {
+                                previewImg.style.display = 'none';
+                                previewFile.style.display = 'inline-block';
+                                previewFile.querySelector('.filename').textContent = file.name;
+                                
+                                var icon = previewFile.querySelector('i');
+                                if (fileType === 'application/pdf') {
+                                    icon.className = 'fa fa-file-pdf-o text-danger';
+                                } else if (fileType.includes('word') || fileType.includes('document')) {
+                                    icon.className = 'fa fa-file-word-o text-primary';
+                                } else {
+                                    icon.className = 'fa fa-file-o';
+                                }
+                            }
+                        } else {
+                            previewContainer.style.display = 'none';
+                        }
                     }
                     
                     function supprimerLigneFichier(id) {
