@@ -82,3 +82,23 @@ WHERE NOT EXISTS (SELECT 1 FROM generateurtable g WHERE g.tablename = t.tablenam
 -- 3. VÉRIFICATION
 -- ==============================
 SELECT 'Nombre total de tables dans generateurtable : ' || COUNT(*) FROM generateurtable;
+
+-- ==============================
+-- 4. MENU NOTIFICATIONS
+-- ==============================
+
+-- Menu parent Notifications (niveau 1)
+INSERT INTO menudynamique (id, libelle, icone, href, rang, niveau, id_pere)
+SELECT 'MENDYN007', 'Notifications', 'notifications', 'module.jsp?but=notification/notification-liste.jsp', 5, 1, NULL
+WHERE NOT EXISTS (SELECT 1 FROM menudynamique WHERE id = 'MENDYN007');
+
+-- ==============================
+-- 5. ASSIGNATION MENU NOTIFICATIONS AUX UTILISATEURS
+-- ==============================
+
+-- Menu Notifications visible par tous les utilisateurs
+INSERT INTO usermenu (id, refuser, idmenu, idrole, codeservice, codedir, interdit)
+SELECT 'USRM_NOTIF', '*', 'MENDYN007', NULL, NULL, NULL, 0
+WHERE NOT EXISTS (SELECT 1 FROM usermenu WHERE id = 'USRM_NOTIF');
+
+COMMIT;
