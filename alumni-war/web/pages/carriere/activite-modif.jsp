@@ -1,8 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%@ page import="affichage.*" %>
 <%@ page import="bean.*" %>
-<%@ page import="java.util.HashSet" %>
-<%@ page import="java.util.Set" %>
 <%@ page import="user.UserEJB" %>
 <%
     try {
@@ -15,7 +13,7 @@
         postModele.setId(postId);
         PageUpdate puPost = new PageUpdate(postModele, request, u);
         puPost.setLien(lien);
-        puPost.setTitre("Modifier l'offre d'emploi");
+        puPost.setTitre("Modifier l'activit&eacute;");
 
         // Liste pour visibilite
         TypeObjet visiType = new TypeObjet();
@@ -44,67 +42,37 @@
         if (c != null) { c.setLibelle("Description"); c.setType("editor"); }
 
         c = puPost.getFormu().getChamp("idvisibilite");
-        if (c != null) c.setLibelle("Visibilite");
+        if (c != null) c.setLibelle("Visibilit&eacute;");
 
         puPost.preparerDataFormu();
 
-        // --- Section 2 : PostEmploi ---
-        PostEmploi emploiModele = new PostEmploi();
-        emploiModele.setPost_id(postId);
-        PageUpdate puEmploi = new PageUpdate(emploiModele, request, u);
-        puEmploi.setLien(lien);
+        // --- Section 2 : PostActivite ---
+        PostActivite activiteModele = new PostActivite();
+        activiteModele.setPost_id(postId);
+        PageUpdate puActivite = new PageUpdate(activiteModele, request, u);
+        puActivite.setLien(lien);
 
-        // Listes statiques pour emploi
-        Liste listeContrat = new Liste("type_contrat");
-        String[] contratVals = {"CDI", "CDD", "Freelance", "Alternance", "Autre"};
-        listeContrat.makeListeString(contratVals, contratVals);
-
-        Liste listeTT = new Liste("teletravail_possible");
-        String[] ttLabels = {"Non", "Oui"};
-        String[] ttValues = {"0", "1"};
-        listeTT.makeListeString(ttLabels, ttValues);
-
-        Champ[] listesEmploi = new Champ[2];
-        listesEmploi[0] = listeContrat;
-        listesEmploi[1] = listeTT;
-        puEmploi.getFormu().changerEnChamp(listesEmploi);
-
-        c = puEmploi.getFormu().getChamp("post_id");            if (c != null) c.setVisible(false);
-        c = puEmploi.getFormu().getChamp("identreprise");       if (c != null) c.setVisible(false);
-        c = puEmploi.getFormu().getChamp("entreprise");         if (c != null) c.setLibelle("Entreprise");
-        c = puEmploi.getFormu().getChamp("poste");              if (c != null) c.setLibelle("Poste");
-        c = puEmploi.getFormu().getChamp("localisation");       if (c != null) c.setLibelle("Localisation");
-        c = puEmploi.getFormu().getChamp("type_contrat");       if (c != null) c.setLibelle("Type de contrat");
-        c = puEmploi.getFormu().getChamp("salaire_min");        if (c != null) c.setLibelle("Salaire minimum");
-        c = puEmploi.getFormu().getChamp("salaire_max");        if (c != null) c.setLibelle("Salaire maximum");
-        c = puEmploi.getFormu().getChamp("devise");             if (c != null) c.setLibelle("Devise");
-        c = puEmploi.getFormu().getChamp("experience_requise"); if (c != null) c.setLibelle("Experience requise");
-        c = puEmploi.getFormu().getChamp("niveau_etude_requis");if (c != null) c.setLibelle("Niveau d etude requis");
-        c = puEmploi.getFormu().getChamp("teletravail_possible"); if (c != null) c.setLibelle("Teletravail possible");
-        c = puEmploi.getFormu().getChamp("date_limite");        if (c != null) c.setLibelle("Date limite");
-        c = puEmploi.getFormu().getChamp("contact_email");      if (c != null) c.setLibelle("Email de contact");
-        c = puEmploi.getFormu().getChamp("contact_tel");        if (c != null) c.setLibelle("Telephone");
-        c = puEmploi.getFormu().getChamp("lien_candidature");   if (c != null) c.setLibelle("Lien de candidature");
-
-        puEmploi.preparerDataFormu();
-
-        // Charger toutes les competences disponibles
-        Competence compFiltre = new Competence();
-        Object[] competences = CGenUtil.rechercher(compFiltre, null, null, " ORDER BY libelle");
-        
-        // Charger les competences deja associees a cet emploi
-        Set<String> selectedCompetences = new HashSet<>();
-        EmploiCompetence ecFiltre = new EmploiCompetence();
-        ecFiltre.setPost_id(postId);
-        Object[] existingComps = CGenUtil.rechercher(ecFiltre, null, null, " AND post_id = '" + postId + "'");
-        if (existingComps != null) {
-            for (Object o : existingComps) {
-                EmploiCompetence ec = (EmploiCompetence) o;
-                selectedCompetences.add(ec.getIdcompetence());
-            }
+        c = puActivite.getFormu().getChamp("post_id");          if (c != null) c.setVisible(false);
+        c = puActivite.getFormu().getChamp("places_restantes"); if (c != null) c.setVisible(false);
+        c = puActivite.getFormu().getChamp("titre");            if (c != null) c.setLibelle("Titre de l'activit&eacute;");
+        c = puActivite.getFormu().getChamp("idcategorie");      if (c != null) {
+            c.setLibelle("Cat&eacute;gorie");
+            c.setPageAppelComplete("bean.CategorieActivite", "id", "categorie_activite");
         }
-        
-        // Charger les types de fichiers pour la liste déroulante (avec protection si table n'existe pas)
+        c = puActivite.getFormu().getChamp("lieu");             if (c != null) c.setLibelle("Lieu");
+        c = puActivite.getFormu().getChamp("adresse");          if (c != null) c.setLibelle("Adresse");
+        c = puActivite.getFormu().getChamp("date_debut");       if (c != null) { c.setLibelle("Date de d&eacute;but"); c.setType("datetime-local"); }
+        c = puActivite.getFormu().getChamp("date_fin");         if (c != null) { c.setLibelle("Date de fin"); c.setType("datetime-local"); }
+        c = puActivite.getFormu().getChamp("prix");             if (c != null) c.setLibelle("Prix (MGA)");
+        c = puActivite.getFormu().getChamp("nombre_places");    if (c != null) c.setLibelle("Nombre de places");
+        c = puActivite.getFormu().getChamp("contact_email");    if (c != null) c.setLibelle("Email de contact");
+        c = puActivite.getFormu().getChamp("contact_tel");      if (c != null) c.setLibelle("T&eacute;l&eacute;phone de contact");
+        c = puActivite.getFormu().getChamp("lien_inscription"); if (c != null) c.setLibelle("Lien d'inscription");
+        c = puActivite.getFormu().getChamp("lien_externe");     if (c != null) c.setLibelle("Lien externe");
+
+        puActivite.preparerDataFormu();
+
+        // Charger les types de fichiers
         Object[] typesFichiers = null;
         try {
             TypeFichier tfCritere = new TypeFichier();
@@ -117,8 +85,8 @@
     <section class="content-header">
         <h1><i class="fa fa-edit"></i> <%= puPost.getTitre() %></h1>
         <ol class="breadcrumb">
-            <li><a href="<%=lien%>?but=carriere/carriere-accueil.jsp"><i class="fa fa-home"></i> Espace Carriere</a></li>
-            <li><a href="<%=lien%>?but=carriere/emploi-liste.jsp">Offres d'emploi</a></li>
+            <li><a href="<%=lien%>?but=carriere/carriere-accueil.jsp"><i class="fa fa-home"></i> Espace Carri&egrave;re</a></li>
+            <li><a href="<%=lien%>?but=carriere/activite-liste.jsp">Activit&eacute;s</a></li>
             <li class="active">Modifier</li>
         </ol>
     </section>
@@ -127,8 +95,8 @@
             <div class="col-md-1"></div>
             <div class="col-md-10">
                 <form method="post" action="<%=lien%>?but=carriere/apresCarriere.jsp" enctype="multipart/form-data">
-                    <input type="hidden" name="acte" value="updateEmploi">
-                    <input type="hidden" name="bute" value="carriere/emploi-fiche.jsp">
+                    <input type="hidden" name="acte" value="updateActivite">
+                    <input type="hidden" name="bute" value="carriere/activite-fiche.jsp">
                     <input type="hidden" name="post_id" value="<%=postId%>">
                     <input type="hidden" name="id" value="<%=postId%>">
 
@@ -142,31 +110,17 @@
                         </div>
                     </div>
 
-                    <!-- Section PostEmploi -->
-                    <div class="box box-warning">
+                    <!-- Section PostActivite -->
+                    <div class="box box-danger">
                         <div class="box-header with-border">
-                            <h3 class="box-title">Details de l offre d emploi</h3>
+                            <h3 class="box-title">D&eacute;tails de l'activit&eacute;</h3>
                         </div>
                         <div class="box-body">
-                            <%= puEmploi.getFormu().getHtmlInsert() %>
-                            
-                            <!-- Selection multiple des competences -->
-                            <div class="form-group">
-                                <label>Competences requises</label>
-                                <select name="competences[]" class="form-control select2" multiple="multiple" 
-                                        data-placeholder="Selectionnez les competences" style="width: 100%;">
-                                    <% if (competences != null) {
-                                        for (Object o : competences) {
-                                            Competence comp = (Competence) o;
-                                            boolean isSelected = selectedCompetences.contains(comp.getId());
-                                    %>
-                                    <option value="<%= comp.getId() %>" <%= isSelected ? "selected" : "" %>><%= comp.getLibelle() %></option>
-                                    <% }} %>
-                                </select>
-                            </div>
+                            <%= puActivite.getFormu().getHtmlInsert() %>
+                            <%= puActivite.getHtmlAddOnPopup() %>
                         </div>
                     </div>
-                    
+
                     <!-- Section Fichiers joints -->
                     <div class="box box-info">
                         <div class="box-header with-border">
@@ -181,7 +135,6 @@
                             <p class="text-muted">Ajoutez des fichiers en cliquant sur le bouton +</p>
                             
                             <div id="fichiers-container">
-                                <!-- Les lignes de fichiers seront ajoutées ici dynamiquement -->
                             </div>
                             
                             <button type="button" class="btn btn-sm btn-success" onclick="ajouterLigneFichier()" style="margin-top: 10px;">
@@ -235,7 +188,7 @@
                             '<div class="row">' +
                                 '<div class="col-xs-12">' +
                                     '<div id="preview-' + compteurFichier + '" class="preview-container" style="display:none;">' +
-                                        '<img id="preview-img-' + compteurFichier + '" src="" alt="Aperçu" ' +
+                                        '<img id="preview-img-' + compteurFichier + '" src="" alt="Apercu" ' +
                                              'style="max-width:200px; max-height:150px; border-radius:5px; box-shadow:0 2px 5px rgba(0,0,0,0.2);">' +
                                         '<span id="preview-file-' + compteurFichier + '" class="label label-default" style="display:none; margin-left:10px;">' +
                                             '<i class="fa fa-file"></i> <span class="filename"></span>' +
@@ -297,11 +250,11 @@
                             <i class="fa fa-save"></i> Enregistrer les modifications
                         </button>
                         <a class="btn btn-info"
-                           href="<%=lien%>?but=carriere/post-fichiers.jsp&postId=<%=postId%>&type=emploi">
+                           href="<%=lien%>?but=carriere/post-fichiers.jsp&postId=<%=postId%>&type=activite">
                             <i class="fa fa-file"></i> G&eacute;rer les fichiers
                         </a>
                         <a class="btn btn-default pull-right"
-                           href="<%=lien%>?but=carriere/emploi-fiche.jsp&id=<%=postId%>">
+                           href="<%=lien%>?but=carriere/activite-fiche.jsp&id=<%=postId%>">
                             <i class="fa fa-times"></i> Annuler
                         </a>
                     </div>
@@ -315,7 +268,7 @@
         e.printStackTrace();
         String msgErr = (e.getMessage() != null) ? e.getMessage() : "Erreur inconnue";
 %>
-<script language="JavaScript">alert('Erreur emploi-modif : <%=msgErr.replace("'", "\\'")%>');</script>
+<script language="JavaScript">alert('Erreur activite-modif : <%=msgErr.replace("'", "\\'")%>');</script>
 <%
     }
 %>

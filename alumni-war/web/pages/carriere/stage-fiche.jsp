@@ -18,39 +18,41 @@
         Champ c;
 
         c = pc.getChampByName("post_id");             if (c != null) c.setVisible(false);
-
-        pc.getChampByName("entreprise").setLibelle("Entreprise / Organisme");
-        pc.getChampByName("localisation").setLibelle("Localisation");
-        pc.getChampByName("duree").setLibelle("Duree");
-        pc.getChampByName("date_debut").setLibelle("Date de debut");
-        pc.getChampByName("date_fin").setLibelle("Date de fin");
-        pc.getChampByName("indemnite").setLibelle("Indemnite mensuelle");
-        pc.getChampByName("convention_requise").setLibelle("Convention requise");
-        pc.getChampByName("places_disponibles").setLibelle("Nombre de places");
-        pc.getChampByName("niveau_etude_requis").setLibelle("Niveau d etude requis");
-        pc.getChampByName("competences_requises").setLibelle("Competences requises");
-        pc.getChampByName("contact_email").setLibelle("Email de contact");
-        pc.getChampByName("contact_tel").setLibelle("Telephone");
-        pc.getChampByName("lien_candidature").setLibelle("Lien de candidature");
-        pc.getChampByName("contenu").setLibelle("Description");
-        pc.getChampByName("auteur_nom").setLibelle("Publie par");
-        pc.getChampByName("statut_libelle").setLibelle("Statut");
-        pc.getChampByName("visibilite_libelle").setLibelle("Visibilite");
-        pc.getChampByName("nb_likes").setLibelle("Likes");
-        pc.getChampByName("nb_commentaires").setLibelle("Commentaires");
-        pc.getChampByName("nb_partages").setLibelle("Partages");
-        pc.getChampByName("created_at").setLibelle("Date de publication");
+        c = pc.getChampByName("identreprise");        if (c != null) c.setVisible(false);
+        c = pc.getChampByName("entreprise");           if (c != null) c.setLibelle("Entreprise / Organisme");
+        c = pc.getChampByName("localisation");         if (c != null) c.setLibelle("Localisation");
+        c = pc.getChampByName("duree");                if (c != null) c.setLibelle("Duree");
+        c = pc.getChampByName("date_debut");           if (c != null) c.setLibelle("Date de debut");
+        c = pc.getChampByName("date_fin");             if (c != null) c.setLibelle("Date de fin");
+        c = pc.getChampByName("indemnite");            if (c != null) c.setLibelle("Indemnite mensuelle");
+        c = pc.getChampByName("convention_requise");   if (c != null) c.setLibelle("Convention requise");
+        c = pc.getChampByName("places_disponibles");   if (c != null) c.setLibelle("Nombre de places");
+        c = pc.getChampByName("niveau_etude_requis");  if (c != null) c.setLibelle("Niveau d'etude requis");
+        c = pc.getChampByName("competences_requises"); if (c != null) c.setLibelle("Competences requises");
+        c = pc.getChampByName("contact_email");        if (c != null) c.setLibelle("Email de contact");
+        c = pc.getChampByName("contact_tel");          if (c != null) c.setLibelle("Telephone");
+        c = pc.getChampByName("lien_candidature");     if (c != null) c.setLibelle("Lien de candidature");
+        c = pc.getChampByName("contenu");              if (c != null) c.setLibelle("Description");
+        c = pc.getChampByName("auteur_nom");           if (c != null) c.setLibelle("Publie par");
+        c = pc.getChampByName("statut_libelle");       if (c != null) c.setLibelle("Statut");
+        c = pc.getChampByName("visibilite_libelle");   if (c != null) c.setLibelle("Visibilite");
+        c = pc.getChampByName("nb_likes");             if (c != null) c.setLibelle("Likes");
+        c = pc.getChampByName("nb_commentaires");      if (c != null) c.setLibelle("Commentaires");
+        c = pc.getChampByName("nb_partages");          if (c != null) c.setLibelle("Partages");
+        c = pc.getChampByName("created_at");           if (c != null) c.setLibelle("Date de publication");
 
         // Masquer les champs techniques
-        c = pc.getChampByName("idutilisateur");       if (c != null) c.setVisible(false);
+        c = pc.getChampByName("idutilisateur");        if (c != null) c.setVisible(false);
         c = pc.getChampByName("idgroupe");             if (c != null) c.setVisible(false);
         c = pc.getChampByName("idvisibilite");         if (c != null) c.setVisible(false);
         c = pc.getChampByName("idstatutpublication");  if (c != null) c.setVisible(false);
         c = pc.getChampByName("epingle");              if (c != null) c.setVisible(false);
         c = pc.getChampByName("supprime");             if (c != null) c.setVisible(false);
         c = pc.getChampByName("edited_at");            if (c != null) c.setVisible(false);
+        c = pc.getChampByName("edited_by");            if (c != null) c.setVisible(false);
+        c = pc.getChampByName("date_suppression");     if (c != null) c.setVisible(false);
 
-        boolean isAuteur = (detail.getIdutilisateur() != null)
+        boolean isAuteur = (detail.getIdutilisateur() != 0)
                 && String.valueOf(detail.getIdutilisateur()).equals(refUserConnecte);
 %>
 <div class="content-wrapper">
