@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 public class PostActivite extends ClassMAPTable {
     private String post_id;
     private String titre;
-    private String categorie;
+    private String idcategorie;
     private String lieu;
     private String adresse;
     private Timestamp date_debut;
@@ -51,12 +51,12 @@ public class PostActivite extends ClassMAPTable {
         this.titre = titre;
     }
 
-    public String getCategorie() {
-        return categorie;
+    public String getIdcategorie() {
+        return idcategorie;
     }
 
-    public void setCategorie(String categorie) {
-        this.categorie = categorie;
+    public void setIdcategorie(String idcategorie) {
+        this.idcategorie = idcategorie;
     }
 
     public String getLieu() {
