@@ -397,6 +397,152 @@
         }
         
         // ========================
+        // INSERT ACTIVITE
+        // ========================
+        else if ("insertActivite".equalsIgnoreCase(acte)) {
+            System.out.println("=== INSERT ACTIVITE START ===");
+            
+            // 1. Générer le Post ID
+            Post post = new Post();
+            post.construirePK(conn);
+            postId = post.getId();
+            System.out.println("Activite Post ID généré: " + postId);
+            
+            // 2. Insérer le Post
+            String sqlPost = "INSERT INTO posts (id, idtypepublication, idutilisateur, idstatutpublication, " +
+                "idvisibilite, contenu, nb_likes, nb_commentaires, nb_partages, epingle, supprime) " +
+                "VALUES (?, ?, ?, ?, ?, ?, 0, 0, 0, 0, 0)";
+            PreparedStatement psPost = conn.prepareStatement(sqlPost);
+            psPost.setString(1, postId);
+            psPost.setString(2, "TYP00003"); // Activité
+            psPost.setInt(3, Integer.parseInt(String.valueOf(u.getUser().getRefuser())));
+            psPost.setString(4, "STAT00001"); // Brouillon
+            String visibiliteActivite = formParams.get("idvisibilite");
+            if (visibiliteActivite == null || visibiliteActivite.isEmpty()) visibiliteActivite = "VISI00001";
+            psPost.setString(5, visibiliteActivite);
+            String contenuActivite = formParams.get("contenu");
+            psPost.setString(6, contenuActivite != null ? contenuActivite : "");
+            psPost.executeUpdate();
+            psPost.close();
+            System.out.println("Post activité inséré OK");
+            
+            // 3. Insérer PostActivite
+            String sqlActivite = "INSERT INTO post_activite (post_id, titre, idcategorie, lieu, adresse, " +
+                "date_debut, date_fin, prix, nombre_places, places_restantes, " +
+                "contact_email, contact_tel, lien_inscription, lien_externe) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            PreparedStatement psActivite = conn.prepareStatement(sqlActivite);
+            psActivite.setString(1, postId);
+            psActivite.setString(2, formParams.get("titre"));
+            String idcat = formParams.get("idcategorie");
+            if (idcat != null && idcat.trim().isEmpty()) idcat = null;
+            psActivite.setString(3, idcat);
+            psActivite.setString(4, formParams.get("lieu"));
+            psActivite.setString(5, formParams.get("adresse"));
+            
+            // date_debut (timestamp)
+            String dateDebutStr = formParams.get("date_debut");
+            if (dateDebutStr != null && !dateDebutStr.isEmpty()) {
+                try {
+                    String normalized = dateDebutStr.replace("T", " ");
+                    if (!normalized.contains(":")) normalized += " 00:00:00";
+                    else if (normalized.split(":").length == 2) normalized += ":00";
+                    psActivite.setTimestamp(6, Timestamp.valueOf(normalized));
+                } catch (Exception ex) {
+                    psActivite.setNull(6, java.sql.Types.TIMESTAMP);
+                }
+            } else {
+                psActivite.setNull(6, java.sql.Types.TIMESTAMP);
+            }
+            
+            // date_fin (timestamp)
+            String dateFinStr = formParams.get("date_fin");
+            if (dateFinStr != null && !dateFinStr.isEmpty()) {
+                try {
+                    String normalized = dateFinStr.replace("T", " ");
+                    if (!normalized.contains(":")) normalized += " 00:00:00";
+                    else if (normalized.split(":").length == 2) normalized += ":00";
+                    psActivite.setTimestamp(7, Timestamp.valueOf(normalized));
+                } catch (Exception ex) {
+                    psActivite.setNull(7, java.sql.Types.TIMESTAMP);
+                }
+            } else {
+                psActivite.setNull(7, java.sql.Types.TIMESTAMP);
+            }
+            
+            // prix (double)
+            String prixStr = formParams.get("prix");
+            if (prixStr != null && !prixStr.isEmpty()) {
+                psActivite.setDouble(8, Double.parseDouble(prixStr));
+            } else {
+                psActivite.setNull(8, java.sql.Types.DOUBLE);
+            }
+            
+            // nombre_places
+            String nbPlaces = formParams.get("nombre_places");
+            if (nbPlaces != null && !nbPlaces.isEmpty()) {
+                psActivite.setInt(9, Integer.parseInt(nbPlaces));
+                psActivite.setInt(10, Integer.parseInt(nbPlaces)); // places_restantes = nombre_places au début
+            } else {
+                psActivite.setNull(9, java.sql.Types.INTEGER);
+                psActivite.setNull(10, java.sql.Types.INTEGER);
+            }
+            
+            psActivite.setString(11, formParams.get("contact_email"));
+            psActivite.setString(12, formParams.get("contact_tel"));
+            psActivite.setString(13, formParams.get("lien_inscription"));
+            psActivite.setString(14, formParams.get("lien_externe"));
+            psActivite.executeUpdate();
+            psActivite.close();
+            System.out.println("PostActivite inséré OK");
+            
+            // 4. Traiter les fichiers uploadés
+            int fileIndex = 0;
+            for (FileItem fileItem : uploadedFiles) {
+                String originalName = fileItem.getName();
+                String ext = "";
+                if (originalName.contains(".")) {
+                    ext = originalName.substring(originalName.lastIndexOf("."));
+                }
+                String uniqueName = "activite_" + postId + "_" + System.currentTimeMillis() + "_" + fileIndex + ext;
+                
+                File uploadedFile = new File(uploadDir + File.separator + uniqueName);
+                fileItem.write(uploadedFile);
+                
+                PostFichier pf = new PostFichier();
+                pf.construirePK(conn);
+                String fichierId = pf.getId();
+                
+                String sqlFichier = "INSERT INTO post_fichiers (id, post_id, nom_fichier, nom_original, chemin, " +
+                    "taille_octets, mime_type, ordre, idtypefichier) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                PreparedStatement psFichier = conn.prepareStatement(sqlFichier);
+                psFichier.setString(1, fichierId);
+                psFichier.setString(2, postId);
+                psFichier.setString(3, uniqueName);
+                psFichier.setString(4, originalName);
+                psFichier.setString(5, "carriere/" + uniqueName);
+                psFichier.setLong(6, fileItem.getSize());
+                psFichier.setString(7, fileItem.getContentType());
+                psFichier.setInt(8, fileIndex + 1);
+                
+                if (fileIndex < typeFichiersList.size() && typeFichiersList.get(fileIndex) != null 
+                    && !typeFichiersList.get(fileIndex).isEmpty()) {
+                    psFichier.setString(9, typeFichiersList.get(fileIndex));
+                } else {
+                    psFichier.setNull(9, java.sql.Types.VARCHAR);
+                }
+                psFichier.executeUpdate();
+                psFichier.close();
+                fileIndex++;
+            }
+            
+            conn.commit();
+            System.out.println("=== INSERT ACTIVITE SUCCESS ===");
+            message = "Activité créée avec succès";
+            bute = "carriere/activite-liste.jsp";
+        }
+        
+        // ========================
         // UPDATE EMPLOI
         // ========================
         else if ("updateEmploi".equalsIgnoreCase(acte)) {
