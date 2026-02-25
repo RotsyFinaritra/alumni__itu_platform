@@ -7,9 +7,8 @@
 <%@ page import="bean.CGenUtil" %>
 <%@ page import="user.UserEJB" %>
 <%@ page import="bean.ClassMAPTable" %>
-<%@ page import="utilitaire.UtilDB" %>
-<%@ page import="java.sql.Connection" %>
-<%@ page import="java.sql.PreparedStatement" %>
+<%@ page import="utilitaire.Utilitaire" %>
+<%@ page import="java.sql.Timestamp" %>
 <%
     UserEJB u = (UserEJB) session.getValue("u");
     String lien = (String) session.getValue("lien");
@@ -46,6 +45,7 @@
             postAvecValeurs.setNb_likes(0);
             postAvecValeurs.setNb_commentaires(0);
             postAvecValeurs.setNb_partages(0);
+            postAvecValeurs.setCreated_at(new Timestamp(System.currentTimeMillis()));
             Post postInsere = (Post) u.createObject(postAvecValeurs);
             postId = postInsere.getTuppleID();
 
@@ -93,6 +93,7 @@
             postAvecValeurs.setNb_likes(0);
             postAvecValeurs.setNb_commentaires(0);
             postAvecValeurs.setNb_partages(0);
+            postAvecValeurs.setCreated_at(new Timestamp(System.currentTimeMillis()));
             Post postInsere = (Post) u.createObject(postAvecValeurs);
             postId = postInsere.getTuppleID();
 
@@ -143,18 +144,10 @@
             emploiAvecValeurs.setPost_id(postId);
             u.updateObject(emploiAvecValeurs);
             
-            // 3. Supprimer les anciennes competences et inserer les nouvelles
-            Connection connEc = null;
-            PreparedStatement psEc = null;
-            try {
-                connEc = new UtilDB().GetConn();
-                psEc = connEc.prepareStatement("DELETE FROM emploi_competence WHERE post_id = ?");
-                psEc.setString(1, postId);
-                psEc.executeUpdate();
-            } finally {
-                if (psEc != null) try { psEc.close(); } catch (Exception ignored) {}
-                if (connEc != null) try { connEc.close(); } catch (Exception ignored) {}
-            }
+            // 3. Supprimer les anciennes competences via deleteObjetFille, puis recreer
+            EmploiCompetence ecDel = new EmploiCompetence();
+            ecDel.setPost_id(postId);
+            u.deleteObjetFille(ecDel);
             
             if (competences != null) {
                 for (String idComp : competences) {
@@ -193,18 +186,10 @@
             stageAvecValeurs.setPost_id(postId);
             u.updateObject(stageAvecValeurs);
             
-            // 3. Supprimer les anciennes competences et inserer les nouvelles
-            Connection connSc = null;
-            PreparedStatement psSc = null;
-            try {
-                connSc = new UtilDB().GetConn();
-                psSc = connSc.prepareStatement("DELETE FROM stage_competence WHERE post_id = ?");
-                psSc.setString(1, postId);
-                psSc.executeUpdate();
-            } finally {
-                if (psSc != null) try { psSc.close(); } catch (Exception ignored) {}
-                if (connSc != null) try { connSc.close(); } catch (Exception ignored) {}
-            }
+            // 3. Supprimer les anciennes competences via deleteObjetFille, puis recreer
+            StageCompetence scDel = new StageCompetence();
+            scDel.setPost_id(postId);
+            u.deleteObjetFille(scDel);
             
             if (competences != null) {
                 for (String idComp : competences) {
@@ -222,7 +207,7 @@
 
 %>
 <script language="JavaScript">
-    document.location.replace("<%=lien%>?but=<%=bute%>&id=<%=id%>");
+    document.location.replace("<%=lien%>?but=<%=bute%>&id=<%=Utilitaire.champNull(id)%>");
 </script>
 <%
     } catch (Exception e) {
