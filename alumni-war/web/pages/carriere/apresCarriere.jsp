@@ -502,6 +502,70 @@
             bute = "carriere/stage-fiche.jsp";
         }
 
+        // ========================
+        // UPDATE ACTIVITE
+        // ========================
+        else if ("updateActivite".equalsIgnoreCase(acte)) {
+            postId = formParams.get("post_id");
+            if (postId == null) postId = formParams.get("id");
+            id = postId;
+
+            // 1. Update Post via updateObject
+            Post post = new Post();
+            post.setId(postId);
+            post.setContenu(formParams.get("contenu") != null ? formParams.get("contenu") : "");
+            String visibilite = formParams.get("idvisibilite");
+            if (visibilite != null && !visibilite.isEmpty()) post.setIdvisibilite(visibilite);
+            u.updateObject(post);
+
+            // 2. Update PostActivite via updateObject
+            PostActivite activite = new PostActivite();
+            activite.setPost_id(postId);
+            activite.setTitre(formParams.get("titre"));
+            String idcat = formParams.get("idcategorie");
+            activite.setIdcategorie(idcat != null && !idcat.trim().isEmpty() ? idcat : null);
+            activite.setLieu(formParams.get("lieu"));
+            activite.setAdresse(formParams.get("adresse"));
+            activite.setDate_debut(parseTimestamp(formParams.get("date_debut")));
+            activite.setDate_fin(parseTimestamp(formParams.get("date_fin")));
+            activite.setPrix(parseDoubleSafe(formParams.get("prix")));
+            int nbPlaces = parseIntSafe(formParams.get("nombre_places"));
+            activite.setNombre_places(nbPlaces);
+            activite.setPlaces_restantes(nbPlaces);
+            activite.setContact_email(formParams.get("contact_email"));
+            activite.setContact_tel(formParams.get("contact_tel"));
+            activite.setLien_inscription(formParams.get("lien_inscription"));
+            activite.setLien_externe(formParams.get("lien_externe"));
+            u.updateObject(activite);
+
+            // 3. Traiter les nouveaux fichiers uploades via createObject
+            int fileIndex = 0;
+            for (FileItem fileItem : uploadedFiles) {
+                String originalName = fileItem.getName();
+                String ext = originalName.contains(".") ? originalName.substring(originalName.lastIndexOf(".")) : "";
+                String uniqueName = "activite_" + postId + "_" + System.currentTimeMillis() + "_" + fileIndex + ext;
+                File uploadedFile = new File(uploadDir + File.separator + uniqueName);
+                fileItem.write(uploadedFile);
+
+                PostFichier pf = new PostFichier();
+                pf.setPost_id(postId);
+                pf.setNom_fichier(uniqueName);
+                pf.setNom_original(originalName);
+                pf.setChemin("carriere/" + uniqueName);
+                pf.setTaille_octets(fileItem.getSize());
+                pf.setMime_type(fileItem.getContentType());
+                pf.setOrdre(fileIndex + 1);
+                if (fileIndex < typeFichiersList.size() && typeFichiersList.get(fileIndex) != null
+                    && !typeFichiersList.get(fileIndex).isEmpty()) {
+                    pf.setIdtypefichier(typeFichiersList.get(fileIndex));
+                }
+                u.createObject(pf);
+                fileIndex++;
+            }
+
+            bute = "carriere/activite-fiche.jsp";
+        }
+
 %>
 <script language="JavaScript">
     document.location.replace("<%=lien%>?but=<%=bute%>&id=<%=Utilitaire.champNull(id)%>");

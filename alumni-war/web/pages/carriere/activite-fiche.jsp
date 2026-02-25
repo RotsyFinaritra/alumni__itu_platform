@@ -84,6 +84,10 @@
                     </div>
                     <div class="box-footer">
                         <% if (isAuteur) { %>
+                        <a class="btn btn-warning"
+                           href="<%=lien%>?but=carriere/activite-modif.jsp&id=<%=postId%>">
+                            <i class="fa fa-edit"></i> Modifier
+                        </a>
                         <a class="btn btn-danger"
                            href="<%=lien%>?but=apresTarif.jsp&acte=delete&classe=bean.Post&nomtable=posts&bute=carriere/activite-liste.jsp&id=<%=postId%>"
                            onclick="return confirm('Supprimer cette activit&eacute; ?')">
