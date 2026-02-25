@@ -1,14 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
-<%@ page import="affichage.PageUpdate" %>
-<%@ page import="affichage.Champ" %>
-<%@ page import="affichage.Liste" %>
-<%@ page import="bean.Post" %>
-<%@ page import="bean.PostEmploi" %>
-<%@ page import="bean.VisibilitePublication" %>
-<%@ page import="bean.Competence" %>
-<%@ page import="bean.EmploiCompetence" %>
-<%@ page import="bean.TypeFichier" %>
-<%@ page import="bean.CGenUtil" %>
+<%@ page import="affichage.*" %>
+<%@ page import="bean.*" %>
 <%@ page import="java.util.HashSet" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="user.UserEJB" %>
@@ -18,80 +10,83 @@
         String lien = (String) session.getValue("lien");
         String postId = request.getParameter("id");
 
-        // --- Section 1 : mise a jour du Post parent ---
+        // --- Section 1 : Post parent ---
         Post postModele = new Post();
-        postModele.setNomTable("posts");
+        postModele.setId(postId);
         PageUpdate puPost = new PageUpdate(postModele, request, u);
+        puPost.setLien(lien);
         puPost.setTitre("Modifier l'offre d'emploi");
 
+        // Liste pour visibilite
+        TypeObjet visiType = new TypeObjet();
+        visiType.setNomTable("visibilite_publication");
+        Champ[] listesPost = new Champ[1];
+        listesPost[0] = new Liste("idvisibilite", visiType, "libelle", "id");
+        puPost.getFormu().changerEnChamp(listesPost);
+
         Champ c;
-        c = puPost.getChampByName("post_id");        if (c != null) c.setVisible(false);
-        c = puPost.getChampByName("idutilisateur");  if (c != null) c.setVisible(false);
-        c = puPost.getChampByName("type");           if (c != null) c.setVisible(false);
-        c = puPost.getChampByName("idstatutpublication"); if (c != null) c.setVisible(false);
-        c = puPost.getChampByName("idgroupe");       if (c != null) c.setVisible(false);
-        c = puPost.getChampByName("epingle");        if (c != null) c.setVisible(false);
-        c = puPost.getChampByName("supprime");       if (c != null) c.setVisible(false);
-        c = puPost.getChampByName("edited_at");      if (c != null) c.setVisible(false);
-        c = puPost.getChampByName("created_at");     if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("id");                  if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("idutilisateur");       if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("idtypepublication");   if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("idstatutpublication"); if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("idgroupe");            if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("epingle");             if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("supprime");            if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("date_suppression");    if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("edited_at");           if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("edited_by");           if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("created_at");          if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("nb_likes");            if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("nb_commentaires");     if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("nb_partages");         if (c != null) c.setVisible(false);
 
-        Champ champContenu = puPost.getChampByName("contenu");
-        if (champContenu != null) {
-            champContenu.setLibelle("Description");
-            champContenu.setType("editor");
-            champContenu.setObligatoire(true);
-        }
+        c = puPost.getFormu().getChamp("contenu");
+        if (c != null) { c.setLibelle("Description"); c.setType("editor"); }
 
-        Champ champVisi = puPost.getChampByName("idvisibilite");
-        if (champVisi != null) {
-            champVisi.setLibelle("Visibilite");
-            champVisi.setObligatoire(true);
-            Liste listeVisi = new Liste(new VisibilitePublication(), u,
-                    "idvisibilite", "libelle");
-            champVisi.setListe(listeVisi);
-        }
+        c = puPost.getFormu().getChamp("idvisibilite");
+        if (c != null) c.setLibelle("Visibilite");
 
-        // --- Section 2 : mise a jour du PostEmploi ---
+        puPost.preparerDataFormu();
+
+        // --- Section 2 : PostEmploi ---
         PostEmploi emploiModele = new PostEmploi();
+        emploiModele.setPost_id(postId);
         PageUpdate puEmploi = new PageUpdate(emploiModele, request, u);
+        puEmploi.setLien(lien);
 
-        c = puEmploi.getChampByName("post_id");      if (c != null) c.setVisible(false);
+        // Listes statiques pour emploi
+        Liste listeContrat = new Liste("type_contrat");
+        String[] contratVals = {"CDI", "CDD", "Freelance", "Alternance", "Autre"};
+        listeContrat.makeListeString(contratVals, contratVals);
 
-        puEmploi.getChampByName("entreprise").setLibelle("Entreprise");
-        puEmploi.getChampByName("entreprise").setObligatoire(true);
-        puEmploi.getChampByName("poste").setLibelle("Poste");
-        puEmploi.getChampByName("poste").setObligatoire(true);
-        puEmploi.getChampByName("localisation").setLibelle("Localisation");
-        puEmploi.getChampByName("salaire_min").setLibelle("Salaire minimum");
-        puEmploi.getChampByName("salaire_max").setLibelle("Salaire maximum");
-        puEmploi.getChampByName("devise").setLibelle("Devise");
-        puEmploi.getChampByName("experience_requise").setLibelle("Experience requise");
-        puEmploi.getChampByName("niveau_etude_requis").setLibelle("Niveau d etude requis");
-        puEmploi.getChampByName("date_limite").setLibelle("Date limite");
-        puEmploi.getChampByName("contact_email").setLibelle("Email de contact");
-        puEmploi.getChampByName("contact_tel").setLibelle("Telephone");
-        puEmploi.getChampByName("lien_candidature").setLibelle("Lien de candidature");
+        Liste listeTT = new Liste("teletravail_possible");
+        String[] ttLabels = {"Non", "Oui"};
+        String[] ttValues = {"0", "1"};
+        listeTT.makeListeString(ttLabels, ttValues);
 
-        Champ champContrat = puEmploi.getChampByName("type_contrat");
-        if (champContrat != null) {
-            champContrat.setLibelle("Type de contrat");
-            Liste listeContrat = new Liste();
-            listeContrat.ajouterLigne("CDI", "CDI");
-            listeContrat.ajouterLigne("CDD", "CDD");
-            listeContrat.ajouterLigne("Freelance", "Freelance");
-            listeContrat.ajouterLigne("Alternance", "Alternance");
-            listeContrat.ajouterLigne("Autre", "Autre");
-            champContrat.setListe(listeContrat);
-        }
+        Champ[] listesEmploi = new Champ[2];
+        listesEmploi[0] = listeContrat;
+        listesEmploi[1] = listeTT;
+        puEmploi.getFormu().changerEnChamp(listesEmploi);
 
-        Champ champTeletravail = puEmploi.getChampByName("teletravail_possible");
-        if (champTeletravail != null) {
-            champTeletravail.setLibelle("Teletravail possible");
-            Liste listeTT = new Liste();
-            listeTT.ajouterLigne("0", "Non");
-            listeTT.ajouterLigne("1", "Oui");
-            champTeletravail.setListe(listeTT);
-        }
+        c = puEmploi.getFormu().getChamp("post_id");            if (c != null) c.setVisible(false);
+        c = puEmploi.getFormu().getChamp("identreprise");       if (c != null) c.setVisible(false);
+        c = puEmploi.getFormu().getChamp("entreprise");         if (c != null) c.setLibelle("Entreprise");
+        c = puEmploi.getFormu().getChamp("poste");              if (c != null) c.setLibelle("Poste");
+        c = puEmploi.getFormu().getChamp("localisation");       if (c != null) c.setLibelle("Localisation");
+        c = puEmploi.getFormu().getChamp("type_contrat");       if (c != null) c.setLibelle("Type de contrat");
+        c = puEmploi.getFormu().getChamp("salaire_min");        if (c != null) c.setLibelle("Salaire minimum");
+        c = puEmploi.getFormu().getChamp("salaire_max");        if (c != null) c.setLibelle("Salaire maximum");
+        c = puEmploi.getFormu().getChamp("devise");             if (c != null) c.setLibelle("Devise");
+        c = puEmploi.getFormu().getChamp("experience_requise"); if (c != null) c.setLibelle("Experience requise");
+        c = puEmploi.getFormu().getChamp("niveau_etude_requis");if (c != null) c.setLibelle("Niveau d etude requis");
+        c = puEmploi.getFormu().getChamp("teletravail_possible"); if (c != null) c.setLibelle("Teletravail possible");
+        c = puEmploi.getFormu().getChamp("date_limite");        if (c != null) c.setLibelle("Date limite");
+        c = puEmploi.getFormu().getChamp("contact_email");      if (c != null) c.setLibelle("Email de contact");
+        c = puEmploi.getFormu().getChamp("contact_tel");        if (c != null) c.setLibelle("Telephone");
+        c = puEmploi.getFormu().getChamp("lien_candidature");   if (c != null) c.setLibelle("Lien de candidature");
+
+        puEmploi.preparerDataFormu();
 
         // Charger toutes les competences disponibles
         Competence compFiltre = new Competence();
@@ -143,7 +138,7 @@
                             <h3 class="box-title">Publication</h3>
                         </div>
                         <div class="box-body">
-                            <%= puPost.getHtml() %>
+                            <%= puPost.getFormu().getHtmlInsert() %>
                         </div>
                     </div>
 
@@ -153,7 +148,7 @@
                             <h3 class="box-title">Details de l offre d emploi</h3>
                         </div>
                         <div class="box-body">
-                            <%= puEmploi.getHtml() %>
+                            <%= puEmploi.getFormu().getHtmlInsert() %>
                             
                             <!-- Selection multiple des competences -->
                             <div class="form-group">
