@@ -74,8 +74,10 @@
         }
 
         String champUrl = request.getParameter("champUrl");
+        String popupParams = "";
         if(champUrl!=null){
             bute = "popup/apresPopup.jsp";
+            popupParams = "&champReturn=" + champReturn + "&champUrl=" + champUrl;
         }
     if (acte.compareToIgnoreCase("insert") == 0) {
         t = (ClassMAPTable) (Class.forName(classe).newInstance());
@@ -286,7 +288,7 @@
     String idAttributeName = "id";
     if(t != null && t.getAttributIDName() != null && !t.getAttributIDName().trim().isEmpty()) idAttributeName = t.getAttributIDName();
 %>
-<script language="JavaScript"> document.location.replace("<%=lien%>?but=<%=bute + rajoutLie%>&valeur=<%=val%>&<%=idAttributeName%>=<%=Utilitaire.champNull(id)%>");</script>
+<script language="JavaScript"> document.location.replace("<%=lien%>?but=<%=bute + rajoutLie + popupParams%>&valeur=<%=val%>&<%=idAttributeName%>=<%=Utilitaire.champNull(id)%>");</script>
 <%
 
 } catch(ValidationException validation){

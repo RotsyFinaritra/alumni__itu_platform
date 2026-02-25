@@ -63,7 +63,9 @@
 <%--<script src="${pageContext.request.contextPath}/apjplugins/chat.js"></script>--%>
 
 <script type="text/javascript">
-    window.ParsleyValidator.setLocale('fr');
+    if (window.ParsleyValidator) {
+        window.ParsleyValidator.setLocale('fr');
+    }
     $('.datepicker').datepicker({
         format: 'dd/mm/yyyy'
     });
@@ -491,6 +493,11 @@
                 checkbox.checked = true;
             }
         });
+    }
+    
+    // Stub function to prevent "checkbox is not defined" error
+    function checkbox() {
+        // Placeholder function for checkbox handling
     }
 
 </script>

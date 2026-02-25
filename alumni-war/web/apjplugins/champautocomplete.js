@@ -17,7 +17,9 @@ function showSuggestion(idchamp, colonne, nomclasse){
                 document.getElementById(idsuggestion).innerHTML = '';
         }
     };
-    xmlhttp.open('POST', 'ajaxAutocompletion.jsp', true);
+    // Utiliser le chemin absolu depuis la racine du contexte
+    var contextPath = window.location.pathname.substring(0, window.location.pathname.indexOf('/', 1));
+    xmlhttp.open('POST', contextPath + '/ajaxAutocompletion.jsp', true);
     xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     xmlhttp.send('valeur='+document.getElementById(idchamp).value+'&idchamp='+idchamp+'&idsuggestion='+idsuggestion+'&idliste='+idliste+'&colonne='+colonne+'&nomclasse='+nomclasse);
 }
