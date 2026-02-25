@@ -15,47 +15,48 @@
         PostEmploiLib detail = (PostEmploiLib) pc.getBase();
         String postId = detail.getTuppleID();
 
-        // Configurer les libelles
+        // Configurer les libelles (null-safe car certains champs n'existent pas dans le bean)
         Champ c;
 
-        c = pc.getChampByName("post_id");
-        if (c != null) c.setVisible(false);
-
-        pc.getChampByName("entreprise").setLibelle("Entreprise");
-        pc.getChampByName("poste").setLibelle("Poste");
-        pc.getChampByName("localisation").setLibelle("Localisation");
-        pc.getChampByName("type_contrat").setLibelle("Type de contrat");
-        pc.getChampByName("salaire_min").setLibelle("Salaire minimum");
-        pc.getChampByName("salaire_max").setLibelle("Salaire maximum");
-        pc.getChampByName("devise").setLibelle("Devise");
-        pc.getChampByName("experience_requise").setLibelle("Experience requise");
-        pc.getChampByName("competences_requises").setLibelle("Competences requises");
-        pc.getChampByName("niveau_etude_requis").setLibelle("Niveau d'etude requis");
-        pc.getChampByName("teletravail_possible").setLibelle("Teletravail possible");
-        pc.getChampByName("date_limite").setLibelle("Date limite");
-        pc.getChampByName("contact_email").setLibelle("Email de contact");
-        pc.getChampByName("contact_tel").setLibelle("Telephone de contact");
-        pc.getChampByName("lien_candidature").setLibelle("Lien de candidature");
-        pc.getChampByName("contenu").setLibelle("Description");
-        pc.getChampByName("auteur_nom").setLibelle("Publie par");
-        pc.getChampByName("statut_libelle").setLibelle("Statut");
-        pc.getChampByName("visibilite_libelle").setLibelle("Visibilite");
-        pc.getChampByName("nb_likes").setLibelle("Likes");
-        pc.getChampByName("nb_commentaires").setLibelle("Commentaires");
-        pc.getChampByName("nb_partages").setLibelle("Partages");
-        pc.getChampByName("created_at").setLibelle("Date de publication");
+        c = pc.getChampByName("post_id");             if (c != null) c.setVisible(false);
+        c = pc.getChampByName("identreprise");        if (c != null) c.setVisible(false);
+        c = pc.getChampByName("entreprise");           if (c != null) c.setLibelle("Entreprise");
+        c = pc.getChampByName("poste");                if (c != null) c.setLibelle("Poste");
+        c = pc.getChampByName("localisation");         if (c != null) c.setLibelle("Localisation");
+        c = pc.getChampByName("type_contrat");         if (c != null) c.setLibelle("Type de contrat");
+        c = pc.getChampByName("salaire_min");          if (c != null) c.setLibelle("Salaire minimum");
+        c = pc.getChampByName("salaire_max");          if (c != null) c.setLibelle("Salaire maximum");
+        c = pc.getChampByName("devise");               if (c != null) c.setLibelle("Devise");
+        c = pc.getChampByName("experience_requise");   if (c != null) c.setLibelle("Experience requise");
+        c = pc.getChampByName("competences_requises"); if (c != null) c.setLibelle("Competences requises");
+        c = pc.getChampByName("niveau_etude_requis");  if (c != null) c.setLibelle("Niveau d'etude requis");
+        c = pc.getChampByName("teletravail_possible"); if (c != null) c.setLibelle("Teletravail possible");
+        c = pc.getChampByName("date_limite");          if (c != null) c.setLibelle("Date limite");
+        c = pc.getChampByName("contact_email");        if (c != null) c.setLibelle("Email de contact");
+        c = pc.getChampByName("contact_tel");          if (c != null) c.setLibelle("Telephone de contact");
+        c = pc.getChampByName("lien_candidature");     if (c != null) c.setLibelle("Lien de candidature");
+        c = pc.getChampByName("contenu");              if (c != null) c.setLibelle("Description");
+        c = pc.getChampByName("auteur_nom");           if (c != null) c.setLibelle("Publie par");
+        c = pc.getChampByName("statut_libelle");       if (c != null) c.setLibelle("Statut");
+        c = pc.getChampByName("visibilite_libelle");   if (c != null) c.setLibelle("Visibilite");
+        c = pc.getChampByName("nb_likes");             if (c != null) c.setLibelle("Likes");
+        c = pc.getChampByName("nb_commentaires");      if (c != null) c.setLibelle("Commentaires");
+        c = pc.getChampByName("nb_partages");          if (c != null) c.setLibelle("Partages");
+        c = pc.getChampByName("created_at");           if (c != null) c.setLibelle("Date de publication");
 
         // Masquer les champs techniques internes
-        c = pc.getChampByName("idutilisateur");      if (c != null) c.setVisible(false);
-        c = pc.getChampByName("idgroupe");            if (c != null) c.setVisible(false);
-        c = pc.getChampByName("idvisibilite");        if (c != null) c.setVisible(false);
-        c = pc.getChampByName("idstatutpublication"); if (c != null) c.setVisible(false);
-        c = pc.getChampByName("epingle");             if (c != null) c.setVisible(false);
-        c = pc.getChampByName("supprime");            if (c != null) c.setVisible(false);
-        c = pc.getChampByName("edited_at");           if (c != null) c.setVisible(false);
+        c = pc.getChampByName("idutilisateur");        if (c != null) c.setVisible(false);
+        c = pc.getChampByName("idgroupe");             if (c != null) c.setVisible(false);
+        c = pc.getChampByName("idvisibilite");         if (c != null) c.setVisible(false);
+        c = pc.getChampByName("idstatutpublication");  if (c != null) c.setVisible(false);
+        c = pc.getChampByName("epingle");              if (c != null) c.setVisible(false);
+        c = pc.getChampByName("supprime");             if (c != null) c.setVisible(false);
+        c = pc.getChampByName("edited_at");            if (c != null) c.setVisible(false);
+        c = pc.getChampByName("edited_by");            if (c != null) c.setVisible(false);
+        c = pc.getChampByName("date_suppression");     if (c != null) c.setVisible(false);
 
         // Determiner si l'utilisateur connecte est l'auteur
-        boolean isAuteur = (detail.getIdutilisateur() != null)
+        boolean isAuteur = (detail.getIdutilisateur() != 0)
                 && String.valueOf(detail.getIdutilisateur()).equals(refUserConnecte);
 %>
 <div class="content-wrapper">
