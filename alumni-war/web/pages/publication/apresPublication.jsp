@@ -69,17 +69,18 @@ try {
         return;
     }
     
-    // ============== LIKE ==============
+    // ============== LIKE (toggle) ==============
     else if ("like".equals(acte)) {
-        response.setContentType("application/json");
-        try {
         String postId = request.getParameter("id");
+        String returnPage = request.getParameter("bute");
+        if (returnPage == null || returnPage.isEmpty()) returnPage = "publication/publication-fiche.jsp";
         
         if (postId == null || postId.isEmpty()) {
-            out.print("{\"success\": false, \"error\": \"ID manquant\"}");
+%><script language="JavaScript">alert('ID manquant');history.back();</script><%
             return;
         }
         
+        try {
         // Vérifier si déjà liké via CGenUtil
         Like likeCheck = new Like();
         Object[] existingLikes = CGenUtil.rechercher(likeCheck, null, null, 
@@ -90,7 +91,7 @@ try {
             Like existingLike = (Like) existingLikes[0];
             u.deleteObject(existingLike);
             
-            // Mettre à jour compteur via SQL direct
+            // Mettre à jour compteur
             Post postToUpdate = new Post();
             postToUpdate.setId(postId);
             Object[] posts = CGenUtil.rechercher(postToUpdate, null, null, "");
@@ -99,8 +100,6 @@ try {
                 int newCount = Math.max(0, p.getNb_likes() - 1);
                 updatePostCounter(postId, "nb_likes", newCount);
             }
-            
-            out.print("{\"success\": true, \"action\": \"unlike\"}");
         } else {
             // Créer nouveau like
             Like newLike = new Like();
@@ -134,23 +133,24 @@ try {
                     try { u.createObject(notif); } catch (Exception ne) { ne.printStackTrace(); }
                 }
             }
-            
-            out.print("{\"success\": true, \"action\": \"like\"}");
         }
         } catch (Exception ex) {
             ex.printStackTrace();
-            out.print("{\"success\": false, \"error\": \"" + ex.getMessage().replace("\"", "'") + "\"}");
         }
+        
+        // Rediriger vers la page d'origine
+%><script language="JavaScript">document.location.replace("<%=lien%>?but=<%=returnPage%>&id=<%=postId%>");</script><%
         return;
     }
     
     // ============== SUPPRIMER ==============
     else if ("supprimer".equals(acte)) {
-        response.setContentType("application/json");
         String postId = request.getParameter("id");
+        String returnPage = request.getParameter("bute");
+        if (returnPage == null || returnPage.isEmpty()) returnPage = "publication/publication-liste.jsp";
         
         if (postId == null || postId.isEmpty()) {
-            out.print("{\"success\": false, \"error\": \"ID manquant\"}");
+%><script language="JavaScript">alert('ID manquant');history.back();</script><%
             return;
         }
         
@@ -174,13 +174,10 @@ try {
                     if (ps != null) try { ps.close(); } catch (Exception ignored) {}
                     if (conn != null) try { conn.close(); } catch (Exception ignored) {}
                 }
-                out.print("{\"success\": true}");
-            } else {
-                out.print("{\"success\": false, \"error\": \"Non autorisé\"}");
             }
-        } else {
-            out.print("{\"success\": false, \"error\": \"Publication non trouvée\"}");
         }
+        
+%><script language="JavaScript">document.location.replace("<%=lien%>?but=<%=returnPage%>");</script><%
         return;
     }
     

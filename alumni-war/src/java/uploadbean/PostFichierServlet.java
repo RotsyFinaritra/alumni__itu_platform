@@ -53,13 +53,38 @@ public class PostFichierServlet extends HttpServlet {
         String action = request.getParameter("action");
         
         if ("download".equals(action)) {
-            downloadFile(request, response);
+            downloadFile(request, response, true);
+        } else if ("view".equals(action)) {
+            downloadFile(request, response, false);
         } else {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Action non supportée");
         }
     }
 
-    private void downloadFile(HttpServletRequest request, HttpServletResponse response) 
+    /**
+     * Résout le chemin du fichier. Si le chemin est relatif (ex: "carriere/fichier.jpg"),
+     * le préfixe avec le répertoire async de dossier.war.
+     */
+    private File resolveFile(String chemin) {
+        if (chemin == null) return null;
+        File file = new File(chemin);
+        if (file.isAbsolute() && file.exists()) {
+            return file;
+        }
+        // Chemin relatif - chercher dans dossier.war/async/
+        File asyncFile = new File(StringUtil.PATH_DIR + File.separator + "async" + File.separator + chemin);
+        if (asyncFile.exists()) {
+            return asyncFile;
+        }
+        // Fallback: essayer dans dossier.war/ directement
+        File directFile = new File(StringUtil.PATH_DIR + File.separator + chemin);
+        if (directFile.exists()) {
+            return directFile;
+        }
+        return asyncFile; // retourner le chemin async même si non trouvé (pour message d'erreur)
+    }
+
+    private void downloadFile(HttpServletRequest request, HttpServletResponse response, boolean forceDownload) 
             throws ServletException, IOException {
         try {
             String id = request.getParameter("id");
@@ -76,9 +101,9 @@ public class PostFichierServlet extends HttpServlet {
             }
             
             PostFichier pf = (PostFichier) fichiers[0];
-            File file = new File(pf.getChemin());
+            File file = resolveFile(pf.getChemin());
             
-            if (!file.exists()) {
+            if (file == null || !file.exists()) {
                 throw new ServletException("Fichier physique non trouvé: " + pf.getChemin());
             }
             
@@ -91,7 +116,11 @@ public class PostFichierServlet extends HttpServlet {
             
             response.setContentType(mimeType != null ? mimeType : "application/octet-stream");
             response.setContentLength((int) file.length());
-            response.setHeader("Content-Disposition", "attachment; filename=\"" + pf.getNom_original() + "\"");
+            if (forceDownload) {
+                response.setHeader("Content-Disposition", "attachment; filename=\"" + pf.getNom_original() + "\"");
+            } else {
+                response.setHeader("Content-Disposition", "inline; filename=\"" + pf.getNom_original() + "\"");
+            }
             
             ServletOutputStream os = response.getOutputStream();
             byte[] bufferData = new byte[1024];

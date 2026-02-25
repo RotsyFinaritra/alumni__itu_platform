@@ -165,17 +165,17 @@
                         if (typeResult != null && typeResult.length > 0) {
                             typePost = (TypePublication) typeResult[0];
                             typeLibelle = typePost.getLibelle();
-                            if ("TYPU00001".equals(typePost.getId())) typeIcon = "fa-briefcase";
-                            else if ("TYPU00002".equals(typePost.getId())) typeIcon = "fa-graduation-cap";
-                            else if ("TYPU00003".equals(typePost.getId())) typeIcon = "fa-calendar";
-                            else if ("TYPU00004".equals(typePost.getId())) typeIcon = "fa-comments";
+                            if ("TYP00001".equals(typePost.getId())) typeIcon = "fa-briefcase";
+                            else if ("TYP00002".equals(typePost.getId())) typeIcon = "fa-graduation-cap";
+                            else if ("TYP00003".equals(typePost.getId())) typeIcon = "fa-calendar";
+                            else if ("TYP00004".equals(typePost.getId())) typeIcon = "fa-comments";
                         }
                         
                         // Determiner la couleur selon le type
                         String boxClass = "box-default";
-                        if ("TYPU00001".equals(post.getIdtypepublication())) boxClass = "box-primary";
-                        else if ("TYPU00002".equals(post.getIdtypepublication())) boxClass = "box-info";
-                        else if ("TYPU00003".equals(post.getIdtypepublication())) boxClass = "box-warning";
+                        if ("TYP00001".equals(post.getIdtypepublication())) boxClass = "box-primary";
+                        else if ("TYP00002".equals(post.getIdtypepublication())) boxClass = "box-info";
+                        else if ("TYP00003".equals(post.getIdtypepublication())) boxClass = "box-warning";
                         
                         // Formatter la date
                         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
@@ -186,8 +186,10 @@
                 <div class="box <%= boxClass %>">
                     <div class="box-header with-border">
                         <div class="user-block">
-                            <img class="img-circle" src="<%= photoAuteur %>" alt="Photo <%= nomAuteur %>" 
-                                 style="width: 40px; height: 40px;">
+                            <a href="<%= lien %>?but=profil/mon-profil.jsp&refuser=<%= post.getIdutilisateur() %>">
+                                <img class="img-circle" src="<%= photoAuteur %>" alt="Photo <%= nomAuteur %>" 
+                                     style="width: 40px; height: 40px; cursor: pointer;">
+                            </a>
                             <span class="username">
                                 <a href="<%= lien %>?but=profil/mon-profil.jsp&refuser=<%= post.getIdutilisateur() %>">
                                     <%= nomAuteur %>
@@ -216,7 +218,7 @@
                         
                         <% 
                         // Afficher les détails selon le type
-                        if ("TYPU00001".equals(post.getIdtypepublication())) {
+                        if ("TYP00001".equals(post.getIdtypepublication())) {
                             // Stage
                             PostStage stage = new PostStage();
                             stage.setPost_id(post.getId());
@@ -224,15 +226,23 @@
                             if (stageResult != null && stageResult.length > 0) {
                                 stage = (PostStage) stageResult[0];
                         %>
-                        <div class="well well-sm" style="margin-top: 15px;">
-                            <strong><i class="fa fa-building-o"></i> <%= stage.getEntreprise() %></strong><br>
-                            <i class="fa fa-map-marker"></i> <%= stage.getLocalisation() %> | 
-                            <i class="fa fa-clock-o"></i> <%= stage.getDuree() %> | 
-                            <i class="fa fa-money"></i> <%= stage.getIndemnite() %>
+                        <div class="detail-summary detail-summary-stage" style="margin-top: 12px; padding: 12px 16px; border-radius: 8px; background: #eaf4fd; border-left: 4px solid #3498db;">
+                            <strong><i class="fa fa-building-o"></i> <%= stage.getEntreprise() != null ? stage.getEntreprise() : "" %></strong>
+                            <div style="margin-top: 6px; font-size: 13px; color: #555; display: flex; flex-wrap: wrap; gap: 10px;">
+                                <% if (stage.getLocalisation() != null && !stage.getLocalisation().isEmpty()) { %>
+                                <span><i class="fa fa-map-marker"></i> <%= stage.getLocalisation() %></span>
+                                <% } %>
+                                <% if (stage.getDuree() != null && !stage.getDuree().isEmpty()) { %>
+                                <span><i class="fa fa-clock-o"></i> <%= stage.getDuree() %></span>
+                                <% } %>
+                                <% if (stage.getIndemnite() > 0) { %>
+                                <span style="color: #e65100; font-weight: 600;"><i class="fa fa-money"></i> <%= String.format("%,.0f", stage.getIndemnite()) %> Ar</span>
+                                <% } %>
+                            </div>
                         </div>
                         <% 
                             }
-                        } else if ("TYPU00002".equals(post.getIdtypepublication())) {
+                        } else if ("TYP00002".equals(post.getIdtypepublication())) {
                             // Emploi
                             PostEmploi emploi = new PostEmploi();
                             emploi.setPost_id(post.getId());
@@ -240,17 +250,30 @@
                             if (emploiResult != null && emploiResult.length > 0) {
                                 emploi = (PostEmploi) emploiResult[0];
                         %>
-                        <div class="well well-sm" style="margin-top: 15px;">
-                            <strong><i class="fa fa-building-o"></i> <%= emploi.getEntreprise() %></strong><br>
-                            <i class="fa fa-briefcase"></i> <%= emploi.getPoste() %> | 
-                            <i class="fa fa-file-text-o"></i> <%= emploi.getType_contrat() %>
-                            <% if (emploi.getSalaire_min() != null) { %>
-                                | <i class="fa fa-money"></i> <%= emploi.getSalaire_min() %> - <%= emploi.getSalaire_max() %>
+                        <div class="detail-summary detail-summary-emploi" style="margin-top: 12px; padding: 12px 16px; border-radius: 8px; background: #e8f5e9; border-left: 4px solid #2ecc71;">
+                            <strong><i class="fa fa-building-o"></i> <%= emploi.getEntreprise() != null ? emploi.getEntreprise() : "" %></strong>
+                            <% if (emploi.getPoste() != null && !emploi.getPoste().isEmpty()) { %>
+                            <span style="margin-left: 8px; color: #333;">- <%= emploi.getPoste() %></span>
                             <% } %>
+                            <div style="margin-top: 6px; font-size: 13px; color: #555; display: flex; flex-wrap: wrap; gap: 10px;">
+                                <% if (emploi.getLocalisation() != null && !emploi.getLocalisation().isEmpty()) { %>
+                                <span><i class="fa fa-map-marker"></i> <%= emploi.getLocalisation() %></span>
+                                <% } %>
+                                <% if (emploi.getType_contrat() != null && !emploi.getType_contrat().isEmpty()) { %>
+                                <span><i class="fa fa-file-text-o"></i> <%= emploi.getType_contrat() %></span>
+                                <% } %>
+                                <% if (emploi.getSalaire_min() > 0 || emploi.getSalaire_max() > 0) { %>
+                                <span style="color: #e65100; font-weight: 600;"><i class="fa fa-money"></i> 
+                                    <%= (emploi.getSalaire_min() > 0 ? String.format("%,.0f", emploi.getSalaire_min()) : "") %>
+                                    <%= (emploi.getSalaire_min() > 0 && emploi.getSalaire_max() > 0 ? " - " : "") %>
+                                    <%= (emploi.getSalaire_max() > 0 ? String.format("%,.0f", emploi.getSalaire_max()) : "") %> Ar
+                                </span>
+                                <% } %>
+                            </div>
                         </div>
                         <% 
                             }
-                        } else if ("TYPU00003".equals(post.getIdtypepublication())) {
+                        } else if ("TYP00003".equals(post.getIdtypepublication())) {
                             // Activité
                             PostActivite activite = new PostActivite();
                             activite.setPost_id(post.getId());
@@ -259,12 +282,21 @@
                                 activite = (PostActivite) activiteResult[0];
                                 SimpleDateFormat sdfActivite = new SimpleDateFormat("dd/MM/yyyy");
                         %>
-                        <div class="well well-sm" style="margin-top: 15px;">
-                            <i class="fa fa-map-marker"></i> <%= activite.getLieu() %> | 
-                            <i class="fa fa-calendar"></i> <%= sdfActivite.format(activite.getDate_debut()) %>
-                            <% if (activite.getPrix() != null) { %>
-                                | <i class="fa fa-ticket"></i> <%= activite.getPrix() %>
-                            <% } %>
+                        <div class="detail-summary detail-summary-activite" style="margin-top: 12px; padding: 12px 16px; border-radius: 8px; background: #fce4ec; border-left: 4px solid #e74c3c;">
+                            <strong><i class="fa fa-calendar"></i> <%= activite.getTitre() != null ? activite.getTitre() : "" %></strong>
+                            <div style="margin-top: 6px; font-size: 13px; color: #555; display: flex; flex-wrap: wrap; gap: 10px;">
+                                <% if (activite.getLieu() != null && !activite.getLieu().isEmpty()) { %>
+                                <span><i class="fa fa-map-marker"></i> <%= activite.getLieu() %></span>
+                                <% } %>
+                                <% if (activite.getDate_debut() != null) { %>
+                                <span><i class="fa fa-calendar-check-o"></i> <%= sdfActivite.format(activite.getDate_debut()) %></span>
+                                <% } %>
+                                <% if (activite.getPrix() > 0) { %>
+                                <span style="color: #e65100; font-weight: 600;"><i class="fa fa-ticket"></i> <%= String.format("%,.0f", activite.getPrix()) %> Ar</span>
+                                <% } else { %>
+                                <span style="color: #2e7d32;"><i class="fa fa-gift"></i> Gratuit</span>
+                                <% } %>
+                            </div>
                         </div>
                         <% 
                             }
@@ -341,13 +373,12 @@
 
 <script>
 function likePost(postId) {
-    // TODO: Implementer via AJAX
-    window.location.href = '<%= lien %>?but=publication/save-publication-apj.jsp&acte=like&postId=' + postId;
+    window.location.href = '<%= lien %>?but=publication/apresPublication.jsp&acte=like&id=' + postId + '&bute=publication/publication-liste.jsp';
 }
 
 function sharePost(postId) {
     if (confirm('Partager cette publication ?')) {
-        window.location.href = '<%= lien %>?but=publication/save-publication-apj.jsp&acte=share&postId=' + postId;
+        window.location.href = '<%= lien %>?but=publication/apresPublication.jsp&acte=share&id=' + postId + '&bute=publication/publication-liste.jsp';
     }
 }
 </script>

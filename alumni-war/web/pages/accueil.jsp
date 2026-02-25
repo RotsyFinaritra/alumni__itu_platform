@@ -173,12 +173,66 @@
                         typeCouleur = typePost.getCouleur() != null ? typePost.getCouleur() : "#3498db";
                     }
                 }
+                
+                // Charger les détails selon le type
+                PostStage postStage = null;
+                PostEmploi postEmploi = null;
+                PostActivite postActivite = null;
+                String entrepriseNom = "";
+                String categorieNom = "";
+                
+                if ("TYP00001".equals(post.getIdtypepublication())) {
+                    PostStage sf = new PostStage(); sf.setPost_id(postId);
+                    Object[] sr = CGenUtil.rechercher(sf, null, null, "");
+                    if (sr != null && sr.length > 0) {
+                        postStage = (PostStage) sr[0];
+                        if (postStage.getIdentreprise() != null && !postStage.getIdentreprise().isEmpty()) {
+                            Entreprise ent = new Entreprise(); ent.setId(postStage.getIdentreprise());
+                            Object[] er = CGenUtil.rechercher(ent, null, null, "");
+                            if (er != null && er.length > 0) entrepriseNom = ((Entreprise)er[0]).getLibelle();
+                        }
+                        if (entrepriseNom.isEmpty() && postStage.getEntreprise() != null) entrepriseNom = postStage.getEntreprise();
+                    }
+                } else if ("TYP00002".equals(post.getIdtypepublication())) {
+                    PostEmploi ef = new PostEmploi(); ef.setPost_id(postId);
+                    Object[] er = CGenUtil.rechercher(ef, null, null, "");
+                    if (er != null && er.length > 0) {
+                        postEmploi = (PostEmploi) er[0];
+                        if (postEmploi.getIdentreprise() != null && !postEmploi.getIdentreprise().isEmpty()) {
+                            Entreprise ent = new Entreprise(); ent.setId(postEmploi.getIdentreprise());
+                            Object[] entr = CGenUtil.rechercher(ent, null, null, "");
+                            if (entr != null && entr.length > 0) entrepriseNom = ((Entreprise)entr[0]).getLibelle();
+                        }
+                        if (entrepriseNom.isEmpty() && postEmploi.getEntreprise() != null) entrepriseNom = postEmploi.getEntreprise();
+                    }
+                } else if ("TYP00003".equals(post.getIdtypepublication())) {
+                    PostActivite af = new PostActivite(); af.setPost_id(postId);
+                    Object[] ar = CGenUtil.rechercher(af, null, null, "");
+                    if (ar != null && ar.length > 0) {
+                        postActivite = (PostActivite) ar[0];
+                        if (postActivite.getIdcategorie() != null && !postActivite.getIdcategorie().isEmpty()) {
+                            CategorieActivite cat = new CategorieActivite(); cat.setId(postActivite.getIdcategorie());
+                            Object[] cr = CGenUtil.rechercher(cat, null, null, "");
+                            if (cr != null && cr.length > 0) categorieNom = ((CategorieActivite)cr[0]).getLibelle();
+                        }
+                    }
+                }
+                
+                // Charger les fichiers attachés
+                PostFichier fichierFilter = new PostFichier();
+                fichierFilter.setPost_id(postId);
+                Object[] fichiersResult = CGenUtil.rechercher(fichierFilter, null, null, " ORDER BY ordre");
+                
+                // Vérifier si l'utilisateur a liké
+                Like likeCheck = new Like();
+                Object[] likeCheckResult = CGenUtil.rechercher(likeCheck, null, null, " AND post_id = '" + postId + "' AND idutilisateur = " + refuserInt);
+                boolean hasLiked = (likeCheckResult != null && likeCheckResult.length > 0);
         %>
         
         <!-- Publication -->
         <div class="post-card">
             <div class="post-header">
-                <a href="<%= lien %>?but=profil/profil-fiche.jsp&refuser=<%= postAuteurId %>" class="post-author">
+                <a href="<%= lien %>?but=profil/mon-profil.jsp&refuser=<%= postAuteurId %>" class="post-author">
                     <img class="avatar" src="<%= photoAuteur %>" alt="Photo">
                     <div class="author-info">
                         <span class="author-name"><%= nomComplet %></span>
@@ -205,9 +259,158 @@
             <div class="post-content">
                 <p><%= contenu != null ? contenu : "" %></p>
             </div>
+            
+            <!-- Détails Stage -->
+            <% if (postStage != null) { %>
+            <div class="accueil-detail accueil-detail-stage">
+                <div class="accueil-detail-head">
+                    <span class="accueil-detail-icon stage-bg"><i class="fa fa-briefcase"></i></span>
+                    <div>
+                        <strong>Offre de Stage</strong>
+                        <% if (!entrepriseNom.isEmpty()) { %><br><span class="accueil-detail-sub"><i class="fa fa-building-o"></i> <%= entrepriseNom %></span><% } %>
+                    </div>
+                </div>
+                <div class="accueil-detail-chips">
+                    <% if (postStage.getLocalisation() != null && !postStage.getLocalisation().isEmpty()) { %>
+                    <span class="achip"><i class="fa fa-map-marker"></i> <%= postStage.getLocalisation() %></span>
+                    <% } %>
+                    <% if (postStage.getDuree() != null && !postStage.getDuree().isEmpty()) { %>
+                    <span class="achip"><i class="fa fa-clock-o"></i> <%= postStage.getDuree() %></span>
+                    <% } %>
+                    <% if (postStage.getIndemnite() > 0) { %>
+                    <span class="achip achip-hl"><i class="fa fa-money"></i> <%= String.format("%,.0f", postStage.getIndemnite()) %> Ar</span>
+                    <% } %>
+                    <% if (postStage.getNiveau_etude_requis() != null && !postStage.getNiveau_etude_requis().isEmpty()) { %>
+                    <span class="achip"><i class="fa fa-graduation-cap"></i> <%= postStage.getNiveau_etude_requis() %></span>
+                    <% } %>
+                </div>
+                <% if (postStage.getLien_candidature() != null && !postStage.getLien_candidature().isEmpty()) { %>
+                <a href="<%= postStage.getLien_candidature() %>" target="_blank" class="accueil-btn-apply"><i class="fa fa-paper-plane"></i> Postuler</a>
+                <% } %>
+            </div>
+            <% } %>
+            
+            <!-- Détails Emploi -->
+            <% if (postEmploi != null) { %>
+            <div class="accueil-detail accueil-detail-emploi">
+                <div class="accueil-detail-head">
+                    <span class="accueil-detail-icon emploi-bg"><i class="fa fa-suitcase"></i></span>
+                    <div>
+                        <strong><%= postEmploi.getPoste() != null && !postEmploi.getPoste().isEmpty() ? postEmploi.getPoste() : "Offre d'emploi" %></strong>
+                        <% if (!entrepriseNom.isEmpty()) { %><br><span class="accueil-detail-sub"><i class="fa fa-building-o"></i> <%= entrepriseNom %></span><% } %>
+                    </div>
+                </div>
+                <div class="accueil-detail-chips">
+                    <% if (postEmploi.getLocalisation() != null && !postEmploi.getLocalisation().isEmpty()) { %>
+                    <span class="achip"><i class="fa fa-map-marker"></i> <%= postEmploi.getLocalisation() %></span>
+                    <% } %>
+                    <% if (postEmploi.getType_contrat() != null && !postEmploi.getType_contrat().isEmpty()) { %>
+                    <span class="achip"><i class="fa fa-file-text-o"></i> <%= postEmploi.getType_contrat() %></span>
+                    <% } %>
+                    <% if (postEmploi.getSalaire_min() > 0 || postEmploi.getSalaire_max() > 0) { %>
+                    <span class="achip achip-hl"><i class="fa fa-money"></i>
+                        <%= (postEmploi.getSalaire_min() > 0 ? String.format("%,.0f", postEmploi.getSalaire_min()) : "") %>
+                        <%= (postEmploi.getSalaire_min() > 0 && postEmploi.getSalaire_max() > 0 ? " - " : "") %>
+                        <%= (postEmploi.getSalaire_max() > 0 ? String.format("%,.0f", postEmploi.getSalaire_max()) : "") %>
+                        <%= postEmploi.getDevise() != null && !postEmploi.getDevise().isEmpty() ? postEmploi.getDevise() : "Ar" %>
+                    </span>
+                    <% } %>
+                    <% if (postEmploi.getExperience_requise() != null && !postEmploi.getExperience_requise().isEmpty()) { %>
+                    <span class="achip"><i class="fa fa-star"></i> <%= postEmploi.getExperience_requise() %></span>
+                    <% } %>
+                    <% if (postEmploi.getTeletravail_possible() == 1) { %>
+                    <span class="achip achip-ok"><i class="fa fa-home"></i> T&eacute;l&eacute;travail</span>
+                    <% } %>
+                </div>
+                <% if (postEmploi.getDate_limite() != null) { %>
+                <div class="accueil-detail-date"><i class="fa fa-hourglass-end"></i> Date limite : <strong><%= new SimpleDateFormat("dd/MM/yyyy").format(postEmploi.getDate_limite()) %></strong></div>
+                <% } %>
+                <% if (postEmploi.getLien_candidature() != null && !postEmploi.getLien_candidature().isEmpty()) { %>
+                <a href="<%= postEmploi.getLien_candidature() %>" target="_blank" class="accueil-btn-apply"><i class="fa fa-paper-plane"></i> Postuler</a>
+                <% } %>
+            </div>
+            <% } %>
+            
+            <!-- Détails Activité -->
+            <% if (postActivite != null) { %>
+            <div class="accueil-detail accueil-detail-activite">
+                <div class="accueil-detail-head">
+                    <span class="accueil-detail-icon activite-bg"><i class="fa fa-calendar"></i></span>
+                    <div>
+                        <strong><%= postActivite.getTitre() != null && !postActivite.getTitre().isEmpty() ? postActivite.getTitre() : "&Eacute;v&eacute;nement" %></strong>
+                        <% if (!categorieNom.isEmpty()) { %><br><span class="accueil-detail-sub"><i class="fa fa-tag"></i> <%= categorieNom %></span><% } %>
+                    </div>
+                </div>
+                <div class="accueil-detail-chips">
+                    <% if (postActivite.getLieu() != null && !postActivite.getLieu().isEmpty()) { %>
+                    <span class="achip"><i class="fa fa-map-marker"></i> <%= postActivite.getLieu() %></span>
+                    <% } %>
+                    <% if (postActivite.getPrix() > 0) { %>
+                    <span class="achip achip-hl"><i class="fa fa-ticket"></i> <%= String.format("%,.0f", postActivite.getPrix()) %> Ar</span>
+                    <% } else { %>
+                    <span class="achip achip-ok"><i class="fa fa-gift"></i> Gratuit</span>
+                    <% } %>
+                    <% if (postActivite.getNombre_places() > 0) { %>
+                    <span class="achip"><i class="fa fa-users"></i> <%= postActivite.getPlaces_restantes() %>/<%= postActivite.getNombre_places() %> places</span>
+                    <% } %>
+                </div>
+                <% if (postActivite.getDate_debut() != null || postActivite.getDate_fin() != null) { %>
+                <div class="accueil-detail-date"><i class="fa fa-calendar"></i>
+                    <% if (postActivite.getDate_debut() != null) { %>Du <strong><%= new SimpleDateFormat("dd/MM/yyyy HH:mm").format(postActivite.getDate_debut()) %></strong><% } %>
+                    <% if (postActivite.getDate_fin() != null) { %> au <strong><%= new SimpleDateFormat("dd/MM/yyyy HH:mm").format(postActivite.getDate_fin()) %></strong><% } %>
+                </div>
+                <% } %>
+                <% if (postActivite.getLien_inscription() != null && !postActivite.getLien_inscription().isEmpty()) { %>
+                <a href="<%= postActivite.getLien_inscription() %>" target="_blank" class="accueil-btn-apply accueil-btn-inscrire"><i class="fa fa-check-circle"></i> S'inscrire</a>
+                <% } %>
+            </div>
+            <% } %>
+            
+            <!-- Fichiers attachés -->
+            <% if (fichiersResult != null && fichiersResult.length > 0) { 
+                // Séparer images, vidéos, documents
+                java.util.List<PostFichier> images = new java.util.ArrayList<PostFichier>();
+                java.util.List<PostFichier> videos = new java.util.ArrayList<PostFichier>();
+                java.util.List<PostFichier> docs = new java.util.ArrayList<PostFichier>();
+                for (Object fObj : fichiersResult) {
+                    PostFichier pf = (PostFichier) fObj;
+                    String mime = pf.getMime_type() != null ? pf.getMime_type() : "";
+                    if (mime.startsWith("image/")) images.add(pf);
+                    else if (mime.startsWith("video/")) videos.add(pf);
+                    else docs.add(pf);
+                }
+            %>
+            <div class="accueil-media">
+                <% if (!images.isEmpty()) { %>
+                <div class="accueil-images <%= images.size() == 1 ? "single" : (images.size() == 2 ? "double" : "multi") %>">
+                    <% for (PostFichier img : images) { %>
+                    <a href="<%= lien %>?but=publication/publication-fiche.jsp&id=<%= postId %>">
+                        <img src="<%= request.getContextPath() %>/PostFichierServlet?action=view&id=<%= img.getId() %>" alt="<%= img.getNom_original() %>">
+                    </a>
+                    <% } %>
+                </div>
+                <% } %>
+                <% if (!videos.isEmpty()) { 
+                    for (PostFichier vid : videos) { %>
+                <video controls preload="metadata" style="width:100%; max-height:400px; border-radius:0;">
+                    <source src="<%= request.getContextPath() %>/PostFichierServlet?action=view&id=<%= vid.getId() %>" type="<%= vid.getMime_type() %>">
+                </video>
+                <% } } %>
+                <% if (!docs.isEmpty()) { %>
+                <div class="accueil-docs">
+                    <% for (PostFichier doc : docs) { %>
+                    <a href="<%= request.getContextPath() %>/PostFichierServlet?action=download&id=<%= doc.getId() %>" class="accueil-doc-link">
+                        <i class="fa fa-file-o"></i> <%= doc.getNom_original() %>
+                    </a>
+                    <% } %>
+                </div>
+                <% } %>
+            </div>
+            <% } %>
+            
             <div class="post-actions">
-                <button class="action-btn like-btn" onclick="likePost('<%= postId %>')" id="like-btn-<%= postId %>">
-                    <i class="fa fa-heart-o"></i>
+                <button class="action-btn like-btn <%= hasLiked ? "liked" : "" %>" onclick="likePost('<%= postId %>')" id="like-btn-<%= postId %>">
+                    <i class="fa <%= hasLiked ? "fa-heart" : "fa-heart-o" %>"></i>
                     <span id="likes-<%= postId %>"><%= nbLikes %></span>
                 </button>
                 <a href="<%= lien %>?but=publication/publication-fiche.jsp&id=<%= postId %>" class="action-btn" style="text-decoration:none;">
@@ -602,6 +805,89 @@
     padding: 0 16px 12px;
     font-size: 14px;
 }
+
+/* ========== DETAIL CARDS ACCUEIL ========== */
+.accueil-detail {
+    margin: 0 16px 12px;
+    border-radius: 10px;
+    padding: 14px 16px;
+    border: 1px solid #e8e8e8;
+}
+.accueil-detail-stage { background: #eaf4fd; border-left: 4px solid #3498db; }
+.accueil-detail-emploi { background: #e8f5e9; border-left: 4px solid #2ecc71; }
+.accueil-detail-activite { background: #fce4ec; border-left: 4px solid #e74c3c; }
+
+.accueil-detail-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.accueil-detail-head strong { font-size: 14px; color: #1a1a2e; }
+.accueil-detail-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 16px; flex-shrink: 0;
+}
+.stage-bg { background: linear-gradient(135deg, #3498db, #2980b9); }
+.emploi-bg { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+.activite-bg { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+.accueil-detail-sub { font-size: 12px; color: #666; }
+.accueil-detail-sub i { margin-right: 3px; }
+
+.accueil-detail-chips {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px;
+}
+.achip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; background: rgba(255,255,255,0.8);
+    border-radius: 16px; font-size: 12px; color: #444;
+    border: 1px solid rgba(0,0,0,0.08);
+}
+.achip i { font-size: 12px; color: #888; }
+.achip-hl { color: #e65100; font-weight: 600; background: #fff8e1; border-color: #ffe082; }
+.achip-hl i { color: #e65100; }
+.achip-ok { color: #2e7d32; background: #e8f5e9; border-color: #a5d6a7; }
+.achip-ok i { color: #2e7d32; }
+
+.accueil-detail-date {
+    margin-top: 8px; padding: 6px 10px;
+    background: rgba(255,255,255,0.7); border-radius: 6px;
+    font-size: 12px; color: #555; border-left: 3px solid #0095f6;
+}
+.accueil-detail-date i { margin-right: 5px; color: #0095f6; }
+
+.accueil-btn-apply {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 10px; padding: 7px 18px;
+    background: linear-gradient(135deg, #0095f6, #0077cc);
+    color: #fff; text-decoration: none; border-radius: 6px;
+    font-size: 13px; font-weight: 600;
+    transition: all 0.2s;
+}
+.accueil-btn-apply:hover { background: linear-gradient(135deg, #0077cc, #005fa3); color: #fff; transform: translateY(-1px); }
+.accueil-btn-inscrire { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+.accueil-btn-inscrire:hover { background: linear-gradient(135deg, #c0392b, #a93226); }
+
+/* ========== MEDIA ACCUEIL ========== */
+.accueil-media { overflow: hidden; }
+.accueil-images { display: grid; gap: 2px; }
+.accueil-images.single { grid-template-columns: 1fr; }
+.accueil-images.double { grid-template-columns: 1fr 1fr; }
+.accueil-images.multi { grid-template-columns: 1fr 1fr; }
+.accueil-images img { width: 100%; max-height: 400px; object-fit: cover; display: block; }
+.accueil-images.single img { max-height: 500px; }
+.accueil-docs {
+    padding: 10px 16px; display: flex; flex-direction: column; gap: 6px;
+}
+.accueil-doc-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px; background: #f5f5f5; border-radius: 6px;
+    font-size: 13px; color: #333; text-decoration: none;
+    border: 1px solid #e0e0e0; transition: background 0.2s;
+}
+.accueil-doc-link:hover { background: #eee; color: #000; }
+.accueil-doc-link i { color: #666; }
 
 /* ========== EMPTY STATE ========== */
 .empty-state {
@@ -1036,42 +1322,12 @@ document.addEventListener('click', function(e) {
 });
 
 function likePost(postId) {
-    var btn = document.getElementById('like-btn-' + postId);
-    var icon = btn.querySelector('i');
-    var likesSpan = document.getElementById('likes-' + postId);
-    var currentLikes = parseInt(likesSpan.textContent) || 0;
-    
-    // Toggle visuel immédiat
-    if (icon.classList.contains('fa-heart-o')) {
-        icon.classList.remove('fa-heart-o');
-        icon.classList.add('fa-heart');
-        btn.classList.add('liked');
-        likesSpan.textContent = currentLikes + 1;
-    } else {
-        icon.classList.remove('fa-heart');
-        icon.classList.add('fa-heart-o');
-        btn.classList.remove('liked');
-        likesSpan.textContent = Math.max(0, currentLikes - 1);
-    }
-    
-    $.ajax({
-        url: lien + '?but=publication/apresPublication.jsp',
-        type: 'POST',
-        data: { acte: 'like', id: postId }
-    });
+    window.location.href = '<%= lien %>?but=publication/apresPublication.jsp&acte=like&id=' + postId + '&bute=accueil.jsp';
 }
 
 function supprimerPost(postId) {
     if (!confirm('Supprimer cette publication ?')) return;
-    
-    $.ajax({
-        url: lien + '?but=publication/apresPublication.jsp',
-        type: 'POST',
-        data: { acte: 'supprimer', id: postId },
-        success: function(response) {
-            location.reload();
-        }
-    });
+    window.location.href = '<%= lien %>?but=publication/apresPublication.jsp&acte=supprimer&id=' + postId + '&bute=accueil.jsp';
 }
 
 // ========== COMMENTAIRES ==========
