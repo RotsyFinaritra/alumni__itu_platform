@@ -10,7 +10,7 @@ public class PostFichier extends ClassMAPTable {
     private String nom_fichier;
     private String nom_original;
     private String chemin;
-    private Long taille_octets;
+    private double taille_octets;
     private String mime_type;
     private int ordre;
     private Timestamp created_at;
@@ -84,11 +84,11 @@ public class PostFichier extends ClassMAPTable {
         this.chemin = chemin;
     }
 
-    public Long getTaille_octets() {
+    public double getTaille_octets() {
         return taille_octets;
     }
 
-    public void setTaille_octets(Long taille_octets) {
+    public void setTaille_octets(double taille_octets) {
         this.taille_octets = taille_octets;
     }
 

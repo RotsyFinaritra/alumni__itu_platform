@@ -1,12 +1,11 @@
 <%@ page import="user.UserEJB" %>
-<%@ page import="java.sql.*, utilitaire.UtilDB" %>
+<%@ page import="bean.*, utilitaire.*, utilisateurAcade.UtilisateurAcade" %>
 <%@ page contentType="application/json; charset=UTF-8" %>
 <%
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
     
     String result = "{\"success\":false,\"message\":\"Action non reconnue\"}";
-    Connection conn = null;
     
     try {
         UserEJB u = (UserEJB) session.getValue("u");
@@ -20,19 +19,17 @@
         String acte = request.getParameter("acte");
         String id = request.getParameter("id");
         
-        conn = new UtilDB().GetConn();
-        
         if ("marquer_lu".equals(acte) && id != null) {
             // Marquer une notification comme lue
-            PreparedStatement ps = conn.prepareStatement(
-                "UPDATE notifications SET vu = 1, lu_at = CURRENT_TIMESTAMP WHERE id = ? AND idutilisateur = ?"
-            );
-            ps.setString(1, id);
-            ps.setInt(2, refuserInt);
-            int updated = ps.executeUpdate();
-            ps.close();
+            Notification notifCritere = new Notification();
+            notifCritere.setId(id);
+            Object[] notifs = CGenUtil.rechercher(notifCritere, null, null, " AND idutilisateur = " + refuserInt);
             
-            if (updated > 0) {
+            if (notifs != null && notifs.length > 0) {
+                Notification n = (Notification) notifs[0];
+                n.setVu(1);
+                n.setLu_at(new java.sql.Timestamp(System.currentTimeMillis()));
+                u.updateObject(n);
                 result = "{\"success\":true,\"message\":\"Notification marquée comme lue\"}";
             } else {
                 result = "{\"success\":false,\"message\":\"Notification non trouvée\"}";
@@ -40,15 +37,15 @@
         }
         else if ("marquer_non_lu".equals(acte) && id != null) {
             // Marquer une notification comme non lue
-            PreparedStatement ps = conn.prepareStatement(
-                "UPDATE notifications SET vu = 0, lu_at = NULL WHERE id = ? AND idutilisateur = ?"
-            );
-            ps.setString(1, id);
-            ps.setInt(2, refuserInt);
-            int updated = ps.executeUpdate();
-            ps.close();
+            Notification notifCritere = new Notification();
+            notifCritere.setId(id);
+            Object[] notifs = CGenUtil.rechercher(notifCritere, null, null, " AND idutilisateur = " + refuserInt);
             
-            if (updated > 0) {
+            if (notifs != null && notifs.length > 0) {
+                Notification n = (Notification) notifs[0];
+                n.setVu(0);
+                n.setLu_at(null);
+                u.updateObject(n);
                 result = "{\"success\":true,\"message\":\"Notification marquée comme non lue\"}";
             } else {
                 result = "{\"success\":false,\"message\":\"Notification non trouvée\"}";
@@ -56,15 +53,13 @@
         }
         else if ("supprimer".equals(acte) && id != null) {
             // Supprimer une notification
-            PreparedStatement ps = conn.prepareStatement(
-                "DELETE FROM notifications WHERE id = ? AND idutilisateur = ?"
-            );
-            ps.setString(1, id);
-            ps.setInt(2, refuserInt);
-            int deleted = ps.executeUpdate();
-            ps.close();
+            Notification notifCritere = new Notification();
+            notifCritere.setId(id);
+            Object[] notifs = CGenUtil.rechercher(notifCritere, null, null, " AND idutilisateur = " + refuserInt);
             
-            if (deleted > 0) {
+            if (notifs != null && notifs.length > 0) {
+                Notification n = (Notification) notifs[0];
+                u.deleteObject(n);
                 result = "{\"success\":true,\"message\":\"Notification supprimée\"}";
             } else {
                 result = "{\"success\":false,\"message\":\"Notification non trouvée\"}";
@@ -72,26 +67,28 @@
         }
         else if ("marquer_tout_lu".equals(acte)) {
             // Marquer toutes les notifications comme lues
-            PreparedStatement ps = conn.prepareStatement(
-                "UPDATE notifications SET vu = 1, lu_at = CURRENT_TIMESTAMP WHERE idutilisateur = ? AND vu = 0"
-            );
-            ps.setInt(1, refuserInt);
-            int updated = ps.executeUpdate();
-            ps.close();
+            Notification notifCritere = new Notification();
+            Object[] notifs = CGenUtil.rechercher(notifCritere, null, null, " AND idutilisateur = " + refuserInt + " AND vu = 0");
             
-            result = "{\"success\":true,\"message\":\"" + updated + " notification(s) marquée(s) comme lue(s)\"}";
+            int count = 0;
+            if (notifs != null) {
+                java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
+                for (Object obj : notifs) {
+                    Notification n = (Notification) obj;
+                    n.setVu(1);
+                    n.setLu_at(now);
+                    u.updateObject(n);
+                    count++;
+                }
+            }
+            
+            result = "{\"success\":true,\"message\":\"" + count + " notification(s) marquée(s) comme lue(s)\"}";
         }
         else if ("count_non_lu".equals(acte)) {
             // Compter les notifications non lues (pour badge header)
-            PreparedStatement ps = conn.prepareStatement(
-                "SELECT COUNT(*) FROM notifications WHERE idutilisateur = ? AND vu = 0"
-            );
-            ps.setInt(1, refuserInt);
-            ResultSet rs = ps.executeQuery();
-            int count = 0;
-            if (rs.next()) count = rs.getInt(1);
-            rs.close();
-            ps.close();
+            Notification notifCritere = new Notification();
+            Object[] notifs = CGenUtil.rechercher(notifCritere, null, null, " AND idutilisateur = " + refuserInt + " AND vu = 0");
+            int count = (notifs != null) ? notifs.length : 0;
             
             result = "{\"success\":true,\"count\":" + count + "}";
         }
@@ -102,61 +99,73 @@
                 limit = Integer.parseInt(request.getParameter("limit"));
             } catch (Exception ignored) {}
             
-            PreparedStatement ps = conn.prepareStatement(
-                "SELECT n.id, n.contenu, n.lien, n.vu, n.created_at, " +
-                "tn.libelle as type_libelle, tn.icon as type_icon, tn.couleur as type_couleur, " +
-                "e.nomuser as emetteur_nom, e.prenom as emetteur_prenom " +
-                "FROM notifications n " +
-                "LEFT JOIN type_notification tn ON n.idtypenotification = tn.id " +
-                "LEFT JOIN utilisateur e ON n.emetteur_id = e.refuser " +
-                "WHERE n.idutilisateur = ? " +
-                "ORDER BY n.created_at DESC LIMIT ?"
-            );
-            ps.setInt(1, refuserInt);
-            ps.setInt(2, limit);
-            ResultSet rs = ps.executeQuery();
+            Notification notifCritere = new Notification();
+            Object[] notifs = CGenUtil.rechercher(notifCritere, null, null, 
+                " AND idutilisateur = " + refuserInt + " ORDER BY created_at DESC LIMIT " + limit);
             
             StringBuilder json = new StringBuilder("{\"success\":true,\"notifications\":[");
-            boolean first = true;
-            while (rs.next()) {
-                if (!first) json.append(",");
-                first = false;
-                
-                String contenu = rs.getString("contenu");
-                if (contenu == null) contenu = rs.getString("type_libelle");
-                contenu = contenu.replace("\"", "\\\"").replace("\n", " ");
-                
-                String lienNotif = rs.getString("lien");
-                if (lienNotif == null) lienNotif = "";
-                
-                String emetteur = "";
-                if (rs.getString("emetteur_prenom") != null) emetteur += rs.getString("emetteur_prenom") + " ";
-                if (rs.getString("emetteur_nom") != null) emetteur += rs.getString("emetteur_nom");
-                
-                json.append("{");
-                json.append("\"id\":\"").append(rs.getString("id")).append("\",");
-                json.append("\"contenu\":\"").append(contenu).append("\",");
-                json.append("\"lien\":\"").append(lienNotif).append("\",");
-                json.append("\"vu\":").append(rs.getInt("vu")).append(",");
-                json.append("\"icon\":\"").append(rs.getString("type_icon") != null ? rs.getString("type_icon") : "fa-bell").append("\",");
-                json.append("\"couleur\":\"").append(rs.getString("type_couleur") != null ? rs.getString("type_couleur") : "#3498db").append("\",");
-                json.append("\"emetteur\":\"").append(emetteur.trim()).append("\"");
-                json.append("}");
+            
+            if (notifs != null && notifs.length > 0) {
+                for (int i = 0; i < notifs.length; i++) {
+                    Notification n = (Notification) notifs[i];
+                    
+                    // Récupérer info type notification
+                    String typeLibelle = "";
+                    String typeIcon = "fa-bell";
+                    String typeCouleur = "#3498db";
+                    
+                    if (n.getIdtypenotification() != null) {
+                        TypeNotification typeCritere = new TypeNotification();
+                        typeCritere.setId(n.getIdtypenotification());
+                        Object[] types = CGenUtil.rechercher(typeCritere, null, null, null);
+                        if (types != null && types.length > 0) {
+                            TypeNotification t = (TypeNotification) types[0];
+                            typeLibelle = t.getLibelle() != null ? t.getLibelle() : "";
+                            typeIcon = t.getIcon() != null ? t.getIcon() : "fa-bell";
+                            typeCouleur = t.getCouleur() != null ? t.getCouleur() : "#3498db";
+                        }
+                    }
+                    
+                    // Récupérer info émetteur
+                    String emetteur = "";
+                    if (n.getEmetteur_id() > 0) {
+                        UtilisateurAcade userCritere = new UtilisateurAcade();
+                        Object[] users = CGenUtil.rechercher(userCritere, null, null, " AND refuser = " + n.getEmetteur_id());
+                        if (users != null && users.length > 0) {
+                            UtilisateurAcade user = (UtilisateurAcade) users[0];
+                            emetteur = ((user.getPrenom() != null ? user.getPrenom() : "") + " " + 
+                                       (user.getNomuser() != null ? user.getNomuser() : "")).trim();
+                        }
+                    }
+                    
+                    String contenu = n.getContenu();
+                    if (contenu == null) contenu = typeLibelle;
+                    contenu = contenu.replace("\"", "\\\"").replace("\n", " ");
+                    
+                    String lienNotif = n.getLien();
+                    if (lienNotif == null) lienNotif = "";
+                    
+                    if (i > 0) json.append(",");
+                    json.append("{");
+                    json.append("\"id\":\"").append(n.getId()).append("\",");
+                    json.append("\"contenu\":\"").append(contenu).append("\",");
+                    json.append("\"lien\":\"").append(lienNotif).append("\",");
+                    json.append("\"vu\":").append(n.getVu()).append(",");
+                    json.append("\"icon\":\"").append(typeIcon).append("\",");
+                    json.append("\"couleur\":\"").append(typeCouleur).append("\",");
+                    json.append("\"emetteur\":\"").append(emetteur).append("\"");
+                    json.append("}");
+                }
             }
             json.append("]}");
-            rs.close();
-            ps.close();
             
             result = json.toString();
         }
         
     } catch (Exception e) {
         e.printStackTrace();
-        result = "{\"success\":false,\"message\":\"Erreur: " + e.getMessage().replace("\"", "'") + "\"}";
-    } finally {
-        if (conn != null) {
-            try { conn.close(); } catch (Exception ignored) {}
-        }
+        String errMsg = e.getMessage() != null ? e.getMessage().replace("\"", "'") : "Erreur inconnue";
+        result = "{\"success\":false,\"message\":\"Erreur: " + errMsg + "\"}";
     }
     
     out.print(result);

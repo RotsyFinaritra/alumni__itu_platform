@@ -210,10 +210,10 @@
                     <i class="fa fa-heart-o"></i>
                     <span id="likes-<%= postId %>"><%= nbLikes %></span>
                 </button>
-                <button class="action-btn" onclick="toggleComments('<%= postId %>')">
+                <a href="<%= lien %>?but=publication/publication-fiche.jsp&id=<%= postId %>" class="action-btn" style="text-decoration:none;">
                     <i class="fa fa-comment-o"></i>
                     <span><%= nbComments %></span>
-                </button>
+                </a>
                 <button class="action-btn">
                     <i class="fa fa-paper-plane-o"></i>
                 </button>
@@ -792,7 +792,229 @@
         padding: 15px;
     }
 }
+
+/* ========== MODAL COMMENTAIRES ========== */
+.comments-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.comments-modal-overlay.show {
+    display: flex;
+}
+
+.comments-modal {
+    background: #fff;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: modalSlideIn 0.2s ease;
+}
+
+@keyframes modalSlideIn {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.comments-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #efefef;
+}
+
+.comments-modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.btn-close-modal {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #262626;
+    padding: 0;
+    line-height: 1;
+}
+
+.comments-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+    min-height: 200px;
+    max-height: 400px;
+}
+
+.comments-list {
+    padding: 8px 0;
+}
+
+.comment-item {
+    display: flex;
+    padding: 12px 20px;
+    gap: 12px;
+}
+
+.comment-item:hover {
+    background: #fafafa;
+}
+
+.comment-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.comment-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.comment-author {
+    font-weight: 600;
+    font-size: 14px;
+    color: #262626;
+    margin-right: 8px;
+}
+
+.comment-text {
+    font-size: 14px;
+    color: #262626;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.comment-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.comment-date {
+    font-size: 12px;
+    color: #8e8e8e;
+}
+
+.btn-delete-comment {
+    background: none;
+    border: none;
+    color: #ed4956;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.btn-delete-comment:hover {
+    text-decoration: underline;
+}
+
+.comments-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #8e8e8e;
+}
+
+.comments-empty i {
+    font-size: 48px;
+    margin-bottom: 12px;
+    display: block;
+    opacity: 0.5;
+}
+
+.comments-loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: #8e8e8e;
+}
+
+.comments-modal-footer {
+    padding: 12px 20px;
+    border-top: 1px solid #efefef;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.comment-input {
+    flex: 1;
+    border: 1px solid #dbdbdb;
+    border-radius: 22px;
+    padding: 10px 16px;
+    font-size: 14px;
+    outline: none;
+    resize: none;
+    max-height: 80px;
+    line-height: 1.4;
+}
+
+.comment-input:focus {
+    border-color: #0095f6;
+}
+
+.btn-send-comment {
+    background: #0095f6;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.btn-send-comment:hover {
+    background: #0081d6;
+}
+
+.btn-send-comment:disabled {
+    background: #b2dffc;
+    cursor: not-allowed;
+}
 </style>
+
+<!-- Modal Commentaires -->
+<div id="commentsModal" class="comments-modal-overlay">
+    <div class="comments-modal">
+        <div class="comments-modal-header">
+            <h3><i class="fa fa-comments"></i> Commentaires</h3>
+            <button type="button" class="btn-close-modal" onclick="closeCommentsModal()">&times;</button>
+        </div>
+        <div class="comments-modal-body">
+            <div id="commentsList" class="comments-list">
+                <div class="comments-loading">
+                    <i class="fa fa-spinner fa-spin"></i> Chargement...
+                </div>
+            </div>
+        </div>
+        <div class="comments-modal-footer">
+            <textarea id="commentInput" class="comment-input" placeholder="Écrire un commentaire..." rows="1"></textarea>
+            <button type="button" class="btn-send-comment" onclick="addComment()">
+                <i class="fa fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
 
 <script>
 var lien = '<%= lien %>';
@@ -852,9 +1074,157 @@ function supprimerPost(postId) {
     });
 }
 
+// ========== COMMENTAIRES ==========
+var currentPostId = null;
+
 function toggleComments(postId) {
-    alert('Fonctionnalité commentaires à venir');
+    currentPostId = postId;
+    document.getElementById('commentsModal').classList.add('show');
+    document.getElementById('commentInput').value = '';
+    loadComments(postId);
 }
+
+function closeCommentsModal() {
+    document.getElementById('commentsModal').classList.remove('show');
+    currentPostId = null;
+}
+
+// Fermer modal en cliquant à l'extérieur
+document.getElementById('commentsModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeCommentsModal();
+    }
+});
+
+// Fermer avec Echap
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.getElementById('commentsModal').classList.contains('show')) {
+        closeCommentsModal();
+    }
+});
+
+function loadComments(postId) {
+    var container = document.getElementById('commentsList');
+    container.innerHTML = '<div class="comments-loading"><i class="fa fa-spinner fa-spin"></i> Chargement...</div>';
+    
+    $.ajax({
+        url: lien + '?but=publication/apresPublication.jsp',
+        type: 'POST',
+        dataType: 'json',
+        data: { acte: 'getComments', id: postId },
+        success: function(response) {
+            if (response.success && response.comments) {
+                if (response.comments.length === 0) {
+                    container.innerHTML = '<div class="comments-empty"><i class="fa fa-comment-o"></i>Aucun commentaire<br><small>Soyez le premier à commenter</small></div>';
+                } else {
+                    var html = '';
+                    response.comments.forEach(function(c) {
+                        html += '<div class="comment-item" id="comment-' + c.id + '">';
+                        html += '<img src="' + c.photo + '" class="comment-avatar" onerror="this.src=\'<%= request.getContextPath() %>/assets/img/default-avatar.png\'">';
+                        html += '<div class="comment-content">';
+                        html += '<span class="comment-author">' + escapeHtml(c.nom) + '</span>';
+                        html += '<span class="comment-text">' + escapeHtml(c.contenu) + '</span>';
+                        html += '<div class="comment-meta">';
+                        html += '<span class="comment-date">' + c.date + '</span>';
+                        if (c.canDelete) {
+                            html += '<button class="btn-delete-comment" onclick="deleteComment(\'' + c.id + '\')"><i class="fa fa-trash"></i> Supprimer</button>';
+                        }
+                        html += '</div></div></div>';
+                    });
+                    container.innerHTML = html;
+                    // Scroll en bas
+                    container.scrollTop = container.scrollHeight;
+                }
+            } else {
+                container.innerHTML = '<div class="comments-empty"><i class="fa fa-exclamation-circle"></i>Erreur de chargement</div>';
+            }
+        },
+        error: function() {
+            container.innerHTML = '<div class="comments-empty"><i class="fa fa-exclamation-circle"></i>Erreur de connexion</div>';
+        }
+    });
+}
+
+function addComment() {
+    var input = document.getElementById('commentInput');
+    var contenu = input.value.trim();
+    
+    if (!contenu || !currentPostId) return;
+    
+    var btn = document.querySelector('.btn-send-comment');
+    btn.disabled = true;
+    
+    $.ajax({
+        url: lien + '?but=publication/apresPublication.jsp',
+        type: 'POST',
+        dataType: 'json',
+        data: { acte: 'addComment', id: currentPostId, contenu: contenu },
+        success: function(response) {
+            btn.disabled = false;
+            if (response.success) {
+                input.value = '';
+                loadComments(currentPostId);
+                // Mettre à jour le compteur sur la page
+                var countSpan = document.getElementById('comments-count-' + currentPostId);
+                if (countSpan) {
+                    countSpan.textContent = parseInt(countSpan.textContent || 0) + 1;
+                }
+            } else {
+                alert(response.error || 'Erreur lors de l\'ajout');
+            }
+        },
+        error: function() {
+            btn.disabled = false;
+            alert('Erreur de connexion');
+        }
+    });
+}
+
+function deleteComment(commentId) {
+    if (!confirm('Supprimer ce commentaire ?')) return;
+    
+    $.ajax({
+        url: lien + '?but=publication/apresPublication.jsp',
+        type: 'POST',
+        dataType: 'json',
+        data: { acte: 'deleteComment', id: commentId, postId: currentPostId },
+        success: function(response) {
+            if (response.success) {
+                var elem = document.getElementById('comment-' + commentId);
+                if (elem) elem.remove();
+                // Mettre à jour le compteur
+                var countSpan = document.getElementById('comments-count-' + currentPostId);
+                if (countSpan) {
+                    countSpan.textContent = Math.max(0, parseInt(countSpan.textContent || 0) - 1);
+                }
+                // Vérifier s'il reste des commentaires
+                var container = document.getElementById('commentsList');
+                if (!container.querySelector('.comment-item')) {
+                    container.innerHTML = '<div class="comments-empty"><i class="fa fa-comment-o"></i>Aucun commentaire<br><small>Soyez le premier à commenter</small></div>';
+                }
+            } else {
+                alert(response.error || 'Erreur lors de la suppression');
+            }
+        },
+        error: function() {
+            alert('Erreur de connexion');
+        }
+    });
+}
+
+function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Enter pour envoyer commentaire
+document.getElementById('commentInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        addComment();
+    }
+});
 </script>
 
 <%

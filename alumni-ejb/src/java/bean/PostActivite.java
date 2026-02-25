@@ -1,6 +1,5 @@
 package bean;
 
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 public class PostActivite extends ClassMAPTable {
@@ -11,7 +10,7 @@ public class PostActivite extends ClassMAPTable {
     private String adresse;
     private Timestamp date_debut;
     private Timestamp date_fin;
-    private BigDecimal prix;
+    private double prix;
     private int nombre_places;
     private int places_restantes;
     private String contact_email;
@@ -92,11 +91,11 @@ public class PostActivite extends ClassMAPTable {
         this.date_fin = date_fin;
     }
 
-    public BigDecimal getPrix() {
+    public double getPrix() {
         return prix;
     }
 
-    public void setPrix(BigDecimal prix) {
+    public void setPrix(double prix) {
         this.prix = prix;
     }
 

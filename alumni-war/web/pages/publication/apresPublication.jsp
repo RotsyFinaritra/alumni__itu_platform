@@ -1,5 +1,23 @@
 <%@ page pageEncoding="UTF-8" contentType="text/html; charset=UTF-8" %>
-<%@ page import="bean.*, utilitaire.*, java.sql.*, user.UserEJB" %>
+<%@ page import="bean.*, utilitaire.*, java.sql.*, user.UserEJB, affichage.PageInsert, utilisateurAcade.UtilisateurAcade" %>
+<%!
+    // Helper pour update les compteurs sans toucher à edited_by
+    public void updatePostCounter(String postId, String colonne, int valeur) throws Exception {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = new UtilDB().GetConn();
+            String sql = "UPDATE posts SET " + colonne + " = ? WHERE id = ?";
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, valeur);
+            ps.setString(2, postId);
+            ps.executeUpdate();
+        } finally {
+            if (ps != null) try { ps.close(); } catch (Exception ignored) {}
+            if (conn != null) try { conn.close(); } catch (Exception ignored) {}
+        }
+    }
+%>
 <%
 try {
     UserEJB u = (UserEJB) session.getValue("u");
@@ -13,8 +31,15 @@ try {
     String bute = request.getParameter("bute");
     if (bute == null || bute.isEmpty()) bute = "accueil.jsp";
     
-    Connection conn = new UtilDB().GetConn();
     int refuserInt = u.getUser().getRefuser();
+    String refuserStr = String.valueOf(refuserInt);
+    
+    // Récupérer info utilisateur courant pour les notifications
+    UtilisateurAcade currentUser = null;
+    Object[] currentUserResult = CGenUtil.rechercher(new UtilisateurAcade(), null, null, " AND refuser = " + refuserInt);
+    if (currentUserResult != null && currentUserResult.length > 0) {
+        currentUser = (UtilisateurAcade) currentUserResult[0];
+    }
     
     // ============== INSERT PUBLICATION ==============
     if ("insert".equals(acte)) {
@@ -26,36 +51,28 @@ try {
             throw new Exception("Le contenu ne peut pas être vide");
         }
         
-        // Générer ID
-        String newId = "";
-        PreparedStatement psSeq = conn.prepareStatement("SELECT 'POST' || LPAD(COALESCE(MAX(CAST(SUBSTRING(id, 5) AS INTEGER)), 0) + 1, 5, '0') FROM posts");
-        ResultSet rsSeq = psSeq.executeQuery();
-        if (rsSeq.next()) {
-            newId = rsSeq.getString(1);
-        }
-        rsSeq.close();
-        psSeq.close();
+        Post post = new Post();
+        post.setContenu(contenu.trim());
+        post.setIdutilisateur(refuserInt);
+        post.setIdtypepublication(idtypepublication != null ? idtypepublication : "TYP00005");
+        post.setIdvisibilite(idvisibilite != null ? idvisibilite : "VISI00001");
+        post.setIdstatutpublication("STAT00002");
+        post.setSupprime(0);
+        post.setNb_likes(0);
+        post.setNb_commentaires(0);
+        post.setNb_partages(0);
         
-        // Insérer
-        String sql = "INSERT INTO posts (id, contenu, idutilisateur, idtypepublication, idvisibilite, idstatutpublication, supprime, created_at, updated_at) " +
-                     "VALUES (?, ?, ?, ?, ?, 'STAT00002', 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setString(1, newId);
-        ps.setString(2, contenu);
-        ps.setInt(3, refuserInt);
-        ps.setString(4, idtypepublication != null ? idtypepublication : "TYP00005"); // Par défaut: Discussion
-        ps.setString(5, idvisibilite != null ? idvisibilite : "VISI00001"); // Par défaut: Public
-        ps.executeUpdate();
-        ps.close();
+        Post created = (Post) u.createObject(post);
+        String newId = created != null ? created.getTuppleID() : "";
         
-        conn.close();
-        response.sendRedirect(lien + "?but=" + bute);
+%><script language="JavaScript"> document.location.replace("<%=lien%>?but=<%=bute%>&id=<%=newId%>");</script><%
         return;
     }
     
     // ============== LIKE ==============
     else if ("like".equals(acte)) {
         response.setContentType("application/json");
+        try {
         String postId = request.getParameter("id");
         
         if (postId == null || postId.isEmpty()) {
@@ -63,82 +80,66 @@ try {
             return;
         }
         
-        // Vérifier si déjà liké
-        PreparedStatement psCheck = conn.prepareStatement("SELECT id FROM likes WHERE post_id = ? AND user_id = ?");
-        psCheck.setString(1, postId);
-        psCheck.setInt(2, refuserInt);
-        ResultSet rsCheck = psCheck.executeQuery();
+        // Vérifier si déjà liké via CGenUtil
+        Like likeCheck = new Like();
+        Object[] existingLikes = CGenUtil.rechercher(likeCheck, null, null, 
+            " AND post_id = '" + postId + "' AND idutilisateur = " + refuserInt);
         
-        if (rsCheck.next()) {
+        if (existingLikes != null && existingLikes.length > 0) {
             // Déjà liké - supprimer (unlike)
-            String likeId = rsCheck.getString("id");
-            rsCheck.close();
-            psCheck.close();
+            Like existingLike = (Like) existingLikes[0];
+            u.deleteObject(existingLike);
             
-            PreparedStatement psDelete = conn.prepareStatement("DELETE FROM likes WHERE id = ?");
-            psDelete.setString(1, likeId);
-            psDelete.executeUpdate();
-            psDelete.close();
+            // Mettre à jour compteur via SQL direct
+            Post postToUpdate = new Post();
+            postToUpdate.setId(postId);
+            Object[] posts = CGenUtil.rechercher(postToUpdate, null, null, "");
+            if (posts != null && posts.length > 0) {
+                Post p = (Post) posts[0];
+                int newCount = Math.max(0, p.getNb_likes() - 1);
+                updatePostCounter(postId, "nb_likes", newCount);
+            }
             
-            conn.close();
             out.print("{\"success\": true, \"action\": \"unlike\"}");
         } else {
-            rsCheck.close();
-            psCheck.close();
+            // Créer nouveau like
+            Like newLike = new Like();
+            newLike.setPost_id(postId);
+            newLike.setIdutilisateur(refuserInt);
+            u.createObject(newLike);
             
-            // Générer ID like
-            String likeId = "";
-            PreparedStatement psSeq = conn.prepareStatement("SELECT 'LIKE' || LPAD(COALESCE(MAX(CAST(SUBSTRING(id, 5) AS INTEGER)), 0) + 1, 5, '0') FROM likes");
-            ResultSet rsSeq = psSeq.executeQuery();
-            if (rsSeq.next()) {
-                likeId = rsSeq.getString(1);
-            }
-            rsSeq.close();
-            psSeq.close();
-            
-            // Insérer like
-            PreparedStatement psInsert = conn.prepareStatement("INSERT INTO likes (id, post_id, user_id, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)");
-            psInsert.setString(1, likeId);
-            psInsert.setString(2, postId);
-            psInsert.setInt(3, refuserInt);
-            psInsert.executeUpdate();
-            psInsert.close();
-            
-            // Créer notification pour l'auteur du post
-            PreparedStatement psPost = conn.prepareStatement("SELECT idutilisateur FROM posts WHERE id = ?");
-            psPost.setString(1, postId);
-            ResultSet rsPost = psPost.executeQuery();
-            if (rsPost.next()) {
-                int auteurId = rsPost.getInt("idutilisateur");
-                if (auteurId != refuserInt) { // Ne pas notifier soi-même
-                    String notifId = "";
-                    PreparedStatement psSeqNotif = conn.prepareStatement("SELECT 'NOTIF' || LPAD(COALESCE(MAX(CAST(SUBSTRING(id, 6) AS INTEGER)), 0) + 1, 5, '0') FROM notifications");
-                    ResultSet rsSeqNotif = psSeqNotif.executeQuery();
-                    if (rsSeqNotif.next()) notifId = rsSeqNotif.getString(1);
-                    rsSeqNotif.close();
-                    psSeqNotif.close();
+            // Mettre à jour compteur et créer notification
+            Post postToUpdate = new Post();
+            postToUpdate.setId(postId);
+            Object[] posts = CGenUtil.rechercher(postToUpdate, null, null, "");
+            if (posts != null && posts.length > 0) {
+                Post p = (Post) posts[0];
+                int newCount = p.getNb_likes() + 1;
+                updatePostCounter(postId, "nb_likes", newCount);
+                
+                // Créer notification pour l'auteur du post
+                if (p.getIdutilisateur() != refuserInt && currentUser != null) {
+                    String nomComplet = ((currentUser.getPrenom() != null ? currentUser.getPrenom() + " " : "") + 
+                                        (currentUser.getNomuser() != null ? currentUser.getNomuser() : "")).trim();
                     
-                    String nomComplet = (u.getUser().getPrenom() != null ? u.getUser().getPrenom() + " " : "") + 
-                                        (u.getUser().getNomuser() != null ? u.getUser().getNomuser() : "");
-                    String contenuNotif = nomComplet.trim() + " a aimé votre publication";
-                    
-                    PreparedStatement psNotif = conn.prepareStatement(
-                        "INSERT INTO notifications (id, idutilisateur, idtypenotification, contenu, lien, vu, created_at) " +
-                        "VALUES (?, ?, 'TNOT00001', ?, ?, 0, CURRENT_TIMESTAMP)"
-                    );
-                    psNotif.setString(1, notifId);
-                    psNotif.setInt(2, auteurId);
-                    psNotif.setString(3, contenuNotif);
-                    psNotif.setString(4, "publication/publication-fiche.jsp&id=" + postId);
-                    psNotif.executeUpdate();
-                    psNotif.close();
+                    Notification notif = new Notification();
+                    notif.setIdutilisateur(p.getIdutilisateur());
+                    notif.setEmetteur_id(refuserInt);
+                    notif.setIdtypenotification("TNOT00001");
+                    notif.setPost_id(postId);
+                    notif.setContenu(nomComplet.trim() + " a aimé votre publication");
+                    notif.setLien("publication/publication-fiche.jsp&id=" + postId);
+                    notif.setVu(0);
+                    notif.setCreated_at(new java.sql.Timestamp(System.currentTimeMillis()));
+                    try { u.createObject(notif); } catch (Exception ne) { ne.printStackTrace(); }
                 }
             }
-            rsPost.close();
-            psPost.close();
             
-            conn.close();
             out.print("{\"success\": true, \"action\": \"like\"}");
+        }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            out.print("{\"success\": false, \"error\": \"" + ex.getMessage().replace("\"", "'") + "\"}");
         }
         return;
     }
@@ -153,28 +154,32 @@ try {
             return;
         }
         
-        // Vérifier que c'est le propriétaire
-        PreparedStatement psCheck = conn.prepareStatement("SELECT idutilisateur FROM posts WHERE id = ?");
-        psCheck.setString(1, postId);
-        ResultSet rsCheck = psCheck.executeQuery();
+        // Vérifier propriétaire
+        Post postCheck = new Post();
+        postCheck.setId(postId);
+        Object[] posts = CGenUtil.rechercher(postCheck, null, null, "");
         
-        if (rsCheck.next() && rsCheck.getInt("idutilisateur") == refuserInt) {
-            rsCheck.close();
-            psCheck.close();
-            
-            // Suppression logique
-            PreparedStatement psDelete = conn.prepareStatement("UPDATE posts SET supprime = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
-            psDelete.setString(1, postId);
-            psDelete.executeUpdate();
-            psDelete.close();
-            
-            conn.close();
-            out.print("{\"success\": true}");
+        if (posts != null && posts.length > 0) {
+            Post p = (Post) posts[0];
+            if (p.getIdutilisateur() == refuserInt) {
+                // Suppression logique via SQL direct
+                Connection conn = null;
+                PreparedStatement ps = null;
+                try {
+                    conn = new UtilDB().GetConn();
+                    ps = conn.prepareStatement("UPDATE posts SET supprime = 1, date_suppression = CURRENT_TIMESTAMP WHERE id = ?");
+                    ps.setString(1, postId);
+                    ps.executeUpdate();
+                } finally {
+                    if (ps != null) try { ps.close(); } catch (Exception ignored) {}
+                    if (conn != null) try { conn.close(); } catch (Exception ignored) {}
+                }
+                out.print("{\"success\": true}");
+            } else {
+                out.print("{\"success\": false, \"error\": \"Non autorisé\"}");
+            }
         } else {
-            rsCheck.close();
-            psCheck.close();
-            conn.close();
-            out.print("{\"success\": false, \"error\": \"Non autorisé\"}");
+            out.print("{\"success\": false, \"error\": \"Publication non trouvée\"}");
         }
         return;
     }
@@ -191,34 +196,206 @@ try {
         }
         
         // Vérifier propriétaire
-        PreparedStatement psCheck = conn.prepareStatement("SELECT idutilisateur FROM posts WHERE id = ?");
-        psCheck.setString(1, postId);
-        ResultSet rsCheck = psCheck.executeQuery();
+        Post postCheck2 = new Post();
+        postCheck2.setId(postId);
+        Object[] posts2 = CGenUtil.rechercher(postCheck2, null, null, "");
         
-        if (rsCheck.next() && rsCheck.getInt("idutilisateur") == refuserInt) {
-            rsCheck.close();
-            psCheck.close();
-            
-            PreparedStatement psUpdate = conn.prepareStatement(
-                "UPDATE posts SET contenu = ?, idtypepublication = ?, idvisibilite = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
-            );
-            psUpdate.setString(1, contenu);
-            psUpdate.setString(2, idtypepublication);
-            psUpdate.setString(3, idvisibilite);
-            psUpdate.setString(4, postId);
-            psUpdate.executeUpdate();
-            psUpdate.close();
-            
-            conn.close();
-            response.sendRedirect(lien + "?but=" + bute + "&id=" + postId);
-            return;
+        if (posts2 != null && posts2.length > 0) {
+            Post p = (Post) posts2[0];
+            if (p.getIdutilisateur() == refuserInt) {
+                // Mise à jour via SQL direct pour éviter FK error sur edited_by
+                Connection conn = null;
+                PreparedStatement ps = null;
+                try {
+                    conn = new UtilDB().GetConn();
+                    StringBuilder sql = new StringBuilder("UPDATE posts SET contenu = ?, edited_at = CURRENT_TIMESTAMP, edited_by = ?");
+                    if (idtypepublication != null) sql.append(", idtypepublication = ?");
+                    if (idvisibilite != null) sql.append(", idvisibilite = ?");
+                    sql.append(" WHERE id = ?");
+                    
+                    ps = conn.prepareStatement(sql.toString());
+                    int idx = 1;
+                    ps.setString(idx++, contenu);
+                    ps.setInt(idx++, refuserInt);
+                    if (idtypepublication != null) ps.setString(idx++, idtypepublication);
+                    if (idvisibilite != null) ps.setString(idx++, idvisibilite);
+                    ps.setString(idx++, postId);
+                    ps.executeUpdate();
+                } finally {
+                    if (ps != null) try { ps.close(); } catch (Exception ignored) {}
+                    if (conn != null) try { conn.close(); } catch (Exception ignored) {}
+                }
+                
+%><script language="JavaScript"> document.location.replace("<%=lien%>?but=<%=bute%>&id=<%=postId%>");</script><%
+                return;
+            } else {
+                throw new Exception("Non autorisé");
+            }
         } else {
-            throw new Exception("Non autorisé");
+            throw new Exception("Publication non trouvée");
         }
     }
     
-    conn.close();
-    response.sendRedirect(lien + "?but=" + bute);
+    // ============== GET COMMENTS ==============
+    else if ("getComments".equals(acte)) {
+        response.setContentType("application/json; charset=UTF-8");
+        String postId = request.getParameter("id");
+        
+        if (postId == null || postId.isEmpty()) {
+            out.print("{\"success\": false, \"error\": \"ID manquant\"}");
+            return;
+        }
+        
+        // Récupérer commentaires via CGenUtil
+        Commentaire commCritere = new Commentaire();
+        Object[] comments = CGenUtil.rechercher(commCritere, null, null, 
+            " AND post_id = '" + postId + "' AND supprime = 0 ORDER BY created_at ASC");
+        
+        StringBuilder json = new StringBuilder("{\"success\": true, \"comments\": [");
+        
+        if (comments != null && comments.length > 0) {
+            for (int i = 0; i < comments.length; i++) {
+                Commentaire c = (Commentaire) comments[i];
+                
+                // Récupérer info utilisateur
+                String nom = "Utilisateur";
+                String photoUrl = request.getContextPath() + "/assets/img/default-avatar.png";
+                
+                UtilisateurAcade userCritere = new UtilisateurAcade();
+                Object[] users = CGenUtil.rechercher(userCritere, null, null, " AND refuser = " + c.getIdutilisateur());
+                if (users != null && users.length > 0) {
+                    UtilisateurAcade user = (UtilisateurAcade) users[0];
+                    nom = ((user.getPrenom() != null ? user.getPrenom() : "") + " " + 
+                           (user.getNomuser() != null ? user.getNomuser() : "")).trim();
+                    if (nom.isEmpty()) nom = "Utilisateur";
+                    
+                    if (user.getPhoto() != null && !user.getPhoto().isEmpty()) {
+                        String photo = user.getPhoto();
+                        if (photo.contains("/")) photo = photo.substring(photo.lastIndexOf("/") + 1);
+                        photoUrl = request.getContextPath() + "/profile-photo?file=" + photo;
+                    }
+                }
+                
+                String contenu = c.getContenu();
+                contenu = contenu != null ? contenu.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "") : "";
+                nom = nom.replace("\\", "\\\\").replace("\"", "\\\"");
+                
+                String dateStr = c.getCreated_at() != null ? new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(c.getCreated_at()) : "";
+                
+                if (i > 0) json.append(",");
+                json.append("{");
+                json.append("\"id\": \"").append(c.getId()).append("\",");
+                json.append("\"contenu\": \"").append(contenu).append("\",");
+                json.append("\"idutilisateur\": ").append(c.getIdutilisateur()).append(",");
+                json.append("\"nom\": \"").append(nom).append("\",");
+                json.append("\"photo\": \"").append(photoUrl).append("\",");
+                json.append("\"date\": \"").append(dateStr).append("\",");
+                json.append("\"canDelete\": ").append(c.getIdutilisateur() == refuserInt);
+                json.append("}");
+            }
+        }
+        
+        json.append("], \"currentUser\": ").append(refuserInt).append("}");
+        out.print(json.toString());
+        return;
+    }
+    
+    // ============== ADD COMMENT ==============
+    else if ("addComment".equals(acte)) {
+        String postId = request.getParameter("id");
+        String contenu = request.getParameter("contenu");
+        
+        if (postId != null && !postId.isEmpty() && contenu != null && !contenu.trim().isEmpty()) {
+            // Créer commentaire
+            Commentaire newComm = new Commentaire();
+            newComm.setPost_id(postId);
+            newComm.setIdutilisateur(refuserInt);
+            newComm.setContenu(contenu.trim());
+            newComm.setSupprime(0);
+            newComm.setCreated_at(new java.sql.Timestamp(System.currentTimeMillis()));
+            
+            Commentaire created = (Commentaire) u.createObject(newComm);
+            String commId = created != null ? created.getTuppleID() : "";
+            
+            // Mettre à jour compteur du post
+            Post postCheck = new Post();
+            postCheck.setId(postId);
+            Object[] posts = CGenUtil.rechercher(postCheck, null, null, "");
+            if (posts != null && posts.length > 0) {
+                Post p = (Post) posts[0];
+                
+                // Compter commentaires actifs
+                Commentaire countCritere = new Commentaire();
+                Object[] allComms = CGenUtil.rechercher(countCritere, null, null, 
+                    " AND post_id = '" + postId + "' AND supprime = 0");
+                int newCount = allComms != null ? allComms.length : 0;
+                updatePostCounter(postId, "nb_commentaires", newCount);
+                
+                // Créer notification pour l'auteur
+                if (p.getIdutilisateur() != refuserInt && currentUser != null) {
+                    String nomComplet = ((currentUser.getPrenom() != null ? currentUser.getPrenom() + " " : "") + 
+                                        (currentUser.getNomuser() != null ? currentUser.getNomuser() : "")).trim();
+                    
+                    Notification notif = new Notification();
+                    notif.setIdutilisateur(p.getIdutilisateur());
+                    notif.setEmetteur_id(refuserInt);
+                    notif.setIdtypenotification("TNOT00002");
+                    notif.setPost_id(postId);
+                    notif.setCommentaire_id(commId);
+                    notif.setContenu(nomComplet.trim() + " a commenté votre publication");
+                    notif.setLien("publication/publication-fiche.jsp&id=" + postId);
+                    notif.setVu(0);
+                    notif.setCreated_at(new java.sql.Timestamp(System.currentTimeMillis()));
+                    try { u.createObject(notif); } catch (Exception ne) { ne.printStackTrace(); }
+                }
+            }
+        }
+        
+%><script language="JavaScript"> document.location.replace("<%=lien%>?but=publication/publication-fiche.jsp&id=<%=postId%>");</script><%
+        return;
+    }
+    
+    // ============== DELETE COMMENT ==============
+    else if ("deleteComment".equals(acte)) {
+        String commentId = request.getParameter("id");
+        String redirectPostId = request.getParameter("postId");
+        
+        if (commentId != null && !commentId.isEmpty()) {
+            // Vérifier propriétaire du commentaire
+            Commentaire commCheck = new Commentaire();
+            commCheck.setId(commentId);
+            Object[] comms = CGenUtil.rechercher(commCheck, null, null, "");
+            
+            if (comms != null && comms.length > 0) {
+                Commentaire c = (Commentaire) comms[0];
+                if (redirectPostId == null || redirectPostId.isEmpty()) redirectPostId = c.getPost_id();
+                if (c.getIdutilisateur() == refuserInt) {
+                    String postId = c.getPost_id();
+                    
+                    // Suppression logique
+                    c.setSupprime(1);
+                    u.updateObject(c);
+                    
+                    // Mettre à jour compteur du post
+                    Post postCheck3 = new Post();
+                    postCheck3.setId(postId);
+                    Object[] posts3 = CGenUtil.rechercher(postCheck3, null, null, "");
+                    if (posts3 != null && posts3.length > 0) {
+                        Commentaire countCritere = new Commentaire();
+                        Object[] allComms = CGenUtil.rechercher(countCritere, null, null, 
+                            " AND post_id = '" + postId + "' AND supprime = 0");
+                        int newCount = allComms != null ? allComms.length : 0;
+                        updatePostCounter(postId, "nb_commentaires", newCount);
+                    }
+                }
+            }
+        }
+        
+%><script language="JavaScript"> document.location.replace("<%=lien%>?but=publication/publication-fiche.jsp&id=<%=redirectPostId%>");</script><%
+        return;
+    }
+    
+%><script language="JavaScript"> document.location.replace("<%=lien%>?but=<%=bute%>");</script><%
     
 } catch (Exception e) {
     e.printStackTrace();
