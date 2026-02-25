@@ -180,6 +180,11 @@
                         // Formatter la date
                         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
                         String dateAffichage = sdf.format(post.getCreated_at());
+                        
+                        // Vérifier si l'utilisateur a déjà liké
+                        Like likeChk = new Like();
+                        Object[] likeChkRes = CGenUtil.rechercher(likeChk, null, null, " AND post_id = '" + post.getId() + "' AND idutilisateur = " + refuserInt);
+                        boolean postLiked = (likeChkRes != null && likeChkRes.length > 0);
                 %>
                 
                 <!-- Post Card -->
@@ -308,8 +313,8 @@
                         <div class="row">
                             <div class="col-xs-4">
                                 <a href="javascript:void(0)" onclick="likePost('<%= post.getId() %>')" 
-                                   class="btn btn-default btn-sm">
-                                    <i class="fa fa-thumbs-up"></i> J'aime 
+                                   class="btn btn-sm <%= postLiked ? "btn-danger" : "btn-default" %>">
+                                    <i class="fa <%= postLiked ? "fa-heart" : "fa-heart-o" %>"></i> J'aime 
                                     <span class="badge"><%= post.getNb_likes() %></span>
                                 </a>
                             </div>
