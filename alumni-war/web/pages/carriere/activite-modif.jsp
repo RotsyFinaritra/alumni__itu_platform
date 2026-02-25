@@ -1,6 +1,12 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
-<%@ page import="affichage.*" %>
-<%@ page import="bean.*" %>
+<%@ page import="affichage.PageUpdate" %>
+<%@ page import="affichage.Champ" %>
+<%@ page import="affichage.Liste" %>
+<%@ page import="bean.Post" %>
+<%@ page import="bean.PostActivite" %>
+<%@ page import="bean.VisibilitePublication" %>
+<%@ page import="bean.TypeFichier" %>
+<%@ page import="bean.CGenUtil" %>
 <%@ page import="user.UserEJB" %>
 <%
     try {
