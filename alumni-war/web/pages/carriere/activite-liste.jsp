@@ -5,9 +5,9 @@
 <% try {
     PostActiviteLib t = new PostActiviteLib();
 
-    String[] listeCrt = {"titre", "categorie", "lieu", "auteur_nom", "created_at"};
+    String[] listeCrt = {"titre", "categorie_libelle", "lieu", "auteur_nom", "created_at"};
     String[] listeInt = {"created_at"};
-    String[] libEntete = {"post_id", "created_at", "titre", "categorie", "lieu", "date_debut", "date_fin", "auteur_nom", "nb_likes", "nb_commentaires"};
+    String[] libEntete = {"post_id", "created_at", "titre", "categorie_libelle", "lieu", "date_debut", "date_fin", "auteur_nom", "nb_likes", "nb_commentaires"};
 
     PageRecherche pr = new PageRecherche(t, request, listeCrt, listeInt, 3, libEntete, libEntete.length);
     pr.setTitre("Liste des activit&eacute;s / &eacute;v&eacute;nements");
@@ -17,7 +17,7 @@
 
     // Labels des critères de recherche
     pr.getFormu().getChamp("titre").setLibelle("Titre");
-    pr.getFormu().getChamp("categorie").setLibelle("Cat&eacute;gorie");
+    pr.getFormu().getChamp("categorie_libelle").setLibelle("Cat&eacute;gorie");
     pr.getFormu().getChamp("lieu").setLibelle("Lieu");
     pr.getFormu().getChamp("auteur_nom").setLibelle("Auteur");
     pr.getFormu().getChamp("created_at1").setLibelle("Date Min");

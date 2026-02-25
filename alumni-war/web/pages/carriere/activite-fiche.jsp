@@ -22,7 +22,8 @@
         if (c != null) c.setVisible(false);
 
         pc.getChampByName("titre").setLibelle("Titre");
-        pc.getChampByName("categorie").setLibelle("Cat&eacute;gorie");
+        c = pc.getChampByName("idcategorie"); if (c != null) c.setVisible(false);
+        pc.getChampByName("categorie_libelle").setLibelle("Cat&eacute;gorie");
         pc.getChampByName("lieu").setLibelle("Lieu");
         pc.getChampByName("adresse").setLibelle("Adresse");
         pc.getChampByName("date_debut").setLibelle("Date de d&eacute;but");

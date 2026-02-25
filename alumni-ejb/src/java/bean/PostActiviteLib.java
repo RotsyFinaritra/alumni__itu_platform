@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 /**
  * Vue enrichie pour les activités/événements.
  * Utilisée par PageRecherche et PageConsulte (lecture seule).
- * Jointure : post_activite + posts + utilisateur + statut_publication + visibilite_publication
+ * Jointure : post_activite + posts + utilisateur + statut_publication + visibilite_publication + categorie_activite
  */
 public class PostActiviteLib extends PostActivite {
 
@@ -14,6 +14,7 @@ public class PostActiviteLib extends PostActivite {
     private String auteur_nom;
     private String statut_libelle;
     private String visibilite_libelle;
+    private String categorie_libelle;
     private int nb_likes;
     private int nb_commentaires;
     private int nb_partages;
@@ -38,6 +39,9 @@ public class PostActiviteLib extends PostActivite {
 
     public String getVisibilite_libelle() { return visibilite_libelle; }
     public void setVisibilite_libelle(String visibilite_libelle) { this.visibilite_libelle = visibilite_libelle; }
+
+    public String getCategorie_libelle() { return categorie_libelle; }
+    public void setCategorie_libelle(String categorie_libelle) { this.categorie_libelle = categorie_libelle; }
 
     public int getNb_likes() { return nb_likes; }
     public void setNb_likes(int nb_likes) { this.nb_likes = nb_likes; }

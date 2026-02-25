@@ -427,14 +427,16 @@
             System.out.println("Post activité inséré OK");
             
             // 3. Insérer PostActivite
-            String sqlActivite = "INSERT INTO post_activite (post_id, titre, categorie, lieu, adresse, " +
+            String sqlActivite = "INSERT INTO post_activite (post_id, titre, idcategorie, lieu, adresse, " +
                 "date_debut, date_fin, prix, nombre_places, places_restantes, " +
                 "contact_email, contact_tel, lien_inscription, lien_externe) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement psActivite = conn.prepareStatement(sqlActivite);
             psActivite.setString(1, postId);
             psActivite.setString(2, formParams.get("titre"));
-            psActivite.setString(3, formParams.get("categorie"));
+            String idcat = formParams.get("idcategorie");
+            if (idcat != null && idcat.trim().isEmpty()) idcat = null;
+            psActivite.setString(3, idcat);
             psActivite.setString(4, formParams.get("lieu"));
             psActivite.setString(5, formParams.get("adresse"));
             
@@ -442,10 +444,12 @@
             String dateDebutStr = formParams.get("date_debut");
             if (dateDebutStr != null && !dateDebutStr.isEmpty()) {
                 try {
-                    psActivite.setTimestamp(6, Timestamp.valueOf(dateDebutStr.replace("T", " ") + (dateDebutStr.contains(":") ? ":00" : " 00:00:00")));
+                    String normalized = dateDebutStr.replace("T", " ");
+                    if (!normalized.contains(":")) normalized += " 00:00:00";
+                    else if (normalized.split(":").length == 2) normalized += ":00";
+                    psActivite.setTimestamp(6, Timestamp.valueOf(normalized));
                 } catch (Exception ex) {
-                    java.sql.Date d = parseDate(dateDebutStr);
-                    psActivite.setTimestamp(6, d != null ? new Timestamp(d.getTime()) : null);
+                    psActivite.setNull(6, java.sql.Types.TIMESTAMP);
                 }
             } else {
                 psActivite.setNull(6, java.sql.Types.TIMESTAMP);
@@ -455,21 +459,23 @@
             String dateFinStr = formParams.get("date_fin");
             if (dateFinStr != null && !dateFinStr.isEmpty()) {
                 try {
-                    psActivite.setTimestamp(7, Timestamp.valueOf(dateFinStr.replace("T", " ") + (dateFinStr.contains(":") ? ":00" : " 00:00:00")));
+                    String normalized = dateFinStr.replace("T", " ");
+                    if (!normalized.contains(":")) normalized += " 00:00:00";
+                    else if (normalized.split(":").length == 2) normalized += ":00";
+                    psActivite.setTimestamp(7, Timestamp.valueOf(normalized));
                 } catch (Exception ex) {
-                    java.sql.Date d = parseDate(dateFinStr);
-                    psActivite.setTimestamp(7, d != null ? new Timestamp(d.getTime()) : null);
+                    psActivite.setNull(7, java.sql.Types.TIMESTAMP);
                 }
             } else {
                 psActivite.setNull(7, java.sql.Types.TIMESTAMP);
             }
             
-            // prix
+            // prix (double)
             String prixStr = formParams.get("prix");
             if (prixStr != null && !prixStr.isEmpty()) {
-                psActivite.setBigDecimal(8, new java.math.BigDecimal(prixStr));
+                psActivite.setDouble(8, Double.parseDouble(prixStr));
             } else {
-                psActivite.setNull(8, java.sql.Types.DECIMAL);
+                psActivite.setNull(8, java.sql.Types.DOUBLE);
             }
             
             // nombre_places

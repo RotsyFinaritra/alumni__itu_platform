@@ -13,11 +13,14 @@
 
         // Configuration des libellés
         pi.getFormu().getChamp("titre").setLibelle("Titre de l'activit&eacute; *");
-        pi.getFormu().getChamp("categorie").setLibelle("Cat&eacute;gorie");
+        pi.getFormu().getChamp("idcategorie").setLibelle("Cat&eacute;gorie *");
+        pi.getFormu().getChamp("idcategorie").setPageAppelComplete("bean.CategorieActivite", "id", "categorie_activite");
         pi.getFormu().getChamp("lieu").setLibelle("Lieu");
         pi.getFormu().getChamp("adresse").setLibelle("Adresse");
         pi.getFormu().getChamp("date_debut").setLibelle("Date de d&eacute;but");
+        pi.getFormu().getChamp("date_debut").setType("datetime-local");
         pi.getFormu().getChamp("date_fin").setLibelle("Date de fin");
+        pi.getFormu().getChamp("date_fin").setType("datetime-local");
         pi.getFormu().getChamp("prix").setLibelle("Prix (MGA)");
         pi.getFormu().getChamp("nombre_places").setLibelle("Nombre de places");
         pi.getFormu().getChamp("contact_email").setLibelle("Email de contact");
@@ -25,17 +28,13 @@
         pi.getFormu().getChamp("lien_inscription").setLibelle("Lien d'inscription");
         pi.getFormu().getChamp("lien_externe").setLibelle("Lien externe");
 
-        // Valeurs par défaut
-        pi.getFormu().getChamp("prix").setDefaut("0");
-        pi.getFormu().getChamp("nombre_places").setDefaut("0");
-
         // Masquer places_restantes (géré automatiquement)
         pi.getFormu().getChamp("places_restantes").setVisible(false);
 
         // Ordre des champs
         String[] ordre = {
             "titre",
-            "categorie",
+            "idcategorie",
             "lieu",
             "adresse",
             "date_debut",
