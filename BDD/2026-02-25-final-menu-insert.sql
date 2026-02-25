@@ -40,10 +40,10 @@ INSERT INTO menudynamique VALUES
 
 INSERT INTO menudynamique VALUES
 ('MENDYNANNUAIRE-1', 'Recherche alumni', 'search',
- 'module.jsp?but=annuaire/annuaire-liste.jsp', 1, 2, 'MENDYNANNUAIRE'),
+ 'module.jsp?but=annuaire/annuaire-liste.jsp', 1, 2, 'MENDYNANNUAIRE');
 
-('MENDYNANNUAIRE-2', 'Promotions', 'school',
- 'module.jsp?but=annuaire/promotions.jsp', 2, 2, 'MENDYNANNUAIRE');
+-- ('MENDYNANNUAIRE-2', 'Promotions', 'school',
+--  'module.jsp?but=annuaire/promotions.jsp', 2, 2, 'MENDYNANNUAIRE');
 
 -- =====================
 -- Espace Carrière – niveau 2
