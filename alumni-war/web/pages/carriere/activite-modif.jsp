@@ -16,8 +16,7 @@
         puPost.setTitre("Modifier l'activit&eacute;");
 
         // Liste pour visibilite
-        TypeObjet visiType = new TypeObjet();
-        visiType.setNomTable("visibilite_publication");
+        VisibilitePublication visiType = new VisibilitePublication();
         Champ[] listesPost = new Champ[1];
         listesPost[0] = new Liste("idvisibilite", visiType, "libelle", "id");
         puPost.getFormu().changerEnChamp(listesPost);

@@ -20,66 +20,74 @@
 
         // --- Section 1 : mise a jour du Post parent ---
         Post postModele = new Post();
-        postModele.setNomTable("posts");
+        postModele.setId(postId);
         PageUpdate puPost = new PageUpdate(postModele, request, u);
+        puPost.setLien(lien);
         puPost.setTitre("Modifier l'offre de stage");
 
+        // Liste pour visibilite
+        VisibilitePublication visiType = new VisibilitePublication();
+        Champ[] listesPost = new Champ[1];
+        listesPost[0] = new Liste("idvisibilite", visiType, "libelle", "id");
+        puPost.getFormu().changerEnChamp(listesPost);
+
         Champ c;
-        c = puPost.getChampByName("post_id");        if (c != null) c.setVisible(false);
-        c = puPost.getChampByName("idutilisateur");  if (c != null) c.setVisible(false);
-        c = puPost.getChampByName("type");           if (c != null) c.setVisible(false);
-        c = puPost.getChampByName("idstatutpublication"); if (c != null) c.setVisible(false);
-        c = puPost.getChampByName("idgroupe");       if (c != null) c.setVisible(false);
-        c = puPost.getChampByName("epingle");        if (c != null) c.setVisible(false);
-        c = puPost.getChampByName("supprime");       if (c != null) c.setVisible(false);
-        c = puPost.getChampByName("edited_at");      if (c != null) c.setVisible(false);
-        c = puPost.getChampByName("created_at");     if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("id");                  if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("idutilisateur");       if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("idtypepublication");   if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("idstatutpublication"); if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("idgroupe");            if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("epingle");             if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("supprime");            if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("date_suppression");    if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("edited_at");           if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("edited_by");           if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("created_at");          if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("nb_likes");            if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("nb_commentaires");     if (c != null) c.setVisible(false);
+        c = puPost.getFormu().getChamp("nb_partages");         if (c != null) c.setVisible(false);
 
-        Champ champContenu = puPost.getChampByName("contenu");
-        if (champContenu != null) {
-            champContenu.setLibelle("Description du stage");
-            champContenu.setType("editor");
-            champContenu.setObligatoire(true);
-        }
+        c = puPost.getFormu().getChamp("contenu");
+        if (c != null) { c.setLibelle("Description du stage"); c.setType("editor"); c.setAutre("required"); }
 
-        Champ champVisi = puPost.getChampByName("idvisibilite");
-        if (champVisi != null) {
-            champVisi.setLibelle("Visibilite");
-            champVisi.setObligatoire(true);
-            Liste listeVisi = new Liste(new VisibilitePublication(), u,
-                    "idvisibilite", "libelle");
-            champVisi.setListe(listeVisi);
-        }
+        c = puPost.getFormu().getChamp("idvisibilite");
+        if (c != null) { c.setLibelle("Visibilite"); c.setAutre("required"); }
+
+        puPost.preparerDataFormu();
 
         // --- Section 2 : mise a jour du PostStage ---
         PostStage stageModele = new PostStage();
+        stageModele.setPost_id(postId);
         PageUpdate puStage = new PageUpdate(stageModele, request, u);
+        puStage.setLien(lien);
 
-        c = puStage.getChampByName("post_id");       if (c != null) c.setVisible(false);
+        // Liste statique pour convention_requise
+        Liste listeConv = new Liste("convention_requise");
+        String[] convLabels = {"Non", "Oui"};
+        String[] convValues = {"0", "1"};
+        listeConv.makeListeString(convLabels, convValues);
 
-        puStage.getChampByName("entreprise").setLibelle("Entreprise / Organisme");
-        puStage.getChampByName("entreprise").setObligatoire(true);
-        puStage.getChampByName("localisation").setLibelle("Localisation");
-        puStage.getChampByName("duree").setLibelle("Duree (ex: 3 mois)");
-        puStage.getChampByName("date_debut").setLibelle("Date de debut");
-        puStage.getChampByName("date_fin").setLibelle("Date de fin");
-        puStage.getChampByName("indemnite").setLibelle("Indemnite mensuelle");
-        puStage.getChampByName("places_disponibles").setLibelle("Nombre de places");
-        puStage.getChampByName("contact_email").setLibelle("Email de contact");
-        puStage.getChampByName("contact_tel").setLibelle("Telephone");
-        puStage.getChampByName("lien_candidature").setLibelle("Lien de candidature");
+        Champ[] listesStage = new Champ[1];
+        listesStage[0] = listeConv;
+        puStage.getFormu().changerEnChamp(listesStage);
 
-        Champ champConvention = puStage.getChampByName("convention_requise");
-        if (champConvention != null) {
-            champConvention.setLibelle("Convention requise");
-            Liste listeConv = new Liste();
-            listeConv.ajouterLigne("0", "Non");
-            listeConv.ajouterLigne("1", "Oui");
-            champConvention.setListe(listeConv);
-        }
+        c = puStage.getFormu().getChamp("post_id");       if (c != null) c.setVisible(false);
+        c = puStage.getFormu().getChamp("identreprise");  if (c != null) c.setVisible(false);
 
-        Champ champNiveau = puStage.getChampByName("niveau_etude_requis");
-        if (champNiveau != null) champNiveau.setLibelle("Niveau d etude requis");
+        c = puStage.getFormu().getChamp("entreprise");    if (c != null) { c.setLibelle("Entreprise / Organisme"); c.setAutre("required"); }
+        c = puStage.getFormu().getChamp("localisation");  if (c != null) c.setLibelle("Localisation");
+        c = puStage.getFormu().getChamp("duree");         if (c != null) c.setLibelle("Duree (ex: 3 mois)");
+        c = puStage.getFormu().getChamp("date_debut");    if (c != null) c.setLibelle("Date de debut");
+        c = puStage.getFormu().getChamp("date_fin");      if (c != null) c.setLibelle("Date de fin");
+        c = puStage.getFormu().getChamp("indemnite");     if (c != null) c.setLibelle("Indemnite mensuelle");
+        c = puStage.getFormu().getChamp("places_disponibles"); if (c != null) c.setLibelle("Nombre de places");
+        c = puStage.getFormu().getChamp("contact_email"); if (c != null) c.setLibelle("Email de contact");
+        c = puStage.getFormu().getChamp("contact_tel");   if (c != null) c.setLibelle("Telephone");
+        c = puStage.getFormu().getChamp("lien_candidature"); if (c != null) c.setLibelle("Lien de candidature");
+        c = puStage.getFormu().getChamp("convention_requise"); if (c != null) c.setLibelle("Convention requise");
+        c = puStage.getFormu().getChamp("niveau_etude_requis"); if (c != null) c.setLibelle("Niveau d etude requis");
+
+        puStage.preparerDataFormu();
         
         // Charger toutes les competences disponibles
         Competence compFiltre = new Competence();
@@ -131,7 +139,7 @@
                             <h3 class="box-title">Publication</h3>
                         </div>
                         <div class="box-body">
-                            <%= puPost.getHtml() %>
+                            <%= puPost.getFormu().getHtmlInsert() %>
                         </div>
                     </div>
 
@@ -141,7 +149,7 @@
                             <h3 class="box-title">Details du stage</h3>
                         </div>
                         <div class="box-body">
-                            <%= puStage.getHtml() %>
+                            <%= puStage.getFormu().getHtmlInsert() %>
                             
                             <!-- Selection multiple des competences -->
                             <div class="form-group">
