@@ -447,7 +447,7 @@ public class CarriereFormServlet extends HttpServlet {
         int ordreMax = 0;
         if (existants != null && existants.length > 0) {
             PostFichier dernier = (PostFichier) existants[0];
-            ordreMax = dernier.getOrdre() != null ? dernier.getOrdre() : 0;
+            ordreMax = dernier.getOrdre();
         }
         
         int fileIndex = 1;
