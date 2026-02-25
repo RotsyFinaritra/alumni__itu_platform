@@ -10,10 +10,10 @@ public class TypeFichier extends ClassMAPTable {
     private String icon;
     private String couleur;
     private String extensions_acceptees;
-    private Integer taille_max_mo;
+    private int taille_max_mo;
     private String description;
     private int actif;
-    private Integer ordre;
+    private int ordre;
     private Timestamp created_at;
 
     public TypeFichier() {
@@ -85,11 +85,11 @@ public class TypeFichier extends ClassMAPTable {
         this.extensions_acceptees = extensions_acceptees;
     }
 
-    public Integer getTaille_max_mo() {
+    public int getTaille_max_mo() {
         return taille_max_mo;
     }
 
-    public void setTaille_max_mo(Integer taille_max_mo) {
+    public void setTaille_max_mo(int taille_max_mo) {
         this.taille_max_mo = taille_max_mo;
     }
 
@@ -109,11 +109,11 @@ public class TypeFichier extends ClassMAPTable {
         this.actif = actif;
     }
 
-    public Integer getOrdre() {
+    public int getOrdre() {
         return ordre;
     }
 
-    public void setOrdre(Integer ordre) {
+    public void setOrdre(int ordre) {
         this.ordre = ordre;
     }
 

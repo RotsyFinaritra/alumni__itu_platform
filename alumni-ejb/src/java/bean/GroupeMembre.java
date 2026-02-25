@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 
 public class GroupeMembre extends ClassMAPTable {
     private String id;
-    private Integer idutilisateur;
+    private int idutilisateur;
     private String idgroupe;
     private String idrole;
     private String statut;
@@ -40,11 +40,11 @@ public class GroupeMembre extends ClassMAPTable {
         this.id = id;
     }
 
-    public Integer getIdutilisateur() {
+    public int getIdutilisateur() {
         return idutilisateur;
     }
 
-    public void setIdutilisateur(Integer idutilisateur) {
+    public void setIdutilisateur(int idutilisateur) {
         this.idutilisateur = idutilisateur;
     }
 

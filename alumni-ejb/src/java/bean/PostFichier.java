@@ -12,7 +12,7 @@ public class PostFichier extends ClassMAPTable {
     private String chemin;
     private Long taille_octets;
     private String mime_type;
-    private Integer ordre;
+    private int ordre;
     private Timestamp created_at;
 
     public PostFichier() {
@@ -100,11 +100,11 @@ public class PostFichier extends ClassMAPTable {
         this.mime_type = mime_type;
     }
 
-    public Integer getOrdre() {
+    public int getOrdre() {
         return ordre;
     }
 
-    public void setOrdre(Integer ordre) {
+    public void setOrdre(int ordre) {
         this.ordre = ordre;
     }
 

@@ -20,7 +20,7 @@ public class PostStageLib extends PostStage {
     private Timestamp created_at;
     private int epingle;
     private int supprime;
-    private Integer idutilisateur;
+    private int idutilisateur;
 
     public PostStageLib() {
         super();
@@ -57,6 +57,6 @@ public class PostStageLib extends PostStage {
     public int getSupprime() { return supprime; }
     public void setSupprime(int supprime) { this.supprime = supprime; }
 
-    public Integer getIdutilisateur() { return idutilisateur; }
-    public void setIdutilisateur(Integer idutilisateur) { this.idutilisateur = idutilisateur; }
+    public int getIdutilisateur() { return idutilisateur; }
+    public void setIdutilisateur(int idutilisateur) { this.idutilisateur = idutilisateur; }
 }

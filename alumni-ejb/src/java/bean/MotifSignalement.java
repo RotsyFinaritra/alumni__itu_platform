@@ -9,11 +9,11 @@ public class MotifSignalement extends ClassMAPTable {
     private String code;
     private String icon;
     private String couleur;
-    private Integer gravite;
+    private int gravite;
     private String action_automatique;
     private String description;
     private int actif;
-    private Integer ordre;
+    private int ordre;
     private Timestamp created_at;
 
     public MotifSignalement() {
@@ -77,11 +77,11 @@ public class MotifSignalement extends ClassMAPTable {
         this.couleur = couleur;
     }
 
-    public Integer getGravite() {
+    public int getGravite() {
         return gravite;
     }
 
-    public void setGravite(Integer gravite) {
+    public void setGravite(int gravite) {
         this.gravite = gravite;
     }
 
@@ -109,11 +109,11 @@ public class MotifSignalement extends ClassMAPTable {
         this.actif = actif;
     }
 
-    public Integer getOrdre() {
+    public int getOrdre() {
         return ordre;
     }
 
-    public void setOrdre(Integer ordre) {
+    public void setOrdre(int ordre) {
         this.ordre = ordre;
     }
 

@@ -10,10 +10,10 @@ public class RoleGroupe extends ClassMAPTable {
     private String icon;
     private String couleur;
     private String permissions;
-    private Integer niveau_acces;
+    private int niveau_acces;
     private String description;
     private int actif;
-    private Integer ordre;
+    private int ordre;
     private Timestamp created_at;
 
     public RoleGroupe() {
@@ -85,11 +85,11 @@ public class RoleGroupe extends ClassMAPTable {
         this.permissions = permissions;
     }
 
-    public Integer getNiveau_acces() {
+    public int getNiveau_acces() {
         return niveau_acces;
     }
 
-    public void setNiveau_acces(Integer niveau_acces) {
+    public void setNiveau_acces(int niveau_acces) {
         this.niveau_acces = niveau_acces;
     }
 
@@ -109,11 +109,11 @@ public class RoleGroupe extends ClassMAPTable {
         this.actif = actif;
     }
 
-    public Integer getOrdre() {
+    public int getOrdre() {
         return ordre;
     }
 
-    public void setOrdre(Integer ordre) {
+    public void setOrdre(int ordre) {
         this.ordre = ordre;
     }
 

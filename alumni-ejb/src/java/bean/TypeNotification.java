@@ -12,7 +12,7 @@ public class TypeNotification extends ClassMAPTable {
     private String template_message;
     private String description;
     private int actif;
-    private Integer ordre;
+    private int ordre;
     private Timestamp created_at;
 
     public TypeNotification() {
@@ -100,11 +100,11 @@ public class TypeNotification extends ClassMAPTable {
         this.actif = actif;
     }
 
-    public Integer getOrdre() {
+    public int getOrdre() {
         return ordre;
     }
 
-    public void setOrdre(Integer ordre) {
+    public void setOrdre(int ordre) {
         this.ordre = ordre;
     }
 
