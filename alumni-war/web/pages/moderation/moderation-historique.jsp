@@ -34,52 +34,18 @@ try {
     String[] colSomme = null;
     pr.creerObjetPage(libEntete, colSomme);
     
-    // Récupérer les résultats
-    Object[] resultats = pr.getListe();
+    // Configuration du tableau APJ
+    String[] lienTableau = {pr.getLien() + "?but=profil/mon-profil.jsp"};
+    String[] colonneLien = {"utilisateur_nom"};
+    pr.getTableau().setLien(lienTableau);
+    pr.getTableau().setColonneLien(colonneLien);
+    
+    String[] libEnteteAffiche = {"Date", "Utilisateur", "Pr&eacute;nom", "Action", "Motif", "Mod&eacute;rateur", "Expiration"};
+    pr.getTableau().setLibelleAffiche(libEnteteAffiche);
+    
     String lien = (String) session.getValue("lien");
 %>
 <style>
-.historique-table {
-    width: 100%;
-    background: #fff;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-}
-.historique-table th {
-    background: #3c8dbc;
-    color: #fff;
-    padding: 12px 15px;
-    text-align: left;
-    font-weight: 500;
-    font-size: 13px;
-}
-.historique-table td {
-    padding: 12px 15px;
-    border-bottom: 1px solid #eee;
-    font-size: 13px;
-}
-.historique-table tr:hover {
-    background: #f8f9fa;
-}
-.badge-action {
-    padding: 4px 10px;
-    border-radius: 15px;
-    font-size: 11px;
-    font-weight: 500;
-}
-.badge-banni {
-    background: #f8d7da;
-    color: #721c24;
-}
-.badge-suspendu {
-    background: #fff3cd;
-    color: #856404;
-}
-.badge-leve {
-    background: #d4edda;
-    color: #155724;
-}
 .search-section {
     background: #fff;
     padding: 20px;
@@ -87,85 +53,29 @@ try {
     margin-bottom: 20px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
-.results-count {
-    color: #666;
-    margin-bottom: 15px;
-    font-size: 14px;
-}
 </style>
 
 <div class="content-wrapper">
     <section class="content-header">
-        <h1><i class="fa fa-history"></i> Historique de modération</h1>
+        <h1><i class="fa fa-history"></i> Historique de mod&eacute;ration</h1>
     </section>
     <section class="content">
         <!-- Section de recherche -->
         <div class="search-section">
             <h4><i class="fa fa-search"></i> Rechercher dans l'historique</h4>
-            <%=pr.getFormu().getHtml()%>
+            <form action="<%=pr.getLien()%>?but=moderation/moderation-historique.jsp" method="post">
+                <%=pr.getFormu().getHtmlEnsemble()%>
+            </form>
         </div>
     
-        <!-- Compteur de résultats -->
-        <div class="results-count">
-            <strong><%=(resultats != null ? resultats.length : 0)%></strong> action(s) trouvée(s)
-        </div>
-    
-        <!-- Pagination -->
-        <%=pr.getPagination()%>
-    
-        <!-- Tableau d'historique -->
-    <table class="historique-table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Utilisateur concerné</th>
-                <th>Action</th>
-                <th>Motif</th>
-                <th>Modérateur</th>
-                <th>Expiration</th>
-            </tr>
-        </thead>
-        <tbody>
-        <% 
-        if (resultats != null && resultats.length > 0) {
-            for (int i = 0; i < resultats.length; i++) {
-                ModerationHistoriqueLibCPL h = (ModerationHistoriqueLibCPL) resultats[i];
-                String badgeClass = "badge-leve";
-                if ("banni".equalsIgnoreCase(h.getType_action())) badgeClass = "badge-banni";
-                else if ("suspendu".equalsIgnoreCase(h.getType_action())) badgeClass = "badge-suspendu";
+        <!-- Tableau récapitulatif -->
+        <%= pr.getTableauRecap().getHtml() %>
+        <br>
+        <!-- Tableau APJ standard -->
+        <%
+            out.println(pr.getTableau().getHtml());
+            out.println(pr.getBasPage());
         %>
-            <tr>
-                <td><%=h.getDate_action() != null ? h.getDate_action() : "-"%></td>
-                <td>
-                    <a href="<%=lien%>?but=profil/mon-profil.jsp&refuser=<%=h.getIdutilisateur()%>">
-                        <%=h.getUtilisateur_nom()%> <%=h.getUtilisateur_prenom()%>
-                    </a>
-                </td>
-                <td>
-                    <span class="badge-action <%=badgeClass%>"><%=h.getType_action()%></span>
-                </td>
-                <td><%=h.getMotif() != null ? h.getMotif() : "-"%></td>
-                <td><%=h.getModerateur_nom()%> <%=h.getModerateur_prenom()%></td>
-                <td><%=h.getDate_expiration() != null && !h.getDate_expiration().isEmpty() ? h.getDate_expiration() : "Permanent"%></td>
-            </tr>
-        <% 
-            }
-        } else { 
-        %>
-            <tr>
-                <td colspan="6" style="text-align: center; padding: 40px; color: #666;">
-                    <i class="fa fa-history" style="font-size: 48px; color: #ddd;"></i>
-                    <p style="margin-top: 15px;">Aucune action de modération enregistrée</p>
-                </td>
-            </tr>
-        <% } %>
-        </tbody>
-    </table>
-    
-        <!-- Pagination bas -->
-        <div style="margin-top: 20px;">
-            <%=pr.getPagination()%>
-        </div>
     </section>
 </div>
 

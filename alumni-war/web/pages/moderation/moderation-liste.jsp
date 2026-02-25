@@ -39,8 +39,6 @@ try {
     // Exclure l'utilisateur connecté et les admins (rang < 1)
     pr.setAWhere(" AND refuser <> " + currentUser.getUser().getTuppleID());
     
-    // Labels des champs de recherche (pas de liste déroulante pour idrole)
-    
     // Labels des champs de recherche
     pr.getFormu().getChamp("nomuser").setLibelle("Nom");
     pr.getFormu().getChamp("prenom").setLibelle("Pr&eacute;nom");
@@ -55,285 +53,30 @@ try {
     Object[] resultats = pr.getListe();
     String lien = (String) session.getValue("lien");
 %>
-<style>
-/* Liste en ligne - chaque utilisateur sur une ligne horizontale */
-.moderation-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    padding: 20px 0;
-}
-.user-card {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-    overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
-.user-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-}
-.user-card-header {
-    padding: 15px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    border-right: 1px solid #eee;
-    min-width: 300px;
-}
-.user-photo {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
-    background: #e9ecef;
-}
-.user-info {
-    flex: 1;
-}
-.user-name {
-    font-size: 15px;
-    font-weight: 600;
-    color: #333;
-    margin: 0 0 3px 0;
-}
-.user-email {
-    font-size: 12px;
-    color: #666;
-    margin: 0;
-}
-.user-card-body {
-    padding: 15px;
-    display: flex;
-    flex: 1;
-    align-items: center;
-    gap: 20px;
-}
-.user-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    min-width: 180px;
-}
-.badge-role {
-    padding: 4px 10px;
-    border-radius: 15px;
-    font-size: 12px;
-    font-weight: 500;
-}
-.badge-admin {
-    background: #3c8dbc;
-    color: #fff;
-}
-.badge-user {
-    background: #e9ecef;
-    color: #333;
-}
-.badge-statut {
-    padding: 4px 10px;
-    border-radius: 15px;
-    font-size: 12px;
-    font-weight: 500;
-}
-.badge-actif {
-    background: #d4edda;
-    color: #155724;
-}
-.badge-banni {
-    background: #f8d7da;
-    color: #721c24;
-}
-.badge-suspendu {
-    background: #fff3cd;
-    color: #856404;
-}
-.user-details {
-    font-size: 12px;
-    color: #666;
-    flex: 1;
-    min-width: 150px;
-}
-.user-details p {
-    margin: 3px 0;
-}
-.user-actions {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 8px;
-    padding-left: 15px;
-    border-left: 1px solid #eee;
-}
-.btn-action {
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 500;
-    border: none;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    transition: all 0.2s;
-    text-decoration: none;
-}
-.btn-ban {
-    background: #dc3545;
-    color: #fff;
-}
-.btn-ban:hover {
-    background: #c82333;
-    color: #fff;
-}
-.btn-unban {
-    background: #28a745;
-    color: #fff;
-}
-.btn-unban:hover {
-    background: #218838;
-    color: #fff;
-}
-.btn-promote {
-    background: #9c27b0;
-    color: #fff;
-}
-.btn-promote:hover {
-    background: #7b1fa2;
-    color: #fff;
-}
-.btn-demote {
-    background: #6c757d;
-    color: #fff;
-}
-.btn-demote:hover {
-    background: #5a6268;
-    color: #fff;
-}
-.btn-view {
-    background: #17a2b8;
-    color: #fff;
-}
-.btn-view:hover {
-    background: #138496;
-    color: #fff;
-}
-.search-section {
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-.results-count {
-    color: #666;
-    margin-bottom: 15px;
-    font-size: 14px;
-}
-
-/* Responsive: liste verticale sur petits écrans */
-@media (max-width: 900px) {
-    .user-card {
-        flex-direction: column;
-    }
-    .user-card-header {
-        border-right: none;
-        border-bottom: 1px solid #eee;
-        min-width: auto;
-        width: 100%;
-    }
-    .user-card-body {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .user-actions {
-        border-left: none;
-        border-top: 1px solid #eee;
-        padding-left: 0;
-        padding-top: 15px;
-        flex-wrap: wrap;
-    }
-}
-
-/* Modal styles */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-}
-.modal-overlay.active {
-    display: flex;
-}
-.modal-content {
-    background: #fff;
-    border-radius: 12px;
-    padding: 25px;
-    max-width: 500px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-}
-.modal-header {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
-}
-.modal-body label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-}
-.modal-body input, .modal-body textarea, .modal-body select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    margin-bottom: 15px;
-}
-.modal-body textarea {
-    min-height: 100px;
-    resize: vertical;
-}
-.modal-footer {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    padding-top: 15px;
-    border-top: 1px solid #eee;
-}
-</style>
+<link href="${pageContext.request.contextPath}/assets/css/moderation-liste.css" rel="stylesheet" type="text/css" />
 
 <div class="content-wrapper">
     <section class="content-header">
-        <h1><i class="fa fa-shield"></i> Modération des utilisateurs</h1>
+        <h1><i class="fa fa-shield"></i> Mod&eacute;ration des utilisateurs</h1>
     </section>
     <section class="content">
-        <!-- Section de recherche -->
+        <!-- Section de recherche APJ -->
         <div class="search-section">
             <h4><i class="fa fa-search"></i> Rechercher des utilisateurs</h4>
-            <%=pr.getFormu().getHtml()%>
+            <form action="<%=pr.getLien()%>?but=moderation/moderation-liste.jsp" method="post">
+                <%=pr.getFormu().getHtmlEnsemble()%>
+            </form>
         </div>
     
         <!-- Compteur de résultats -->
         <div class="results-count">
-            <strong><%=(resultats != null ? resultats.length : 0)%></strong> utilisateur(s) trouvé(s)
+            <strong><%=(resultats != null ? resultats.length : 0)%></strong> utilisateur(s) trouv&eacute;(s)
         </div>
     
-        <!-- Pagination -->
+        <!-- Pagination APJ -->
         <%=pr.getPagination()%>
     
-        <!-- Grille d'utilisateurs -->
+        <!-- Grille d'utilisateurs (rendu custom cards) -->
         <div class="moderation-grid">
         <% 
         if (resultats != null && resultats.length > 0) {
@@ -395,7 +138,7 @@ try {
                         <input type="hidden" name="action" value="unban">
                         <input type="hidden" name="refuser" value="<%=u.getRefuser()%>">
                         <button type="submit" class="btn-action btn-unban">
-                            <i class="fa fa-check"></i> Débannir
+                            <i class="fa fa-check"></i> D&eacute;bannir
                         </button>
                     </form>
                     <% } %>
@@ -415,7 +158,7 @@ try {
                         <input type="hidden" name="action" value="demote">
                         <input type="hidden" name="refuser" value="<%=u.getRefuser()%>">
                         <button type="submit" class="btn-action btn-demote">
-                            <i class="fa fa-arrow-down"></i> Rétrograder
+                            <i class="fa fa-arrow-down"></i> R&eacute;trograder
                         </button>
                     </form>
                     <% } %>
@@ -428,7 +171,7 @@ try {
         %>
         <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
             <i class="fa fa-users" style="font-size: 48px; color: #ddd;"></i>
-            <p style="margin-top: 15px;">Aucun utilisateur trouvé</p>
+            <p style="margin-top: 15px;">Aucun utilisateur trouv&eacute;</p>
         </div>
         <% } %>
     </div>

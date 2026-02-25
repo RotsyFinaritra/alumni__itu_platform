@@ -14,39 +14,7 @@
         filtreReseau.setIdutilisateur(Integer.parseInt(refuser));
         Object[] reseauList = CGenUtil.rechercher(filtreReseau, null, null, " AND idutilisateur = " + refuser);
 %>
-<style>
-.reseau-list { max-width: 100%; margin: 0; padding: 0; list-style: none; }
-.reseau-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #eee; }
-.reseau-item:last-child { border-bottom: none; }
-.reseau-item:hover { background: #fafafa; }
-.reseau-icon { width: 35px; height: 35px; background: #3c8dbc; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.reseau-icon i { font-size: 16px; color: #fff; }
-.reseau-info { flex: 1; display: flex; align-items: center; gap: 10px; }
-.reseau-title { font-size: 15px; font-weight: 500; color: #333; margin: 0; }
-.reseau-actions { display: flex; gap: 6px; margin-left: auto; }
-.btn-reseau { padding: 5px 10px; font-size: 12px; border-radius: 3px; border: none; cursor: pointer; white-space: nowrap; }
-.btn-reseau i { margin-right: 4px; }
-.btn-reseau-edit { background: #3c8dbc; color: #fff; }
-.btn-reseau-edit:hover { background: #357ca5; }
-.btn-reseau-delete { background: #d32f2f; color: #fff; }
-.btn-reseau-delete:hover { background: #c62828; }
-.reseau-empty { text-align: center; padding: 40px 20px; color: #999; }
-.reseau-empty i { font-size: 40px; margin-bottom: 10px; opacity: 0.4; }
-.reseau-empty p { font-size: 14px; margin: 0; }
-.reseau-add-btn { background: #3c8dbc; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; font-size: 13px; }
-.reseau-add-btn:hover { background: #357ca5; color: #fff; }
-.reseau-add-btn i { margin-right: 6px; }
-.reseaux-tab-content { padding: 20px; }
-@media (max-width: 992px) { 
-  .reseau-info { flex-wrap: wrap; }
-  .reseau-actions { width: 100%; justify-content: flex-end; margin-left: 0; margin-top: 8px; }
-}
-@media (max-width: 576px) { 
-  .reseau-item { flex-direction: column; align-items: flex-start; }
-  .reseau-info { width: 100%; flex-direction: column; align-items: flex-start; gap: 5px; }
-  .reseau-actions { width: 100%; justify-content: flex-start; }
-}
-</style>
+<link href="${pageContext.request.contextPath}/assets/css/profil-tabs.css" rel="stylesheet" type="text/css" />
 
 <div class="reseaux-tab-content">
     <% if (isOwnProfile) { %>

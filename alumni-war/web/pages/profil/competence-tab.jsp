@@ -19,30 +19,7 @@
         filtreSpecUtil.setIdutilisateur(Integer.parseInt(refuser));
         Object[] specUtilList = CGenUtil.rechercher(filtreSpecUtil, null, null, " AND idutilisateur = " + refuser);
 %>
-<style>
-.comp-list { max-width: 100%; margin: 0; padding: 0; list-style: none; }
-.comp-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #eee; }
-.comp-item:last-child { border-bottom: none; }
-.comp-item:hover { background: #fafafa; }
-.comp-icon { width: 35px; height: 35px; background: #f39c12; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.comp-icon i { font-size: 16px; color: #fff; }
-.comp-info { flex: 1; display: flex; align-items: center; gap: 10px; }
-.comp-title { font-size: 15px; font-weight: 500; color: #333; margin: 0; }
-.spec-icon { background: #00a65a; }
-.comp-empty { text-align: center; padding: 40px 20px; color: #999; }
-.comp-empty i { font-size: 40px; margin-bottom: 10px; opacity: 0.4; }
-.comp-empty p { font-size: 14px; margin: 0; }
-.comp-add-btn { background: #f39c12; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; font-size: 13px; }
-.comp-add-btn:hover { background: #e08e0b; color: #fff; }
-.comp-add-btn i { margin-right: 6px; }
-.comp-tab-content { padding: 20px; }
-.comp-section { margin-bottom: 30px; }
-.comp-section h4 { font-size: 16px; font-weight: 600; color: #555; margin: 0 0 15px 0; padding-bottom: 8px; border-bottom: 2px solid #eee; }
-@media (max-width: 576px) { 
-  .comp-item { flex-direction: column; align-items: flex-start; }
-  .comp-info { width: 100%; flex-direction: column; align-items: flex-start; gap: 5px; }
-}
-</style>
+<link href="${pageContext.request.contextPath}/assets/css/profil-tabs.css" rel="stylesheet" type="text/css" />
 
 <div class="comp-tab-content">
     <% if (isOwnProfile) { %>

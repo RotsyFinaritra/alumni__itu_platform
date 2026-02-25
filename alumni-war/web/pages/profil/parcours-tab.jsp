@@ -15,46 +15,7 @@
         Object[] parcoursList = CGenUtil.rechercher(filtre, null, null, " AND idutilisateur = " + refuser + " ORDER BY datedebut DESC");
 
 %>
-<style>
-.parcours-list { max-width: 100%; margin: 0; padding: 0; list-style: none; }
-.parcours-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #eee; }
-.parcours-item:last-child { border-bottom: none; }
-.parcours-item:hover { background: #fafafa; }
-.parcours-icon { width: 35px; height: 35px; background: #3c8dbc; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.parcours-icon i { font-size: 16px; color: #fff; }
-.parcours-info { flex: 1; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-.parcours-title { font-size: 15px; font-weight: 600; color: #333; margin: 0; min-width: 180px; }
-.parcours-subtitle { font-size: 14px; color: #666; margin: 0; min-width: 150px; }
-.parcours-date { font-size: 13px; color: #999; white-space: nowrap; }
-.parcours-badge { padding: 3px 8px; background: #e8f4fd; color: #3c8dbc; border-radius: 3px; font-size: 12px; }
-.parcours-actions { display: flex; gap: 6px; margin-left: auto; }
-.btn-parcours { padding: 5px 10px; font-size: 12px; border-radius: 3px; border: none; cursor: pointer; white-space: nowrap; }
-.btn-parcours i { margin-right: 4px; }
-.btn-parcours-edit { background: #3c8dbc; color: #fff; }
-.btn-parcours-edit:hover { background: #357ca5; }
-.btn-parcours-edit { background: #3c8dbc; color: #fff; }
-.btn-parcours-edit:hover { background: #357ca5; }
-.btn-parcours-delete { background: #d32f2f; color: #fff; }
-.btn-parcours-delete:hover { background: #c62828; }
-.parcours-empty { text-align: center; padding: 40px 20px; color: #999; }
-.parcours-empty i { font-size: 40px; margin-bottom: 10px; opacity: 0.4; }
-.parcours-empty p { font-size: 14px; margin: 0; }
-.parcours-add-btn { background: #3c8dbc; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; font-size: 13px; }
-.parcours-add-btn:hover { background: #357ca5; color: #fff; }
-.parcours-add-btn i { margin-right: 6px; }
-.parcours-tab-content { padding: 20px; }
-@media (max-width: 992px) { 
-  .parcours-info { flex-wrap: wrap; }
-  .parcours-title, .parcours-subtitle { min-width: auto; }
-  .parcours-actions { width: 100%; justify-content: flex-end; margin-left: 0; margin-top: 8px; }
-}
-@media (max-width: 576px) { 
-  .parcours-item { flex-direction: column; align-items: flex-start; }
-  .parcours-info { width: 100%; flex-direction: column; align-items: flex-start; gap: 5px; }
-  .parcours-actions { width: 100%; justify-content: flex-start; }
-  .btn-parcours { padding: 6px 12px; }
-}
-</style>
+<link href="${pageContext.request.contextPath}/assets/css/profil-tabs.css" rel="stylesheet" type="text/css" />
 
 <div class="parcours-tab-content">
     <% if (isOwnProfile) { %>
