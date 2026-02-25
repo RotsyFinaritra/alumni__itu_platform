@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 
 public class Partage extends ClassMAPTable {
     private String id;
-    private Integer idutilisateur;
+    private int idutilisateur;
     private String post_id;
     private String commentaire;
     private Timestamp created_at;
@@ -39,11 +39,11 @@ public class Partage extends ClassMAPTable {
         this.id = id;
     }
 
-    public Integer getIdutilisateur() {
+    public int getIdutilisateur() {
         return idutilisateur;
     }
 
-    public void setIdutilisateur(Integer idutilisateur) {
+    public void setIdutilisateur(int idutilisateur) {
         this.idutilisateur = idutilisateur;
     }
 

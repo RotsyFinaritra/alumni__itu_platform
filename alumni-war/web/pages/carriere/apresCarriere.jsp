@@ -144,12 +144,13 @@
             PreparedStatement psPost = conn.prepareStatement(sqlPost);
             psPost.setString(1, postId);
             psPost.setString(2, "TYP00002"); // Offre d'emploi
-            psPost.setString(3, String.valueOf(u.getUser().getRefuser()));
-            psPost.setString(4, "STAT0001"); // Brouillon
+            psPost.setInt(3, Integer.parseInt(String.valueOf(u.getUser().getRefuser())));
+            psPost.setString(4, "STAT00001"); // Brouillon
             String visibilite = formParams.get("idvisibilite");
-            if (visibilite == null || visibilite.isEmpty()) visibilite = "VIS00001"; // Public par défaut
+            if (visibilite == null || visibilite.isEmpty()) visibilite = "VISI00001"; // Public par défaut
             psPost.setString(5, visibilite);
-            psPost.setString(6, formParams.get("contenu"));
+            String contenu = formParams.get("contenu");
+            psPost.setString(6, contenu != null ? contenu : "");
             psPost.executeUpdate();
             psPost.close();
             System.out.println("Post inséré OK");
@@ -278,12 +279,13 @@
             PreparedStatement psPost = conn.prepareStatement(sqlPost);
             psPost.setString(1, postId);
             psPost.setString(2, "TYP00003"); // Offre de stage
-            psPost.setString(3, String.valueOf(u.getUser().getRefuser()));
-            psPost.setString(4, "STAT0001"); // Brouillon
-            String visibilite = formParams.get("idvisibilite");
-            if (visibilite == null || visibilite.isEmpty()) visibilite = "VIS00001";
-            psPost.setString(5, visibilite);
-            psPost.setString(6, formParams.get("contenu"));
+            psPost.setInt(3, Integer.parseInt(String.valueOf(u.getUser().getRefuser())));
+            psPost.setString(4, "STAT00001"); // Brouillon
+            String visibiliteStage = formParams.get("idvisibilite");
+            if (visibiliteStage == null || visibiliteStage.isEmpty()) visibiliteStage = "VISI00001";
+            psPost.setString(5, visibiliteStage);
+            String contenuStage = formParams.get("contenu");
+            psPost.setString(6, contenuStage != null ? contenuStage : "");
             psPost.executeUpdate();
             psPost.close();
             System.out.println("Post stage inséré OK");

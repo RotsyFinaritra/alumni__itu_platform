@@ -5,8 +5,8 @@ import java.sql.Timestamp;
 
 public class Notification extends ClassMAPTable {
     private String id;
-    private Integer idutilisateur;
-    private Integer emetteur_id;
+    private int idutilisateur;
+    private int emetteur_id;
     private String idtypenotification;
     private String post_id;
     private String commentaire_id;
@@ -46,19 +46,19 @@ public class Notification extends ClassMAPTable {
         this.id = id;
     }
 
-    public Integer getIdutilisateur() {
+    public int getIdutilisateur() {
         return idutilisateur;
     }
 
-    public void setIdutilisateur(Integer idutilisateur) {
+    public void setIdutilisateur(int idutilisateur) {
         this.idutilisateur = idutilisateur;
     }
 
-    public Integer getEmetteur_id() {
+    public int getEmetteur_id() {
         return emetteur_id;
     }
 
-    public void setEmetteur_id(Integer emetteur_id) {
+    public void setEmetteur_id(int emetteur_id) {
         this.emetteur_id = emetteur_id;
     }
 

@@ -12,8 +12,8 @@ public class PostActivite extends ClassMAPTable {
     private Timestamp date_debut;
     private Timestamp date_fin;
     private BigDecimal prix;
-    private Integer nombre_places;
-    private Integer places_restantes;
+    private int nombre_places;
+    private int places_restantes;
     private String contact_email;
     private String contact_tel;
     private String lien_inscription;
@@ -100,19 +100,19 @@ public class PostActivite extends ClassMAPTable {
         this.prix = prix;
     }
 
-    public Integer getNombre_places() {
+    public int getNombre_places() {
         return nombre_places;
     }
 
-    public void setNombre_places(Integer nombre_places) {
+    public void setNombre_places(int nombre_places) {
         this.nombre_places = nombre_places;
     }
 
-    public Integer getPlaces_restantes() {
+    public int getPlaces_restantes() {
         return places_restantes;
     }
 
-    public void setPlaces_restantes(Integer places_restantes) {
+    public void setPlaces_restantes(int places_restantes) {
         this.places_restantes = places_restantes;
     }
 

@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 
 public class Post extends ClassMAPTable {
     private String id;
-    private Integer idutilisateur;
+    private int idutilisateur;
     private String idgroupe;
     private String idtypepublication;
     private String idstatutpublication;
@@ -14,12 +14,12 @@ public class Post extends ClassMAPTable {
     private int epingle;
     private int supprime;
     private Timestamp date_suppression;
-    private Integer nb_likes;
-    private Integer nb_commentaires;
-    private Integer nb_partages;
+    private int nb_likes;
+    private int nb_commentaires;
+    private int nb_partages;
     private Timestamp created_at;
     private Timestamp edited_at;
-    private Integer edited_by;
+    private int edited_by;
 
     public Post() {
         super.setNomTable("posts");
@@ -50,11 +50,11 @@ public class Post extends ClassMAPTable {
         this.id = id;
     }
 
-    public Integer getIdutilisateur() {
+    public int getIdutilisateur() {
         return idutilisateur;
     }
 
-    public void setIdutilisateur(Integer idutilisateur) {
+    public void setIdutilisateur(int idutilisateur) {
         this.idutilisateur = idutilisateur;
     }
 
@@ -122,27 +122,27 @@ public class Post extends ClassMAPTable {
         this.date_suppression = date_suppression;
     }
 
-    public Integer getNb_likes() {
+    public int getNb_likes() {
         return nb_likes;
     }
 
-    public void setNb_likes(Integer nb_likes) {
+    public void setNb_likes(int nb_likes) {
         this.nb_likes = nb_likes;
     }
 
-    public Integer getNb_commentaires() {
+    public int getNb_commentaires() {
         return nb_commentaires;
     }
 
-    public void setNb_commentaires(Integer nb_commentaires) {
+    public void setNb_commentaires(int nb_commentaires) {
         this.nb_commentaires = nb_commentaires;
     }
 
-    public Integer getNb_partages() {
+    public int getNb_partages() {
         return nb_partages;
     }
 
-    public void setNb_partages(Integer nb_partages) {
+    public void setNb_partages(int nb_partages) {
         this.nb_partages = nb_partages;
     }
 
@@ -162,11 +162,11 @@ public class Post extends ClassMAPTable {
         this.edited_at = edited_at;
     }
 
-    public Integer getEdited_by() {
+    public int getEdited_by() {
         return edited_by;
     }
 
-    public void setEdited_by(Integer edited_by) {
+    public void setEdited_by(int edited_by) {
         this.edited_by = edited_by;
     }
 }

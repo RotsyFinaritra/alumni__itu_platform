@@ -5,13 +5,13 @@ import java.sql.Timestamp;
 
 public class Signalement extends ClassMAPTable {
     private String id;
-    private Integer idutilisateur;
+    private int idutilisateur;
     private String post_id;
     private String commentaire_id;
     private String idmotifsignalement;
     private String idstatutsignalement;
     private String description;
-    private Integer traite_par;
+    private int traite_par;
     private Timestamp traite_at;
     private String decision;
     private Timestamp created_at;
@@ -45,11 +45,11 @@ public class Signalement extends ClassMAPTable {
         this.id = id;
     }
 
-    public Integer getIdutilisateur() {
+    public int getIdutilisateur() {
         return idutilisateur;
     }
 
-    public void setIdutilisateur(Integer idutilisateur) {
+    public void setIdutilisateur(int idutilisateur) {
         this.idutilisateur = idutilisateur;
     }
 
@@ -93,11 +93,11 @@ public class Signalement extends ClassMAPTable {
         this.description = description;
     }
 
-    public Integer getTraite_par() {
+    public int getTraite_par() {
         return traite_par;
     }
 
-    public void setTraite_par(Integer traite_par) {
+    public void setTraite_par(int traite_par) {
         this.traite_par = traite_par;
     }
 

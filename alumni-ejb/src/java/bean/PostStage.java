@@ -14,7 +14,7 @@ public class PostStage extends ClassMAPTable {
     private double indemnite;
     private String niveau_etude_requis;
     private int convention_requise;
-    private Integer places_disponibles;
+    private int places_disponibles;
     private String contact_email;
     private String contact_tel;
     private String lien_candidature;
@@ -119,11 +119,11 @@ public class PostStage extends ClassMAPTable {
         this.convention_requise = convention_requise;
     }
 
-    public Integer getPlaces_disponibles() {
+    public int getPlaces_disponibles() {
         return places_disponibles;
     }
 
-    public void setPlaces_disponibles(Integer places_disponibles) {
+    public void setPlaces_disponibles(int places_disponibles) {
         this.places_disponibles = places_disponibles;
     }
 
