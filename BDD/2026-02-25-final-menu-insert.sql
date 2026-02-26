@@ -113,6 +113,21 @@ INSERT INTO menudynamique VALUES
 VALUES ('MENUALUMNICHAT', 'Assistant IA', 'chat', 'module.jsp?but=chatbot/alumni-chat.jsp', 5, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET libelle = EXCLUDED.libelle, icone = EXCLUDED.icone, href = EXCLUDED.href;
 
+-- Calendrier scolaire : menu niveau 1 + sous-menus
+INSERT INTO menudynamique (id, libelle, icone, href, rang, niveau, id_pere)
+VALUES ('MENDYNPROMO', 'Espace Promotion', 'school', 'module.jsp?but=promotion/espace-promotion.jsp', 6, 1, NULL)
+ON CONFLICT (id) DO UPDATE SET libelle = EXCLUDED.libelle, icone = EXCLUDED.icone, href = EXCLUDED.href;
+
+INSERT INTO menudynamique (id, libelle, icone, href, rang, niveau, id_pere)
+VALUES ('MENDYN007', 'Calendrier', 'calendar_today', '#', 5, 1, NULL);
+
+INSERT INTO menudynamique (id, libelle, icone, href, rang, niveau, id_pere)
+VALUES ('MENDYN007-1', 'Calendrier scolaire', 'event', 'module.jsp?but=calendrier/calendrier-scolaire.jsp', 1, 2, 'MENDYN007');
+
+-- Sous-menu admin uniquement : gérer les événements
+INSERT INTO menudynamique (id, libelle, icone, href, rang, niveau, id_pere)
+VALUES ('MENDYN007-2', 'Gérer événements', 'edit_calendar', 'module.jsp?but=calendrier/evenement-liste.jsp', 2, 2, 'MENDYN007');
+
 
 -- =====================
 -- Droits utilisateurs (usermenu)
@@ -125,16 +140,24 @@ INSERT INTO usermenu VALUES
 ('USRM003', '*', 'MENDYNCARRIERE', NULL, NULL, NULL, 0);
 
 -- Accès Espace carrière niveau 3
+-- INSERT INTO usermenu VALUES
+-- ('USRM_CAR_1', '*', 'MENDYNCARRIERE-2-1', NULL, NULL, NULL, 0),
+-- ('USRM_CAR_2', '*', 'MENDYNCARRIERE-2-2', 'admin', NULL, NULL, 0),
+-- ('USRM_CAR_3', '*', 'MENDYNCARRIERE-3-1', NULL, NULL, NULL, 0),
+-- ('USRM_CAR_4', '*', 'MENDYNCARRIERE-3-2', 'admin', NULL, NULL, 0),
+-- ('USRM_CAR_5', '*', 'MENDYNCARRIERE-4-1', NULL, NULL, NULL, 0),
+-- ('USRM_CAR_6', '*', 'MENDYNCARRIERE-4-2', 'admin', NULL, NULL, 0),
+-- ('USRM_CAR_7', '*', 'MENDYNCARRIERE-2-2', 'alumni', NULL, NULL, 0),
+-- ('USRM_CAR_8', '*', 'MENDYNCARRIERE-3-2', 'alumni', NULL, NULL, 0),
+-- ('USRM_CAR_9', '*', 'MENDYNCARRIERE-4-2', 'alumni', NULL, NULL, 0);
+
 INSERT INTO usermenu VALUES
 ('USRM_CAR_1', '*', 'MENDYNCARRIERE-2-1', NULL, NULL, NULL, 0),
-('USRM_CAR_2', '*', 'MENDYNCARRIERE-2-2', 'admin', NULL, NULL, 0),
+('USRM_CAR_2', '*', 'MENDYNCARRIERE-2-2', NULL, NULL, NULL, 0),
 ('USRM_CAR_3', '*', 'MENDYNCARRIERE-3-1', NULL, NULL, NULL, 0),
-('USRM_CAR_4', '*', 'MENDYNCARRIERE-3-2', 'admin', NULL, NULL, 0),
+('USRM_CAR_4', '*', 'MENDYNCARRIERE-3-2', NULL, NULL, NULL, 0),
 ('USRM_CAR_5', '*', 'MENDYNCARRIERE-4-1', NULL, NULL, NULL, 0),
-('USRM_CAR_6', '*', 'MENDYNCARRIERE-4-2', 'admin', NULL, NULL, 0),
-('USRM_CAR_7', '*', 'MENDYNCARRIERE-2-2', 'alumni', NULL, NULL, 0),
-('USRM_CAR_8', '*', 'MENDYNCARRIERE-3-2', 'alumni', NULL, NULL, 0),
-('USRM_CAR_9', '*', 'MENDYNCARRIERE-4-2', 'alumni', NULL, NULL, 0);
+('USRM_CAR_6', '*', 'MENDYNCARRIERE-4-2', NULL, NULL, NULL, 0);
 
 -- Modération : admin uniquement
 INSERT INTO usermenu VALUES
@@ -145,16 +168,29 @@ INSERT INTO usermenu VALUES
 ('USRM_MOD_5', NULL, 'MENDYNADMIN-4', 'admin', NULL, NULL, 0);
 
 -- Étudiants : interdiction de publier (interdit=1)
-INSERT INTO usermenu VALUES
-('USRM_ETU_1', NULL, 'MENDYNCARRIERE-2-2', 'etudiant', NULL, NULL, 1),  -- Publier emploi interdit
-('USRM_ETU_2', NULL, 'MENDYNCARRIERE-3-2', 'etudiant', NULL, NULL, 1),  -- Publier stage interdit
-('USRM_ETU_3', NULL, 'MENDYNCARRIERE-4-2', 'etudiant', NULL, NULL, 1);  -- Publier activité interdit
+-- INSERT INTO usermenu VALUES
+-- ('USRM_ETU_1', NULL, 'MENDYNCARRIERE-2-2', 'etudiant', NULL, NULL, 1),  -- Publier emploi interdit
+-- ('USRM_ETU_2', NULL, 'MENDYNCARRIERE-3-2', 'etudiant', NULL, NULL, 1),  -- Publier stage interdit
+-- ('USRM_ETU_3', NULL, 'MENDYNCARRIERE-4-2', 'etudiant', NULL, NULL, 1);  -- Publier activité interdit
 
 INSERT INTO usermenu (id, refuser, idmenu, idrole, codeservice, codedir, interdit)
 VALUES ('USRMCHAT', '*', 'MENUALUMNICHAT', NULL, NULL, NULL, 0)
 ON CONFLICT (id) DO NOTHING;
 
+INSERT INTO usermenu (id, refuser, idmenu, idrole, codeservice, codedir, interdit)
+VALUES ('USRM_PROMO', '*', 'MENDYNPROMO', NULL, NULL, NULL, 0)
+ON CONFLICT (id) DO NOTHING;
+
+-- calendrier scolaire : visible par tous
+INSERT INTO usermenu (id, refuser, idmenu, idrole, codeservice, codedir, interdit)
+VALUES ('USRM_CAL_ALL', '*', 'MENDYN007', NULL, NULL, NULL, 0);
+
+INSERT INTO usermenu (id, refuser, idmenu, idrole, codeservice, codedir, interdit)
+VALUES ('USRM_CAL_ALL_1', '*', 'MENDYN007-1', NULL, NULL, NULL, 0);
+
+-- Gérer événements : admin uniquement
+INSERT INTO usermenu (id, refuser, idmenu, idrole, codeservice, codedir, interdit)
+VALUES ('USRM_CAL_ADMIN', NULL, 'MENDYN007-2', 'admin', NULL, NULL, 0);
+
+
 COMMIT;
-
-
--- Donner accès à tous les utilisateurs (refuser='*' = tout le monde)
