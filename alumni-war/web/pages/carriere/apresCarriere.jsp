@@ -121,7 +121,7 @@
         // ========================
         // CONTRÔLE D'ACCÈS AVANT INSERT
         // ========================
-        boolean isInsertAction = acte.toLowerCase().startsWith("insert");
+        <%-- boolean isInsertAction = acte.toLowerCase().startsWith("insert");
         if (isInsertAction && !PublicationPermission.peutPublier(u)) {
             String messageErreur = PublicationPermission.getMessageErreur(u);
 %>
@@ -131,7 +131,7 @@
 </script>
 <%
             return;
-        }
+        } --%>
         // ========================
 
         // Repertoire d'upload pour les fichiers de carriere

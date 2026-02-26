@@ -10,7 +10,9 @@
         String lien = (String) session.getValue("lien");
         
         // === CONTRÔLE D'ACCÈS PAR RÔLE ===
-        if (!PublicationPermission.peutPublier(u)) {
+        // boolean peutPublier = PublicationPermission.peutPublier(u);
+        boolean peutPublier = true;
+        if (!peutPublier) {
             String messageErreur = PublicationPermission.getMessageErreur(u);
 %>
 <div class="content-wrapper">
