@@ -121,17 +121,17 @@
         // ========================
         // CONTRÔLE D'ACCÈS AVANT INSERT
         // ========================
-        boolean isInsertAction = acte.toLowerCase().startsWith("insert");
-        if (isInsertAction && !PublicationPermission.peutPublier(u)) {
-            String messageErreur = PublicationPermission.getMessageErreur(u);
-%>
-<script>
-    alert('<%= messageErreur.replace("'", "\\'") %>');
-    window.location.href = '<%=lien%>?but=carriere/carriere-accueil.jsp';
-</script>
-<%
-            return;
-        }
+        // boolean isInsertAction = acte.toLowerCase().startsWith("insert");
+        // if (isInsertAction && !PublicationPermission.peutPublier(u)) {
+        //    String messageErreur = PublicationPermission.getMessageErreur(u);
+// %>
+// <script>
+//     alert('<%= messageErreur.replace("'", "\\'") %>');
+//     window.location.href = '<%=lien%>?but=carriere/carriere-accueil.jsp';
+// </script>
+// <%
+//             return;
+//         } 
         // ========================
 
         // Repertoire d'upload pour les fichiers de carriere

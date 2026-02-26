@@ -6,6 +6,7 @@
 <%@ page import="user.UserEJB" %>
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="profil.ProfilService" %>
 <%
     try {
         final UserEJB u = (UserEJB) session.getValue("u");
@@ -57,11 +58,15 @@
         if (champPhoto != null) { champPhoto.setPhoto(true); }
 
         // Masquer les champs techniques (null-safe)
-        for (String hidden : new String[]{"pwduser", "idrole", "rang", "refuser", "interdit"}) {
+        for (String hidden : new String[]{"pwduser", "idrole", "rang", "refuser", "interdit", "idtypeutilisateur"}) {
             Champ c = pc.getChampByName(hidden);
             if (c != null) { c.setVisible(false); }
         }
         
+        // Afficher le champ etu avec son libellé
+        Champ champEtuField = pc.getChampByName("etu");
+        if (champEtuField != null) { champEtuField.setLibelle("ETU"); }
+
         // Pour les enseignants (TU0000003), masquer etu et promotion
         String typeUtilisateur = utilisateur.getIdtypeutilisateur();
         boolean isEnseignant = "TU0000003".equals(typeUtilisateur);
@@ -70,11 +75,12 @@
                 Champ c = pc.getChampByName(champEtu);
                 if (c != null) { c.setVisible(false); }
             }
-        } else {
-            // Pour les étudiants, masquer seulement etu dans l'affichage
-            Champ champEtu = pc.getChampByName("etu");
-            if (champEtu != null) { champEtu.setVisible(false); }
         }
+
+        // Récupérer le libellé du type d'utilisateur et le nombre de publications via ProfilService
+        String libelleTypeUtilisateur = ProfilService.getLibelleTypeUtilisateur(typeUtilisateur);
+        int refuserInt = Integer.parseInt(refuser);
+        int nbPublications = ProfilService.compterPublications(refuserInt);
 
         // Charger les pr&eacute;f&eacute;rences de visibilit&eacute; pour cet utilisateur
         // Utiliser awhere explicite pour &eacute;viter les filtres sur boolean (visible=false par d&eacute;faut)
@@ -294,16 +300,8 @@
                         </div>
                         <div class="instagram-stats">
                             <div class="instagram-stat-item">
-                                <span>0</span>
+                                <span><%= nbPublications %></span>
                                 <span>publications</span>
-                            </div>
-                            <div class="instagram-stat-item">
-                                <span>0</span>
-                                <span>abonn&eacute;s</span>
-                            </div>
-                            <div class="instagram-stat-item">
-                                <span>0</span>
-                                <span>abonnements</span>
                             </div>
                         </div>
                         <div class="instagram-bio">
@@ -345,36 +343,40 @@
                 <div class="instagram-content">
                     <div class="tab-content-item active" id="tab-infos">
                         <div class="info-grid">
-                            <% Champ[] champs = pc.getListeChamp();
-                               if (champs != null) {
-                                   for (Champ chp : champs) {
-                                       if (!chp.getVisible()) continue;
-                                       if (chp.isPhoto()) continue;
-                                       String val = chp.getValeur();
+                            <%-- Affichage ordonné des informations --%>
+                            <%
+                                String[] ordreChamps = {"idtypeutilisateur", "loginuser", "etu", "idpromotion", "nomuser", "prenom", "mail", "teluser", "adruser"};
+                                java.util.Set<String> champsVisiSet = new java.util.HashSet<String>(java.util.Arrays.asList("mail", "teluser", "adruser"));
+                                for (String nomChamp : ordreChamps) {
+                                    // Type d'utilisateur: afficher le libellé résolu
+                                    if ("idtypeutilisateur".equals(nomChamp)) {
+                            %>
+                            <div class="info-grid-label">Type d'utilisateur</div>
+                            <div class="info-grid-value"><%= libelleTypeUtilisateur %></div>
+                            <%
+                                        continue;
+                                    }
+                                    Champ chp = pc.getChampByName(nomChamp);
+                                    if (chp == null || !chp.getVisible() || chp.isPhoto()) continue;
+                                    String val = chp.getValeur();
                             %>
                             <div class="info-grid-label"><%= chp.getLibelle() %></div>
                             <div class="info-grid-value">
                                 <%= val != null ? val : "" %>
-                                <% if (isOwnProfile) {
-                                    String[] champsVisi = {"mail","teluser","adruser"};
-                                    boolean estChampVisi = false;
-                                    for (String cv : champsVisi) if (cv.equals(chp.getNom())) estChampVisi = true;
-                                    if (estChampVisi) {
-                                        Boolean isVis = visibilite.get(chp.getNom());
+                                <% if (isOwnProfile && champsVisiSet.contains(nomChamp)) {
+                                        Boolean isVis = visibilite.get(nomChamp);
                                         boolean isVisChecked = (isVis == null || isVis);
                                 %>
                                 <i class="fa <%= isVisChecked ? "fa-eye" : "fa-eye-slash" %> toggle-icon"
                                    style="cursor:pointer; margin-left: 10px; color: <%= isVisChecked ? "#0095f6" : "#999" %>;"
                                    data-refuser="<%= refuser %>"
-                                   data-champ="<%= chp.getNom() %>"
+                                   data-champ="<%= nomChamp %>"
                                    data-visible="<%= isVisChecked %>"
                                    title="<%= isVisChecked ? "Visible par les autres" : "Masqué" %>">
                                 </i>
-                                <% } } %>
+                                <% } %>
                             </div>
-                            <% }
-                               }
-                            %>
+                            <% } %>
                         </div>
                     </div>
                     <div class="tab-content-item" id="tab-parcours" style="display:none;">
