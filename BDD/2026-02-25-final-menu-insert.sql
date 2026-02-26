@@ -101,7 +101,13 @@ INSERT INTO menudynamique VALUES
  'module.jsp?but=moderation/moderation-liste.jsp', 1, 2, 'MENDYNADMIN'),
 
 ('MENDYNADMIN-2', 'Historique', 'history',
- 'module.jsp?but=moderation/moderation-historique.jsp', 2, 2, 'MENDYNADMIN');
+ 'module.jsp?but=moderation/moderation-historique.jsp', 2, 2, 'MENDYNADMIN'),
+
+ ('MENDYNADMIN-3', 'Publications', 'article', 
+ 'module.jsp?but=moderation/publication-admin-liste.jsp', 3, 2, 'MENDYNADMIN'),
+
+ ('MENDYNADMIN-4', 'Signalements', 'report',
+ 'module.jsp?but=moderation/signalement-liste.jsp', 4, 2, 'MENDYNADMIN');
 
  INSERT INTO menudynamique (id, libelle, icone, href, rang, niveau, id_pere)
 VALUES ('MENUALUMNICHAT', 'Assistant IA', 'chat', 'module.jsp?but=chatbot/alumni-chat.jsp', 5, 1, NULL)
@@ -131,7 +137,9 @@ INSERT INTO usermenu VALUES
 INSERT INTO usermenu VALUES
 ('USRM_MOD_1', NULL, 'MENDYNADMIN', 'admin', NULL, NULL, 0),
 ('USRM_MOD_2', NULL, 'MENDYNADMIN-1', 'admin', NULL, NULL, 0),
-('USRM_MOD_3', NULL, 'MENDYNADMIN-2', 'admin', NULL, NULL, 0);
+('USRM_MOD_3', NULL, 'MENDYNADMIN-2', 'admin', NULL, NULL, 0),
+('USRM_MOD_4', NULL, 'MENDYNADMIN-3', 'admin', NULL, NULL, 0),
+('USRM_MOD_5', NULL, 'MENDYNADMIN-4', 'admin', NULL, NULL, 0);
 
 INSERT INTO usermenu (id, refuser, idmenu, idrole, codeservice, codedir, interdit)
 VALUES ('USRMCHAT', '*', 'MENUALUMNICHAT', NULL, NULL, NULL, 0)
