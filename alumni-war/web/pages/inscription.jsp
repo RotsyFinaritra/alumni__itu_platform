@@ -80,7 +80,7 @@
 <body>
 <div class="page">
     <div class="frame">
-        <section class="panel-left">
+        <section class="panel-left" style="overflow: scroll;">
             <header class="brand">
             </header>
             <main class="card">

@@ -209,20 +209,24 @@
                         </span>
                     </div>
                 </a>
-                <% if (isOwner) { %>
                 <div class="post-menu">
                     <button class="menu-btn" onclick="toggleMenu('<%= postId %>')">
                         <i class="fa fa-ellipsis-h"></i>
                     </button>
                     <div class="menu-dropdown" id="menu-<%= postId %>">
+                        <% if (isOwner) { %>
                         <a href="<%= lien %>?but=publication/publication-saisie.jsp&id=<%= postId %>"><i class="fa fa-edit"></i> Modifier</a>
                         <a href="<%= lien %>?but=publication/apresPublication.jsp&acte=supprimer&id=<%= postId %>&bute=publication/publication-liste.jsp"
                            onclick="return confirm('Voulez-vous vraiment supprimer cette publication ?');">
                             <i class="fa fa-trash"></i> Supprimer
                         </a>
+                        <% } else { %>
+                        <a href="<%= lien %>?but=publication/signalement-saisie.jsp&post_id=<%= postId %>">
+                            <i class="fa fa-flag" style="color:#e74c3c"></i> Signaler
+                        </a>
+                        <% } %>
                     </div>
                 </div>
-                <% } %>
             </div>
 
             <!-- Contenu -->

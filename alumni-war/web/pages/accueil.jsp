@@ -255,17 +255,21 @@
                         </span>
                     </div>
                 </a>
-                <% if (postAuteurId == refuserInt) { %>
                 <div class="post-menu">
                     <button class="menu-btn" onclick="toggleMenu('<%= postId %>')">
                         <i class="fa fa-ellipsis-h"></i>
                     </button>
                     <div class="menu-dropdown" id="menu-<%= postId %>">
+                        <% if (postAuteurId == refuserInt) { %>
                         <a href="<%= lien %>?but=publication/publication-modif.jsp&id=<%= postId %>"><i class="fa fa-edit"></i> Modifier</a>
                         <a href="#" onclick="supprimerPost('<%= postId %>')"><i class="fa fa-trash"></i> Supprimer</a>
+                        <% } else { %>
+                        <a href="<%= lien %>?but=publication/signalement-saisie.jsp&post_id=<%= postId %>">
+                            <i class="fa fa-flag" style="color:#e74c3c"></i> Signaler
+                        </a>
+                        <% } %>
                     </div>
                 </div>
-                <% } %>
             </div>
             <div class="post-content">
                 <p><%= contenu != null ? contenu : "" %></p>

@@ -392,6 +392,50 @@ try {
         return;
     }
     
+    // ============== SIGNALER PUBLICATION ==============
+    else if ("signaler".equals(acte)) {
+        String sigPostId = request.getParameter("post_id");
+        String idmotifsignalement = request.getParameter("idmotifsignalement");
+        String sigDescription = request.getParameter("description");
+        
+        if (sigPostId == null || sigPostId.isEmpty()) {
+            throw new Exception("Aucune publication specifiee");
+        }
+        if (idmotifsignalement == null || idmotifsignalement.isEmpty()) {
+            throw new Exception("Veuillez choisir un motif de signalement");
+        }
+        
+        // Verifier que le post existe
+        Post postCheck = new Post();
+        postCheck.setId(sigPostId);
+        Object[] postExists = CGenUtil.rechercher(postCheck, null, null, " AND id = '" + sigPostId + "'");
+        if (postExists == null || postExists.length == 0) {
+            throw new Exception("Publication introuvable");
+        }
+        
+        // Verifier si l'utilisateur a deja signale ce post
+        Signalement sigCheck = new Signalement();
+        Object[] dejaSignale = CGenUtil.rechercher(sigCheck, null, null, 
+            " AND post_id = '" + sigPostId + "' AND idutilisateur = " + refuserInt);
+        if (dejaSignale != null && dejaSignale.length > 0) {
+            throw new Exception("Vous avez deja signale cette publication");
+        }
+        
+        // Creer le signalement
+        Signalement newSig = new Signalement();
+        newSig.setIdutilisateur(refuserInt);
+        newSig.setPost_id(sigPostId);
+        newSig.setIdmotifsignalement(idmotifsignalement);
+        newSig.setIdstatutsignalement("SSIG00001"); // En attente
+        if (sigDescription != null && !sigDescription.trim().isEmpty()) {
+            newSig.setDescription(sigDescription.trim());
+        }
+        u.createObject(newSig);
+        
+%><script language="JavaScript"> alert('Votre signalement a bien ete enregistre. Il sera examine par les moderateurs.'); document.location.replace("<%=lien%>?but=publication/publication-fiche.jsp&id=<%=sigPostId%>");</script><%
+        return;
+    }
+    
 %><script language="JavaScript"> document.location.replace("<%=lien%>?but=<%=bute%>");</script><%
     
 } catch (Exception e) {

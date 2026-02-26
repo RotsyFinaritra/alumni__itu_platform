@@ -133,7 +133,7 @@
         utilisateur.setEtu((etu != null && !etu.trim().isEmpty()) ? etu : null);
         utilisateur.setTeluser(teluser != null ? teluser : "");
         utilisateur.setAdruser(adruser != null ? adruser : "");
-        utilisateur.setIdrole("utilisateur");
+        utilisateur.setIdrole("alumni");
         utilisateur.setIdtypeutilisateur(idtypeutilisateur);
         utilisateur.setIdpromotion((idpromotion != null && !idpromotion.trim().isEmpty()) ? idpromotion : null);
         if (photoPath != null) {
