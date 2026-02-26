@@ -73,6 +73,8 @@ a {
 
 .box-header {
     padding: 5px;
+    background-color: var(--Primaire-blue-main-color, #2b68d9);
+    color: white;
 }
 
 label {
@@ -900,4 +902,83 @@ div.box-title {
 }
 .main-sidebar > img {
     width: 64%;
+}
+
+/* ========================================
+   CARRIERE FICHE PAGES (emploi, stage, activite)
+   ======================================== */
+
+/* Card container - same as visibilite.jsp: plain .box, full width */
+.box.carriere-fiche {
+    border: none !important;
+    border-top: none !important;
+    background: #fff !important;
+}
+
+/* Header bar */
+.box.carriere-fiche > .box-header.with-border {
+    background: var(--Primaire-blue-main-color, #2b68d9) !important;
+    color: #fff !important;
+    padding: 14px 20px !important;
+    border-bottom: none !important;
+}
+
+.box.carriere-fiche > .box-header .box-title {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #fff !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin: 0 !important;
+    text-align: left !important;
+}
+
+/* Back arrow - override global .box-title a { position: absolute } */
+.box.carriere-fiche .carriere-fiche-back {
+    color: rgba(255,255,255,0.85) !important;
+    position: static !important;
+    left: auto !important;
+}
+
+.box.carriere-fiche .carriere-fiche-back:hover {
+    color: #fff !important;
+    text-decoration: none !important;
+}
+
+/* Body */
+.box.carriere-fiche > .box-body {
+    padding: 16px !important;
+    background: #fff !important;
+}
+
+/* Fields: NO extra styling — keep default framework look (no border, no background) */
+.box.carriere-fiche .fiche-details {
+    width: calc(50% - 4px) !important;
+    padding: 4px 0 !important;
+    background: none !important;
+    border: none !important;
+    border-left: none !important;
+    border-radius: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+/* Footer */
+.box.carriere-fiche > .box-footer {
+    padding: 14px 20px !important;
+    display: flex !important;
+    gap: 10px !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+}
+
+.box.carriere-fiche > .box-footer .btn-default.pull-right {
+    margin-left: auto !important;
+}
+
+@media screen and (max-width: 990px) {
+    .box.carriere-fiche .fiche-details {
+        width: 100% !important;
+    }
 }
