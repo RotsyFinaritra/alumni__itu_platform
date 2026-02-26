@@ -1,8 +1,9 @@
 <%@ page pageEncoding="UTF-8" %>
-<%@ page import="bean.CalendrierScolaire" %>
+<%@ page import="bean.CalendrierScolaireLib" %>
 <%@ page import="bean.CGenUtil" %>
 <%@ page import="user.UserEJB" %>
 <%@ page import="affichage.PageRecherche" %>
+<%@ page import="affichage.Champ" %>
 <%
     try {
         UserEJB u = (UserEJB) session.getValue("u");
@@ -15,8 +16,8 @@
             return;
         }
 
-        CalendrierScolaire liste = new CalendrierScolaire();
-        String[] libEntete = {"id", "titre", "date_debut", "date_fin", "couleur", "idpromotion"};
+        CalendrierScolaireLib liste = new CalendrierScolaireLib();
+        String[] libEntete = {"id", "titre", "date_debut", "date_fin", "couleur", "libpromotion"};
         String[] listeCrt = {"titre", "idpromotion"};
         String[] listeInt = {"date_debut"};
 
@@ -26,11 +27,22 @@
         pr.setLien(lien);
         pr.setApres("calendrier/evenement-liste.jsp");
 
-        // Labels des critères
-        pr.getFormu().getChamp("titre").setLibelle("Titre");
-        pr.getFormu().getChamp("idpromotion").setLibelle("Promotion");
-        pr.getFormu().getChamp("date_debut1").setLibelle("Date d&eacute;but min");
-        pr.getFormu().getChamp("date_debut2").setLibelle("Date d&eacute;but max");
+        // Labels des critères (avec null check)
+        Champ c;
+        c = pr.getFormu().getChamp("titre");
+        if (c != null) c.setLibelle("Titre");
+        
+        c = pr.getFormu().getChamp("idpromotion");
+        if (c != null) {
+            c.setLibelle("Promotion");
+            c.setPageAppelComplete("bean.Promotion", "libelle", "PROMOTION", "id;libelle;annee", "id;libelle");
+        }
+        
+        c = pr.getFormu().getChamp("date_debut1");
+        if (c != null) c.setLibelle("Date d&eacute;but min");
+        
+        c = pr.getFormu().getChamp("date_debut2");
+        if (c != null) c.setLibelle("Date d&eacute;but max");
 
         String[] colSomme = null;
         pr.creerObjetPage(libEntete, colSomme);
@@ -40,6 +52,12 @@
         String[] colonneLien = {"id"};
         pr.getTableau().setLien(lienTableau);
         pr.getTableau().setColonneLien(colonneLien);
+
+        // Menu clic droit pour supprimer
+        java.util.HashMap<String, String> clicDroite = new java.util.HashMap<String, String>();
+        clicDroite.put("Modifier", pr.getLien() + "?but=calendrier/evenement-modif.jsp");
+        clicDroite.put("Supprimer", pr.getLien() + "?but=apresTarif.jsp&acte=delete&bute=calendrier/evenement-liste.jsp&classe=bean.CalendrierScolaire");
+        pr.getTableau().setLienClicDroite(clicDroite);
 
         String[] libEnteteAffiche = {"ID", "Titre", "Date d&eacute;but", "Date fin", "Couleur", "Promotion"};
         pr.getTableau().setLibelleAffiche(libEnteteAffiche);
