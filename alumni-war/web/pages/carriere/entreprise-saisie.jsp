@@ -14,7 +14,7 @@
         
         // Si lien est null, utiliser un lien par défaut
         if (lien == null) {
-            lien = "modulePopup.jsp";
+            lien = "module.jsp";
         }
         
         Entreprise a = new Entreprise();

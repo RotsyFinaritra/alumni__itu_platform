@@ -190,21 +190,18 @@ public class UtilisateurPg extends ClassMAPTable {
      * - TU0000003 (Enseignant) → 'enseignant'
      */
     public static void retrograder(int refuserCible, Connection con) throws Exception {
-        // Récupérer l'utilisateur via approche objet (CGenUtil)
-        UtilisateurPg critere = new UtilisateurPg();
-        critere.setRefuser(refuserCible);
-        
-        Object[] resultats = bean.CGenUtil.rechercher(critere, "", con);
-        
+        // Récupérer l'utilisateur via CGenUtil avec apresWhere explicite et connexion
+        Object[] resultats = bean.CGenUtil.rechercher(new UtilisateurPg(), null, null, con, " and refuser=" + refuserCible);
+
         if (resultats == null || resultats.length == 0) {
             throw new Exception("Utilisateur introuvable (refuser=" + refuserCible + ")");
         }
-        
+
         UtilisateurPg utilisateur = (UtilisateurPg) resultats[0];
-        
+
         // Déterminer le rôle approprié basé sur le type d'utilisateur
         String nouveauRole = getIdRoleEquivalent(utilisateur.getIdtypeutilisateur());
-        
+
         // Appliquer le nouveau rôle
         changerRole(refuserCible, nouveauRole, con);
     }
