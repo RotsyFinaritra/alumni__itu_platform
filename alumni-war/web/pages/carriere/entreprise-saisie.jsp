@@ -55,7 +55,7 @@
     <% if (!isPopup) { %>
     <section class="content-header">
         <div class="container-fluid">
-            <h1><i class="fas fa-building"></i> Ajouter une entreprise</h1>
+            <h1><i class="fa fa-building"></i> Ajouter une entreprise</h1>
         </div>
     </section>
     <% } %>
@@ -63,7 +63,7 @@
         <div class="<%= isPopup ? "" : "container-fluid" %>">
             <div class="card card-info">
                 <div class="card-header">
-                    <h3 class="card-title"><i class="fas fa-building"></i> 
+                    <h3 class="card-title"><i class="fa fa-building"></i> 
                         <%= isPopup ? "Nouvelle entreprise" : "Informations de l'entreprise" %>
                     </h3>
                 </div>
@@ -83,11 +83,11 @@
                     </div>
                     <div class="card-footer">
                         <button type="submit" class="btn btn-info">
-                            <i class="fas fa-save"></i> Enregistrer
+                            <i class="fa fa-floppy-o"></i> Enregistrer
                         </button>
                         <% if (isPopup) { %>
                         <button type="button" class="btn btn-secondary" onclick="window.close();">
-                            <i class="fas fa-times"></i> Annuler
+                            <i class="fa fa-times"></i> Annuler
                         </button>
                         <% } %>
                     </div>

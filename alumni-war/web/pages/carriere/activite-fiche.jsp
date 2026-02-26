@@ -67,13 +67,11 @@
         </ol>
     </section>
     <section class="content">
-        <div class="row">
-            <div class="col-md-2"></div>
-            <div class="col-md-8">
-                <div class="box box-danger">
+        <div class="box carriere-fiche">
                     <div class="box-header with-border">
                         <h3 class="box-title">
-                            <a href="<%=lien%>?but=carriere/activite-liste.jsp">
+                            <i class="fa fa-calendar"></i>
+                            <a href="<%=lien%>?but=carriere/activite-liste.jsp" class="carriere-fiche-back">
                                 <i class="fa fa-arrow-circle-left"></i>
                             </a>
                             &nbsp;<%= pc.getTitre() %>
@@ -103,8 +101,6 @@
                             <i class="fa fa-list"></i> Retour &agrave; la liste
                         </a>
                     </div>
-                </div>
-            </div>
         </div>
     </section>
 </div>

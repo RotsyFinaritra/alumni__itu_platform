@@ -124,9 +124,6 @@
         </ol>
     </section>
     <section class="content">
-        <div class="row">
-            <div class="col-md-1"></div>
-            <div class="col-md-10">
                 <form method="post" action="<%=lien%>?but=carriere/apresCarriere.jsp" enctype="multipart/form-data">
                     <input type="hidden" name="acte" value="updateStage">
                     <input type="hidden" name="bute" value="carriere/stage-fiche.jsp">
@@ -307,8 +304,6 @@
                         </a>
                     </div>
                 </form>
-            </div>
-        </div>
     </section>
 </div>
 <%

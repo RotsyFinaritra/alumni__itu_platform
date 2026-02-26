@@ -80,7 +80,7 @@
 <div class="content-wrapper">
     <section class="content-header">
         <div class="container-fluid">
-            <h1><i class="fas fa-graduation-cap"></i> Publier une offre de stage</h1>
+            <h1><i class="fa fa-graduation-cap"></i> Publier une offre de stage</h1>
         </div>
     </section>
     <section class="content">
@@ -115,10 +115,10 @@
                         <!-- Section fichiers -->
                         <div class="card card-outline card-info mt-3">
                             <div class="card-header">
-                                <h4 class="card-title"><i class="fas fa-paperclip"></i> Fichiers joints (optionnel)</h4>
+                                <h4 class="card-title"><i class="fa fa-paperclip"></i> Fichiers joints (optionnel)</h4>
                                 <div class="card-tools">
                                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                        <i class="fas fa-minus"></i>
+                                        <i class="fa fa-minus"></i>
                                     </button>
                                 </div>
                             </div>
@@ -130,7 +130,7 @@
                                 </div>
                                 
                                 <button type="button" class="btn btn-sm btn-success mt-2" onclick="ajouterLigneFichier()">
-                                    <i class="fas fa-plus"></i> Ajouter un fichier
+                                    <i class="fa fa-plus"></i> Ajouter un fichier
                                 </button>
                             </div>
                         </div>
@@ -164,7 +164,7 @@
                                     '</div>' +
                                     '<div class="col-md-2">' +
                                         '<button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigneFichier(' + compteurFichier + ')">' +
-                                            '<i class="fas fa-trash"></i>' +
+                                            '<i class="fa fa-trash"></i>' +
                                         '</button>' +
                                     '</div>' +
                                 '</div>' +
@@ -174,7 +174,7 @@
                                             '<img id="preview-img-' + compteurFichier + '" src="" alt="Aperçu" ' +
                                                  'style="max-width:200px; max-height:150px; border-radius:5px; box-shadow:0 2px 5px rgba(0,0,0,0.2);">' +
                                             '<span id="preview-file-' + compteurFichier + '" class="badge badge-secondary ml-2" style="display:none;">' +
-                                                '<i class="fas fa-file"></i> <span class="filename"></span>' +
+                                                '<i class="fa fa-file-o"></i> <span class="filename"></span>' +
                                             '</span>' +
                                         '</div>' +
                                     '</div>' +
@@ -211,11 +211,11 @@
                                     // Icône selon le type
                                     var icon = previewFile.querySelector('i');
                                     if (fileType === 'application/pdf') {
-                                        icon.className = 'fas fa-file-pdf text-danger';
+                                        icon.className = 'fa fa-file-pdf-o text-danger';
                                     } else if (fileType.includes('word') || fileType.includes('document')) {
-                                        icon.className = 'fas fa-file-word text-primary';
+                                        icon.className = 'fa fa-file-word-o text-primary';
                                     } else {
-                                        icon.className = 'fas fa-file text-secondary';
+                                        icon.className = 'fa fa-file-o text-secondary';
                                     }
                                 }
                             } else {
@@ -238,10 +238,10 @@
                     </div>
                     <div class="card-footer">
                         <button type="submit" class="btn btn-success">
-                            <i class="fas fa-save"></i> Enregistrer
+                            <i class="fa fa-floppy-o"></i> Enregistrer
                         </button>
                         <a href="<%=lien%>?but=carriere/stage-liste.jsp" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Retour
+                            <i class="fa fa-arrow-left"></i> Retour
                         </a>
                     </div>
                 </form>
