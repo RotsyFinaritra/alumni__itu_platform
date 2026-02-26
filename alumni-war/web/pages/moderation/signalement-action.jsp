@@ -9,7 +9,7 @@
 <%@page import="java.sql.Timestamp" %>
 <% 
 String lien = (String) session.getValue("lien");
-String redirectUrl = "moderation/signalement-publication-liste.jsp";
+String redirectUrl = "moderation/signalement-liste.jsp&tab=publications";
 String errorMsg = null;
 
 try {
@@ -53,12 +53,26 @@ try {
                             decision = "Publication supprimée";
                         }
                         
-                        // Marquer le signalement comme traité
-                        signalement.setIdstatutsignalement("SSIG00003"); // Traité
-                        signalement.setTraite_par(u.getUser().getRefuser());
-                        signalement.setTraite_at(new Timestamp(System.currentTimeMillis()));
-                        signalement.setDecision(decision);
-                        signalement.updateToTable(c);
+                        // Marquer TOUS les signalements de cette publication comme traités
+                        Signalement sigPubCritere = new Signalement();
+                        sigPubCritere.setPost_id(postId);
+                        Object[] allSigPub = CGenUtil.rechercher(sigPubCritere, null, null, "");
+                        
+                        if (allSigPub != null) {
+                            Timestamp now = new Timestamp(System.currentTimeMillis());
+                            int moderateurId = u.getUser().getRefuser();
+                            for (Object obj : allSigPub) {
+                                Signalement sig = (Signalement) obj;
+                                // Ne traiter que les signalements non encore traités
+                                if (!"SSIG00003".equals(sig.getIdstatutsignalement()) && !"SSIG00004".equals(sig.getIdstatutsignalement())) {
+                                    sig.setIdstatutsignalement("SSIG00003"); // Traité
+                                    sig.setTraite_par(moderateurId);
+                                    sig.setTraite_at(now);
+                                    sig.setDecision("Publication supprimée suite à signalement");
+                                    sig.updateToTable(c);
+                                }
+                            }
+                        }
                         
                     } else if ("supprimer_commentaire".equals(action) && commentaireId != null) {
                         // Supprimer le commentaire (soft delete)
@@ -73,14 +87,28 @@ try {
                             decision = "Commentaire supprimé";
                         }
                         
-                        // Marquer le signalement comme traité
-                        signalement.setIdstatutsignalement("SSIG00003"); // Traité
-                        signalement.setTraite_par(u.getUser().getRefuser());
-                        signalement.setTraite_at(new Timestamp(System.currentTimeMillis()));
-                        signalement.setDecision(decision);
-                        signalement.updateToTable(c);
+                        // Marquer TOUS les signalements de ce commentaire comme traités
+                        Signalement sigCommCritere = new Signalement();
+                        sigCommCritere.setCommentaire_id(commentaireId);
+                        Object[] allSigComm = CGenUtil.rechercher(sigCommCritere, null, null, "");
                         
-                        redirectUrl = "moderation/signalement-commentaire-liste.jsp";
+                        if (allSigComm != null) {
+                            Timestamp now = new Timestamp(System.currentTimeMillis());
+                            int moderateurId = u.getUser().getRefuser();
+                            for (Object obj : allSigComm) {
+                                Signalement sig = (Signalement) obj;
+                                // Ne traiter que les signalements non encore traités
+                                if (!"SSIG00003".equals(sig.getIdstatutsignalement()) && !"SSIG00004".equals(sig.getIdstatutsignalement())) {
+                                    sig.setIdstatutsignalement("SSIG00003"); // Traité
+                                    sig.setTraite_par(moderateurId);
+                                    sig.setTraite_at(now);
+                                    sig.setDecision("Commentaire supprimé suite à signalement");
+                                    sig.updateToTable(c);
+                                }
+                            }
+                        }
+                        
+                        redirectUrl = "moderation/signalement-liste.jsp&tab=commentaires";
                         
                     } else if ("rejeter".equals(action)) {
                         // Rejeter le signalement sans supprimer le contenu
@@ -92,7 +120,7 @@ try {
                         
                         // Déterminer la page de retour selon le type de signalement
                         if (signalement.getCommentaire_id() != null && !signalement.getCommentaire_id().isEmpty()) {
-                            redirectUrl = "moderation/signalement-commentaire-liste.jsp";
+                            redirectUrl = "moderation/signalement-liste.jsp&tab=commentaires";
                         }
                     }
                 }
