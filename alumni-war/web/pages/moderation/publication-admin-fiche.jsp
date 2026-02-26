@@ -1,9 +1,7 @@
 <%@page contentType="text/html;charset=UTF-8" %>
 <%@page import="bean.PostAdmin" %>
-<%@page import="bean.Post" %>
 <%@page import="bean.CGenUtil" %>
 <%@page import="user.UserEJB" %>
-<%@page import="java.text.SimpleDateFormat" %>
 <% try {
     // Vérifier que l'utilisateur est admin
     UserEJB currentUser = (UserEJB) session.getValue("u");
@@ -24,22 +22,12 @@
         postVue = (PostAdmin) resultsVue[0];
     }
     
-    // Charger le post réel pour update (table posts)
-    Post critere = new Post();
-    critere.setId(id);
-    Post post = null;
-    Object[] results = CGenUtil.rechercher(critere, null, null, "");
-    if (results != null && results.length > 0) {
-        post = (Post) results[0];
-    }
-    
-    if (post == null || postVue == null) {
+    if (postVue == null) {
         out.println("<div class='alert alert-warning' style='margin:20px;'>Publication non trouv&eacute;e.</div>");
         return;
     }
     
-    boolean estSupprime = post.getSupprime() == 1;
-    String dateNow = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
+    boolean estSupprime = postVue.getSupprime() == 1;
 %>
 <div class="content-wrapper">
     <section class="content-header">
@@ -78,67 +66,19 @@
                             <i class="fa fa-arrow-left"></i> Retour &agrave; la liste
                         </a>
                         <% if (!estSupprime) { %>
-                        <%-- Formulaire pour SUPPRIMER --%>
-                        <form action="<%=lien%>?but=apresTarif.jsp" method="post" style="display:inline;" class="pull-right"
-                              onsubmit="return confirm('&Ecirc;tes-vous s&ucirc;r de vouloir supprimer cette publication ?');">
-                            <input type="hidden" name="acte" value="update">
-                            <input type="hidden" name="classe" value="bean.Post">
-                            <input type="hidden" name="nomtable" value="posts">
-                            <input type="hidden" name="bute" value="moderation/publication-admin-fiche.jsp">
-                            <%-- Tous les champs du bean Post --%>
-                            <input type="hidden" name="id" value="<%= post.getId() %>">
-                            <input type="hidden" name="idutilisateur" value="<%= post.getIdutilisateur() %>">
-                            <input type="hidden" name="idgroupe" value="<%= post.getIdgroupe() != null ? post.getIdgroupe() : "" %>">
-                            <input type="hidden" name="idtypepublication" value="<%= post.getIdtypepublication() %>">
-                            <%-- Changer statut vers STAT00005 (Supprimé) --%>
-                            <input type="hidden" name="idstatutpublication" value="STAT00005">
-                            <input type="hidden" name="idvisibilite" value="<%= post.getIdvisibilite() != null ? post.getIdvisibilite() : "" %>">
-                            <input type="hidden" name="contenu" value="<%= post.getContenu() != null ? post.getContenu().replace("\"", "&quot;") : "" %>">
-                            <input type="hidden" name="epingle" value="<%= post.getEpingle() %>">
-                            <%-- Marquer comme supprimé --%>
-                            <input type="hidden" name="supprime" value="1">
-                            <input type="hidden" name="date_suppression" value="<%= dateNow %>">
-                            <input type="hidden" name="nb_likes" value="<%= post.getNb_likes() %>">
-                            <input type="hidden" name="nb_commentaires" value="<%= post.getNb_commentaires() %>">
-                            <input type="hidden" name="nb_partages" value="<%= post.getNb_partages() %>">
-                            <input type="hidden" name="created_at" value="<%= post.getCreated_at() != null ? post.getCreated_at().toString() : "" %>">
-                            <input type="hidden" name="edited_at" value="<%= post.getEdited_at() != null ? post.getEdited_at().toString() : "" %>">
-                            <input type="hidden" name="edited_by" value="<%= post.getEdited_by() %>">
-                            <button type="submit" class="btn btn-danger">
-                                <i class="fa fa-trash"></i> Supprimer
-                            </button>
-                        </form>
+                        <%-- Lien pour SUPPRIMER --%>
+                        <a href="<%=lien%>?but=moderation/publication-action.jsp&action=supprimer&id=<%=id%>&bute=moderation/publication-admin-fiche.jsp%26id=<%=id%>" 
+                           class="btn btn-danger pull-right"
+                           onclick="return confirm('&Ecirc;tes-vous s&ucirc;r de vouloir supprimer cette publication ?');">
+                            <i class="fa fa-trash"></i> Supprimer
+                        </a>
                         <% } else { %>
-                        <%-- Formulaire pour RESTAURER --%>
-                        <form action="<%=lien%>?but=apresTarif.jsp" method="post" style="display:inline;" class="pull-right"
-                              onsubmit="return confirm('Restaurer cette publication ?');">
-                            <input type="hidden" name="acte" value="update">
-                            <input type="hidden" name="classe" value="bean.Post">
-                            <input type="hidden" name="nomtable" value="posts">
-                            <input type="hidden" name="bute" value="moderation/publication-admin-fiche.jsp">
-                            <%-- Tous les champs du bean Post --%>
-                            <input type="hidden" name="id" value="<%= post.getId() %>">
-                            <input type="hidden" name="idutilisateur" value="<%= post.getIdutilisateur() %>">
-                            <input type="hidden" name="idgroupe" value="<%= post.getIdgroupe() != null ? post.getIdgroupe() : "" %>">
-                            <input type="hidden" name="idtypepublication" value="<%= post.getIdtypepublication() %>">
-                            <%-- Changer statut vers STAT00002 (Publié) --%>
-                            <input type="hidden" name="idstatutpublication" value="STAT00002">
-                            <input type="hidden" name="idvisibilite" value="<%= post.getIdvisibilite() != null ? post.getIdvisibilite() : "" %>">
-                            <input type="hidden" name="contenu" value="<%= post.getContenu() != null ? post.getContenu().replace("\"", "&quot;") : "" %>">
-                            <input type="hidden" name="epingle" value="<%= post.getEpingle() %>">
-                            <%-- Restaurer --%>
-                            <input type="hidden" name="supprime" value="0">
-                            <input type="hidden" name="date_suppression" value="">
-                            <input type="hidden" name="nb_likes" value="<%= post.getNb_likes() %>">
-                            <input type="hidden" name="nb_commentaires" value="<%= post.getNb_commentaires() %>">
-                            <input type="hidden" name="nb_partages" value="<%= post.getNb_partages() %>">
-                            <input type="hidden" name="created_at" value="<%= post.getCreated_at() != null ? post.getCreated_at().toString() : "" %>">
-                            <input type="hidden" name="edited_at" value="<%= post.getEdited_at() != null ? post.getEdited_at().toString() : "" %>">
-                            <input type="hidden" name="edited_by" value="<%= post.getEdited_by() %>">
-                            <button type="submit" class="btn btn-success">
-                                <i class="fa fa-undo"></i> Restaurer
-                            </button>
-                        </form>
+                        <%-- Lien pour RESTAURER --%>
+                        <a href="<%=lien%>?but=moderation/publication-action.jsp&action=restaurer&id=<%=id%>&bute=moderation/publication-admin-fiche.jsp%26id=<%=id%>" 
+                           class="btn btn-success pull-right"
+                           onclick="return confirm('Restaurer cette publication ?');">
+                            <i class="fa fa-undo"></i> Restaurer
+                        </a>
                         <% } %>
                     </div>
                 </div>
