@@ -61,6 +61,19 @@ public class AlumniChatServlet extends HttpServlet {
                 htmlResponse = rechercherParVille(conn, extractKeyword(q, getVilleKeywords()));
             } else if (matchesStats(q)) {
                 htmlResponse = afficherStatistiques(conn);
+            } else if (matchesEvenement(q)) {
+                htmlResponse = rechercherEvenements(conn, q);
+            } else if (matchesSuggestionConnexion(q)) {
+                int userId = getUserIdFromSession(request);
+                htmlResponse = suggererConnexions(conn, userId);
+            } else if (matchesPublication(q)) {
+                htmlResponse = rechercherPublications(conn, q);
+            } else if (matchesParcours(q)) {
+                htmlResponse = analyserParcours(conn, q);
+            } else if (matchesNavigation(q)) {
+                htmlResponse = aiderNavigation(q);
+            } else if (matchesExport(q)) {
+                htmlResponse = genererExport(conn, q, request);
             } else {
                 // Recherche globale par defaut
                 htmlResponse = rechercheGlobale(conn, q);
@@ -144,6 +157,41 @@ public class AlumniChatServlet extends HttpServlet {
     private boolean matchesStats(String q) {
         return q.contains("statistique") || q.contains("combien") || q.contains("nombre")
                 || q.contains("total") || q.contains("stats");
+    }
+
+    private boolean matchesEvenement(String q) {
+        return q.contains("evenement") || q.contains("calendrier") || q.contains("agenda")
+                || q.contains("programme") || q.contains("activite") || q.contains("ce mois")
+                || q.contains("cette semaine") || q.contains("prochainement") || q.contains("prevu");
+    }
+
+    private boolean matchesSuggestionConnexion(String q) {
+        return (q.contains("suggere") || q.contains("recommande") || q.contains("trouve"))
+                && (q.contains("alumni") || q.contains("contacts") || q.contains("reseau")
+                || q.contains("connexion") || q.contains("dans mon domaine") || q.contains("m'aider"));
+    }
+
+    private boolean matchesPublication(String q) {
+        return q.contains("publication") || q.contains("post") || q.contains("article")
+                || q.contains("offre d'emploi") || q.contains("stage") || q.contains("recrute")
+                || q.contains("dernier") || q.contains("recent") || q.contains("actualite");
+    }
+
+    private boolean matchesParcours(String q) {
+        return (q.contains("parcours") || q.contains("carriere") || q.contains("evolution")
+                || q.contains("typique") || q.contains("apres") || q.contains("devenir"))
+                && (q.contains("diplome") || q.contains("sortie") || q.contains("promotion"));
+    }
+
+    private boolean matchesNavigation(String q) {
+        return (q.contains("comment") || q.contains("ou") || q.contains("aide"))
+                && (q.contains("creer") || q.contains("modifier") || q.contains("signaler")
+                || q.contains("profil") || q.contains("publication") || q.contains("menu"));
+    }
+
+    private boolean matchesExport(String q) {
+        return q.contains("export") || q.contains("telecharge") || q.contains("csv")
+                || q.contains("excel") || q.contains("rapport") || q.contains("genere");
     }
 
     // ========== EXTRACTION DU MOT-CLE ==========
@@ -571,6 +619,539 @@ public class AlumniChatServlet extends HttpServlet {
         }
 
         return results;
+    }
+
+    // ========== NOUVELLES FONCTIONNALITES ==========
+
+    /**
+     * Recherche des evenements du calendrier scolaire
+     */
+    private String rechercherEvenements(Connection conn, String question) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        
+        // Detecter la periode
+        String whereClause = "";
+        String periodeTitre = "Prochains evenements";
+        
+        if (question.contains("ce mois") || question.contains("du mois")) {
+            whereClause = " AND EXTRACT(MONTH FROM date_debut) = EXTRACT(MONTH FROM CURRENT_DATE) " +
+                         "AND EXTRACT(YEAR FROM date_debut) = EXTRACT(YEAR FROM CURRENT_DATE)";
+            periodeTitre = "Evenements de ce mois";
+        } else if (question.contains("cette semaine")) {
+            whereClause = " AND date_debut >= CURRENT_DATE AND date_debut < CURRENT_DATE + INTERVAL '7 days'";
+            periodeTitre = "Evenements de cette semaine";
+        } else if (question.contains("aujourd'hui") || question.contains("auj")) {
+            whereClause = " AND date_debut = CURRENT_DATE";
+            periodeTitre = "Evenements d'aujourd'hui";
+        } else {
+            whereClause = " AND date_debut >= CURRENT_DATE";
+        }
+        
+        // Detecter si c'est pour une promotion specifique
+        String promoKeyword = extractKeyword(question, new String[]{"promotion", "promo"});
+        if (promoKeyword != null && !promoKeyword.trim().isEmpty()) {
+            List<Map<String, String>> promos = executeSearch(conn,
+                "SELECT id FROM promotion WHERE LOWER(libelle) LIKE LOWER(?)", 
+                "%" + promoKeyword + "%");
+            if (!promos.isEmpty()) {
+                whereClause += " AND idpromotion = '" + promos.get(0).get("id") + "'";
+                periodeTitre += " - Promotion " + promoKeyword;
+            }
+        }
+        
+        List<Map<String, String>> events = executeSearch(conn,
+            "SELECT c.titre, c.description, c.date_debut, c.date_fin, c.heure_debut, c.heure_fin, " +
+            "c.couleur, COALESCE(p.libelle || ' (' || p.annee || ')', 'Tous') AS promotion " +
+            "FROM calendrier_scolaire c LEFT JOIN promotion p ON c.idpromotion = p.id " +
+            "WHERE 1=1 " + whereClause + " ORDER BY c.date_debut LIMIT 20");
+        
+        sb.append("<h4><i class='fa fa-calendar'></i> ").append(periodeTitre).append("</h4>");
+        
+        if (events.isEmpty()) {
+            sb.append("<p class='text-muted'>Aucun evenement trouve pour cette periode.</p>");
+        } else {
+            sb.append("<div class='event-results'>");
+            for (Map<String, String> ev : events) {
+                String couleur = ev.get("couleur") != null ? ev.get("couleur") : "#0095DA";
+                sb.append("<div class='event-item' style='border-left: 4px solid ").append(couleur).append(";'>");
+                sb.append("<h5 style='color: ").append(couleur).append(";'>").append(escapeHtml(ev.get("titre"))).append("</h5>");
+                sb.append("<p><i class='fa fa-calendar-o'></i> ")
+                  .append(ev.get("date_debut"));
+                if (ev.get("date_fin") != null && !ev.get("date_fin").equals(ev.get("date_debut"))) {
+                    sb.append(" au ").append(ev.get("date_fin"));
+                }
+                if (ev.get("heure_debut") != null) {
+                    sb.append(" <i class='fa fa-clock-o'></i> ").append(ev.get("heure_debut"));
+                    if (ev.get("heure_fin") != null) {
+                        sb.append("-").append(ev.get("heure_fin"));
+                    }
+                }
+                sb.append("</p>");
+                if (ev.get("promotion") != null) {
+                    sb.append("<p><i class='fa fa-users'></i> ").append(ev.get("promotion")).append("</p>");
+                }
+                if (ev.get("description") != null && !ev.get("description").isEmpty()) {
+                    sb.append("<p class='text-muted'>").append(escapeHtml(ev.get("description"))).append("</p>");
+                }
+                sb.append("</div>");
+            }
+            sb.append("</div>");
+        }
+        
+        return sb.toString();
+    }
+
+    /**
+     * Suggere des connexions basees sur le profil utilisateur
+     */
+    private String suggererConnexions(Connection conn, int userId) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<h4><i class='fa fa-users'></i> Suggestions de connexions</h4>");
+        
+        if (userId <= 0) {
+            sb.append("<p class='text-warning'>Connectez-vous pour obtenir des suggestions personnalisees.</p>");
+            return sb.toString();
+        }
+        
+        // Obtenir le profil de l'utilisateur
+        List<Map<String, String>> userProfile = executeSearch(conn,
+            "SELECT idpromotion FROM utilisateur WHERE refuser = ?", String.valueOf(userId));
+        
+        if (userProfile.isEmpty()) {
+            sb.append("<p class='text-muted'>Profil non trouve.</p>");
+            return sb.toString();
+        }
+        
+        String idPromotion = userProfile.get(0).get("idpromotion");
+        
+        // Suggestions 1 : Meme promotion
+        sb.append("<h5>Alumni de votre promotion</h5>");
+        List<Map<String, String>> samePromo = executeSearch(conn,
+            "SELECT u.refuser, u.nomuser, u.prenom, u.mail, p.libelle AS promotion " +
+            "FROM utilisateur u LEFT JOIN promotion p ON u.idpromotion = p.id " +
+            "WHERE u.idpromotion = ? AND u.refuser != ? LIMIT 5",
+            idPromotion, String.valueOf(userId));
+        
+        if (!samePromo.isEmpty()) {
+            sb.append("<ul class='alumni-suggestions'>");
+            for (Map<String, String> alum : samePromo) {
+                sb.append("<li><strong>").append(escapeHtml(alum.get("nomuser")))
+                  .append(" ").append(escapeHtml(alum.get("prenom"))).append("</strong>");
+                if (alum.get("mail") != null) {
+                    sb.append(" - ").append(escapeHtml(alum.get("mail")));
+                }
+                sb.append("</li>");
+            }
+            sb.append("</ul>");
+        } else {
+            sb.append("<p class='text-muted'>Aucun alumni de votre promotion trouve.</p>");
+        }
+        
+        // Suggestions 2 : Domaines similaires (basé sur les experiences)
+        sb.append("<h5>Alumni dans des domaines similaires</h5>");
+        List<Map<String, String>> sameDomain = executeSearch(conn,
+            "SELECT DISTINCT u.refuser, u.nomuser, u.prenom, u.mail, d.libelle AS domaine " +
+            "FROM experience ex1 " +
+            "JOIN experience ex2 ON ex1.iddomaine = ex2.iddomaine " +
+            "JOIN utilisateur u ON ex2.idutilisateur = u.refuser " +
+            "LEFT JOIN domaine d ON ex2.iddomaine = d.id " +
+            "WHERE ex1.idutilisateur = ? AND ex2.idutilisateur != ? LIMIT 5",
+            String.valueOf(userId), String.valueOf(userId));
+        
+        if (!sameDomain.isEmpty()) {
+            sb.append("<ul class='alumni-suggestions'>");
+            for (Map<String, String> alum : sameDomain) {
+                sb.append("<li><strong>").append(escapeHtml(alum.get("nomuser")))
+                  .append(" ").append(escapeHtml(alum.get("prenom"))).append("</strong>");
+                if (alum.get("domaine") != null) {
+                    sb.append(" (").append(escapeHtml(alum.get("domaine"))).append(")");
+                }
+                sb.append("</li>");
+            }
+            sb.append("</ul>");
+        } else {
+            sb.append("<p class='text-muted'>Aucun alumni dans des domaines similaires.</p>");
+        }
+        
+        // Suggestions 3 : Entreprises d'interet
+        sb.append("<h5>Alumni dans des entreprises cibles</h5>");
+        List<Map<String, String>> topCompanies = executeSearch(conn,
+            "SELECT u.nomuser, u.prenom, u.mail, e.libelle AS entreprise, ex.poste " +
+            "FROM experience ex " +
+            "JOIN utilisateur u ON ex.idutilisateur = u.refuser " +
+            "JOIN entreprise e ON ex.identreprise = e.id " +
+            "WHERE e.id IN (SELECT identreprise FROM experience GROUP BY identreprise ORDER BY COUNT(*) DESC LIMIT 5) " +
+            "AND u.refuser != ? AND ex.datefin IS NULL " +
+            "ORDER BY e.libelle LIMIT 10",
+            String.valueOf(userId));
+        
+        if (!topCompanies.isEmpty()) {
+            sb.append("<ul class='alumni-suggestions'>");
+            for (Map<String, String> alum : topCompanies) {
+                sb.append("<li><strong>").append(escapeHtml(alum.get("nomuser")))
+                  .append(" ").append(escapeHtml(alum.get("prenom"))).append("</strong>");
+                sb.append(" - ").append(escapeHtml(alum.get("entreprise")));
+                if (alum.get("poste") != null) {
+                    sb.append(" (").append(escapeHtml(alum.get("poste"))).append(")");
+                }
+                sb.append("</li>");
+            }
+            sb.append("</ul>");
+        } else {
+            sb.append("<p class='text-muted'>Aucune suggestion pour le moment.</p>");
+        }
+        
+        return sb.toString();
+    }
+
+    /**
+     * Recherche dans les publications
+     */
+    private String rechercherPublications(Connection conn, String question) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        
+        String typeFilter = "";
+        String titre = "Publications recentes";
+        
+        if (question.contains("offre") || question.contains("emploi") || question.contains("recrute")) {
+            typeFilter = " AND p.type_publication = 'TYP00002'";
+            titre = "Offres d'emploi";
+        } else if (question.contains("stage")) {
+            typeFilter = " AND p.type_publication = 'TYP00001'";
+            titre = "Offres de stage";
+        } else if (question.contains("evenement")) {
+            typeFilter = " AND p.type_publication = 'TYP00003'";
+            titre = "Evenements";
+        }
+        
+        // Extraire mots-cles pour recherche
+        String[] words = question.split(" ");
+        String searchTerm = "";
+        for (String w : words) {
+            if (w.length() > 4 && !w.equals("publication") && !w.equals("offre") 
+                && !w.equals("stage") && !w.equals("emploi")) {
+                searchTerm = w;
+                break;
+            }
+        }
+        
+        String searchFilter = "";
+        if (!searchTerm.isEmpty()) {
+            searchFilter = " AND (LOWER(p.titre) LIKE LOWER('%" + searchTerm + "%') " +
+                          "OR LOWER(p.contenu) LIKE LOWER('%" + searchTerm + "%'))";
+            titre += " - \"" + searchTerm + "\"";
+        }
+        
+        List<Map<String, String>> pubs = executeSearch(conn,
+            "SELECT p.id, p.titre, p.contenu, p.created_at, p.type_publication, " +
+            "u.nomuser, u.prenom, tp.libelle AS type " +
+            "FROM posts p " +
+            "JOIN utilisateur u ON p.auteur_id = u.refuser " +
+            "LEFT JOIN type_publication tp ON p.type_publication = tp.id " +
+            "WHERE p.supprime = false " + typeFilter + searchFilter +
+            " ORDER BY p.created_at DESC LIMIT 15");
+        
+        sb.append("<h4><i class='fa fa-newspaper-o'></i> ").append(titre).append("</h4>");
+        
+        if (pubs.isEmpty()) {
+            sb.append("<p class='text-muted'>Aucune publication trouvee.</p>");
+        } else {
+            sb.append("<div class='publication-results'>");
+            for (Map<String, String> pub : pubs) {
+                sb.append("<div class='pub-item'>");
+                sb.append("<h5>").append(escapeHtml(pub.get("titre"))).append("</h5>");
+                sb.append("<p class='text-muted'><i class='fa fa-user'></i> ")
+                  .append(escapeHtml(pub.get("prenom"))).append(" ")
+                  .append(escapeHtml(pub.get("nomuser")));
+                if (pub.get("type") != null) {
+                    sb.append(" · ").append(escapeHtml(pub.get("type")));
+                }
+                sb.append("</p>");
+                String contenu = pub.get("contenu");
+                if (contenu != null && contenu.length() > 200) {
+                    contenu = contenu.substring(0, 200) + "...";
+                }
+                sb.append("<p>").append(escapeHtml(contenu)).append("</p>");
+                sb.append("<p class='text-muted'><i class='fa fa-clock-o'></i> ")
+                  .append(pub.get("created_at")).append("</p>");
+                sb.append("</div>");
+            }
+            sb.append("</div>");
+        }
+        
+        return sb.toString();
+    }
+
+    /**
+     * Analyse des parcours professionnels
+     */
+    private String analyserParcours(Connection conn, String question) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        
+        String promoKeyword = extractKeyword(question, new String[]{"promotion", "promo", "diplome", "sortie"});
+        
+        if (promoKeyword != null && !promoKeyword.trim().isEmpty()) {
+            // Analyse pour une promotion specifique
+            List<Map<String, String>> promo = executeSearch(conn,
+                "SELECT id, libelle, annee FROM promotion WHERE LOWER(libelle) LIKE LOWER(?) OR CAST(annee AS VARCHAR) = ?",
+                "%" + promoKeyword + "%", promoKeyword);
+            
+            if (!promo.isEmpty()) {
+                String idPromo = promo.get(0).get("id");
+                String libellePromo = promo.get(0).get("libelle") + " (" + promo.get(0).get("annee") + ")";
+                
+                sb.append("<h4><i class='fa fa-line-chart'></i> Parcours - ").append(libellePromo).append("</h4>");
+                
+                // Nombre d'alumni
+                List<Map<String, String>> count = executeSearch(conn,
+                    "SELECT COUNT(*) AS total FROM utilisateur WHERE idpromotion = ?", idPromo);
+                sb.append("<p><strong>").append(count.get(0).get("total")).append(" alumni</strong></p>");
+                
+                // Top entreprises
+                List<Map<String, String>> topEntreprises = executeSearch(conn,
+                    "SELECT e.libelle, COUNT(DISTINCT ex.idutilisateur) AS nb " +
+                    "FROM experience ex " +
+                    "JOIN utilisateur u ON ex.idutilisateur = u.refuser " +
+                    "JOIN entreprise e ON ex.identreprise = e.id " +
+                    "WHERE u.idpromotion = ? " +
+                    "GROUP BY e.libelle ORDER BY nb DESC LIMIT 5", idPromo);
+                
+                if (!topEntreprises.isEmpty()) {
+                    sb.append("<h5>Top 5 entreprises</h5><ul>");
+                    for (Map<String, String> ent : topEntreprises) {
+                        sb.append("<li><strong>").append(escapeHtml(ent.get("libelle")))
+                          .append("</strong> (").append(ent.get("nb")).append(" alumni)</li>");
+                    }
+                    sb.append("</ul>");
+                }
+                
+                // Domaines principaux
+                List<Map<String, String>> topDomaines = executeSearch(conn,
+                    "SELECT d.libelle, COUNT(DISTINCT ex.idutilisateur) AS nb " +
+                    "FROM experience ex " +
+                    "JOIN utilisateur u ON ex.idutilisateur = u.refuser " +
+                    "JOIN domaine d ON ex.iddomaine = d.id " +
+                    "WHERE u.idpromotion = ? " +
+                    "GROUP BY d.libelle ORDER BY nb DESC LIMIT 5", idPromo);
+                
+                if (!topDomaines.isEmpty()) {
+                    sb.append("<h5>Principaux domaines</h5><ul>");
+                    for (Map<String, String> dom : topDomaines) {
+                        sb.append("<li><strong>").append(escapeHtml(dom.get("libelle")))
+                          .append("</strong> (").append(dom.get("nb")).append(" alumni)</li>");
+                    }
+                    sb.append("</ul>");
+                }
+                
+                // Postes courants
+                List<Map<String, String>> topPostes = executeSearch(conn,
+                    "SELECT ex.poste, COUNT(*) AS nb " +
+                    "FROM experience ex " +
+                    "JOIN utilisateur u ON ex.idutilisateur = u.refuser " +
+                    "WHERE u.idpromotion = ? AND ex.poste IS NOT NULL AND ex.datefin IS NULL " +
+                    "GROUP BY ex.poste ORDER BY nb DESC LIMIT 5", idPromo);
+                
+                if (!topPostes.isEmpty()) {
+                    sb.append("<h5>Postes actuels</h5><ul>");
+                    for (Map<String, String> poste : topPostes) {
+                        sb.append("<li><strong>").append(escapeHtml(poste.get("poste")))
+                          .append("</strong> (").append(poste.get("nb")).append(")</li>");
+                    }
+                    sb.append("</ul>");
+                }
+            } else {
+                sb.append("<p class='text-warning'>Promotion non trouvee.</p>");
+            }
+        } else {
+            // Parcours general
+            sb.append("<h4><i class='fa fa-line-chart'></i> Analyse des parcours ITU</h4>");
+            
+            sb.append("<h5>Secteurs les plus prises</h5>");
+            List<Map<String, String>> secteurs = executeSearch(conn,
+                "SELECT d.libelle, COUNT(DISTINCT ex.idutilisateur) AS nb " +
+                "FROM experience ex " +
+                "JOIN domaine d ON ex.iddomaine = d.id " +
+                "GROUP BY d.libelle ORDER BY nb DESC LIMIT 8");
+            
+            if (!secteurs.isEmpty()) {
+                sb.append("<ul>");
+                for (Map<String, String> s : secteurs) {
+                    sb.append("<li><strong>").append(escapeHtml(s.get("libelle")))
+                      .append("</strong> : ").append(s.get("nb")).append(" alumni</li>");
+                }
+                sb.append("</ul>");
+            }
+            
+            sb.append("<h5>Entreprises qui recrutent le plus d'ITU</h5>");
+            List<Map<String, String>> employeurs = executeSearch(conn,
+                "SELECT e.libelle, COUNT(DISTINCT ex.idutilisateur) AS nb " +
+                "FROM experience ex " +
+                "JOIN entreprise e ON ex.identreprise = e.id " +
+                "GROUP BY e.libelle ORDER BY nb DESC LIMIT 10");
+            
+            if (!employeurs.isEmpty()) {
+                sb.append("<ul>");
+                for (Map<String, String> emp : employeurs) {
+                    sb.append("<li><strong>").append(escapeHtml(emp.get("libelle")))
+                      .append("</strong> : ").append(emp.get("nb")).append(" alumni</li>");
+                }
+                sb.append("</ul>");
+            }
+        }
+        
+        return sb.toString();
+    }
+
+    /**
+     * Aide a la navigation
+     */
+    private String aiderNavigation(String question) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<h4><i class='fa fa-question-circle'></i> Aide a la navigation</h4>");
+        
+        if (question.contains("creer") || question.contains("publier")) {
+            if (question.contains("publication") || question.contains("post")) {
+                sb.append("<h5>Creer une publication</h5>");
+                sb.append("<ol>");
+                sb.append("<li>Cliquez sur <strong>Publications</strong> dans le menu</li>");
+                sb.append("<li>Cliquez sur le bouton <strong>+ Nouvelle publication</strong></li>");
+                sb.append("<li>Choisissez le type (Stage, Emploi, Evenement, Actualite)</li>");
+                sb.append("<li>Remplissez le titre et le contenu</li>");
+                sb.append("<li>Ajoutez des topics (facultatif)</li>");
+                sb.append("<li>Cliquez sur <strong>Publier</strong></li>");
+                sb.append("</ol>");
+            }
+        } else if (question.contains("modifier") || question.contains("editer")) {
+            if (question.contains("profil")) {
+                sb.append("<h5>Modifier votre profil</h5>");
+                sb.append("<ol>");
+                sb.append("<li>Cliquez sur votre nom en haut a droite</li>");
+                sb.append("<li>Selectionnez <strong>Mon profil</strong></li>");
+                sb.append("<li>Cliquez sur <strong>Modifier le profil</strong></li>");
+                sb.append("<li>Modifiez vos informations</li>");
+                sb.append("<li>Cliquez sur <strong>Enregistrer</strong></li>");
+                sb.append("</ol>");
+            } else if (question.contains("experience")) {
+                sb.append("<h5>Modifier une experience</h5>");
+                sb.append("<ol>");
+                sb.append("<li>Allez sur <strong>Mon profil</strong></li>");
+                sb.append("<li>Section <strong>Experiences professionnelles</strong></li>");
+                sb.append("<li>Cliquez sur l'icone <i class='fa fa-edit'></i> de l'experience</li>");
+                sb.append("<li>Modifiez les informations</li>");
+                sb.append("<li>Cliquez sur <strong>Enregistrer</strong></li>");
+                sb.append("</ol>");
+            }
+        } else if (question.contains("signaler") || question.contains("report")) {
+            sb.append("<h5>Signaler un contenu</h5>");
+            sb.append("<ol>");
+            sb.append("<li>Ouvrez la publication concernee</li>");
+            sb.append("<li>Cliquez sur le bouton <strong>Signaler</strong></li>");
+            sb.append("<li>Selectionnez le motif du signalement</li>");
+            sb.append("<li>Ajoutez un commentaire (facultatif)</li>");
+            sb.append("<li>Cliquez sur <strong>Envoyer</strong></li>");
+            sb.append("</ol>");
+        } else if (question.contains("evenement") || question.contains("calendrier")) {
+            sb.append("<h5>Consulter le calendrier</h5>");
+            sb.append("<ol>");
+            sb.append("<li>Cliquez sur <strong>Calendrier</strong> dans le menu</li>");
+            sb.append("<li>Naviguez entre les mois avec les fleches</li>");
+            sb.append("<li>Cliquez sur un jour pour voir les evenements</li>");
+            sb.append("<li>Utilisez le filtre pour afficher une promotion specifique</li>");
+            sb.append("</ol>");
+            sb.append("<p class='text-muted'>Note: Seuls les administrateurs peuvent creer des evenements.</p>");
+        } else {
+            sb.append("<p>Je peux vous aider avec :</p>");
+            sb.append("<ul>");
+            sb.append("<li><strong>Creer une publication</strong></li>");
+            sb.append("<li><strong>Modifier votre profil</strong></li>");
+            sb.append("<li><strong>Signaler un contenu</strong></li>");
+            sb.append("<li><strong>Consulter le calendrier</strong></li>");
+            sb.append("<li><strong>Gerer vos experiences</strong></li>");
+            sb.append("</ul>");
+            sb.append("<p>Posez une question plus specifique pour obtenir de l'aide detaillee !</p>");
+        }
+        
+        return sb.toString();
+    }
+
+    /**
+     * Generation d'export de donnees
+     */
+    private String genererExport(Connection conn, String question, HttpServletRequest request) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<h4><i class='fa fa-download'></i> Export de donnees</h4>");
+        
+        // Determiner le type d'export
+        String exportType = "alumni";
+        if (question.contains("entreprise")) {
+            exportType = "entreprises";
+        } else if (question.contains("experience")) {
+            exportType = "experiences";
+        } else if (question.contains("publication")) {
+            exportType = "publications";
+        } else if (question.contains("statistique") || question.contains("rapport")) {
+            exportType = "statistiques";
+        }
+        
+        sb.append("<p>Generation d'un export <strong>").append(exportType).append("</strong> en cours...</p>");
+        sb.append("<div class='alert alert-info'>");
+        sb.append("<i class='fa fa-info-circle'></i> ");
+        sb.append("Pour generer un export CSV, utilisez le module d'export dans le menu principal. ");
+        sb.append("Vous pourrez filtrer les donnees et choisir les colonnes a exporter.");
+        sb.append("</div>");
+        
+        // Lien vers le module d'export (à créer)
+        String lien = (String) request.getSession().getValue("lien");
+        if (lien != null) {
+            sb.append("<p><a href='").append(lien).append("?but=export/export-").append(exportType)
+              .append(".jsp' class='btn btn-primary'><i class='fa fa-download'></i> Acceder au module d'export</a></p>");
+        }
+        
+        // Apercu des données
+        sb.append("<h5>Apercu des donnees disponibles :</h5>");
+        
+        if (exportType.equals("alumni")) {
+            List<Map<String, String>> count = executeSearch(conn,
+                "SELECT COUNT(*) AS total FROM utilisateur");
+            sb.append("<p><strong>").append(count.get(0).get("total")).append(" alumni</strong> dans la base</p>");
+            
+            List<Map<String, String>> byPromo = executeSearch(conn,
+                "SELECT p.libelle, p.annee, COUNT(u.refuser) AS nb " +
+                "FROM promotion p " +
+                "LEFT JOIN utilisateur u ON p.id = u.idpromotion " +
+                "GROUP BY p.libelle, p.annee ORDER BY p.annee DESC LIMIT 10");
+            
+            if (!byPromo.isEmpty()) {
+                sb.append("<ul>");
+                for (Map<String, String> p : byPromo) {
+                    sb.append("<li>").append(escapeHtml(p.get("libelle")))
+                      .append(" (").append(p.get("annee")).append(") : ")
+                      .append(p.get("nb")).append(" alumni</li>");
+                }
+                sb.append("</ul>");
+            }
+        }
+        
+        return sb.toString();
+    }
+
+    /**
+     * Recupere l'ID utilisateur depuis la session
+     */
+    private int getUserIdFromSession(HttpServletRequest request) {
+        try {
+            Object userObj = request.getSession().getValue("u");
+            if (userObj != null) {
+                // Utiliser reflection pour obtenir l'ID
+                java.lang.reflect.Method getUser = userObj.getClass().getMethod("getUser");
+                Object user = getUser.invoke(userObj);
+                java.lang.reflect.Method getRefuser = user.getClass().getMethod("getRefuser");
+                return (Integer) getRefuser.invoke(user);
+            }
+        } catch (Exception e) {
+            System.out.println("[AlumniChat] Erreur recuperation userId: " + e.getMessage());
+        }
+        return -1;
     }
 
     private String escapeHtml(String text) {
