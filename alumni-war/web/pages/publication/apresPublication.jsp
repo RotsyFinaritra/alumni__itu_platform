@@ -479,6 +479,7 @@ try {
         newSig.setPost_id(sigPostId);
         newSig.setIdmotifsignalement(idmotifsignalement);
         newSig.setIdstatutsignalement("SSIG00001"); // En attente
+        newSig.setCreated_at(new java.sql.Timestamp(System.currentTimeMillis()));
         if (sigDescription != null && !sigDescription.trim().isEmpty()) {
             newSig.setDescription(sigDescription.trim());
         }

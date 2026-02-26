@@ -260,12 +260,8 @@ function saveInteretsPage() {
     xhr.open('GET', '<%= lien %>?but=publication/apresInterets.jsp&acte=saveInterets&topics=' + topicIds.join(','), true);
     xhr.onreadystatechange = function() {
         if (xhr.readyState === 4 && xhr.status === 200) {
-            // Afficher toast
-            var toast = document.createElement('div');
-            toast.className = 'toast-notif';
-            toast.innerHTML = '<i class="fa fa-check-circle"></i> Int\u00e9r\u00eats enregistr\u00e9s !';
-            document.body.appendChild(toast);
-            setTimeout(function() { toast.remove(); }, 2500);
+            // Rediriger vers l'accueil (fil de publications)
+            window.location.href = '<%= lien %>?but=accueil.jsp';
         }
     };
     xhr.send();

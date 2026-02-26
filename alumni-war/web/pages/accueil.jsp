@@ -18,6 +18,7 @@
     UtilisateurAcade userCritere = new UtilisateurAcade();
     // Ne pas utiliser setters car CGenUtil applique UPPER() qui échoue sur integers
     Object[] userResult = CGenUtil.rechercher(userCritere, null, null, " AND refuser = " + refuserInt);
+    boolean isEtudiant = false;
     if (userResult != null && userResult.length > 0) {
         UtilisateurAcade userInfo = (UtilisateurAcade) userResult[0];
         prenomUser = userInfo.getPrenom() != null ? userInfo.getPrenom() : "";
@@ -28,6 +29,7 @@
             }
             photoUser = request.getContextPath() + "/profile-photo?file=" + photoFileName;
         }
+        isEtudiant = "TU0000002".equals(userInfo.getIdtypeutilisateur());
     }
     
     // === STATISTIQUES ===
@@ -210,6 +212,7 @@
     <div class="feed-main">
         
         <!-- Formulaire de création de publication -->
+        <% if (!isEtudiant) { %>
         <div class="create-post-compact">
             <form action="<%= lien %>?but=publication/apresPublicationFichier.jsp" method="post" id="formPublication" enctype="multipart/form-data">
                 <input type="hidden" name="idtypepublication" value="TYP00004">
@@ -271,6 +274,7 @@
                 </div>
             </form>
         </div>
+        <% } %>
         
         <!-- Fil d'actualité -->
         <% if (postsResult == null || postsResult.length == 0) { %>
