@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict l8UQ6PzeOColZlFLOqiZSGeLACtG9xnfP1Des201VsfvgLWfkwsiGulu2VzZ7pJ
+\restrict 7dz4xDoy9Q6yiXly6BIGdhzAtILmYNhhhl6gAQf23mTWjKFQPVddyrBpi4pew8b
 
 -- Dumped from database version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.11 (Ubuntu 16.11-0ubuntu0.24.04.1)
@@ -2355,6 +2355,21 @@ $$;
 ALTER FUNCTION public.getseqcaisse() OWNER TO postgres;
 
 --
+-- Name: getseqcalendrierscolaire(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.getseqcalendrierscolaire() RETURNS integer
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    RETURN nextval('seq_calendrier_scolaire');
+END;
+$$;
+
+
+ALTER FUNCTION public.getseqcalendrierscolaire() OWNER TO postgres;
+
+--
 -- Name: getseqcanevatache(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -2929,10 +2944,7 @@ ALTER FUNCTION public.getseqfournisseur() OWNER TO postgres;
 
 CREATE FUNCTION public.getseqgroupemembres() RETURNS integer
     LANGUAGE plpgsql
-    AS $$ 
-BEGIN 
-    RETURN (SELECT nextval('seq_groupe_membres')); 
-END $$;
+    AS $$ BEGIN RETURN (SELECT nextval('seqgroupemembres')); END $$;
 
 
 ALTER FUNCTION public.getseqgroupemembres() OWNER TO postgres;
@@ -2943,10 +2955,7 @@ ALTER FUNCTION public.getseqgroupemembres() OWNER TO postgres;
 
 CREATE FUNCTION public.getseqgroupes() RETURNS integer
     LANGUAGE plpgsql
-    AS $$ 
-BEGIN 
-    RETURN (SELECT nextval('seq_groupes')); 
-END $$;
+    AS $$ BEGIN RETURN (SELECT nextval('seqgroupes')); END $$;
 
 
 ALTER FUNCTION public.getseqgroupes() OWNER TO postgres;
@@ -4973,6 +4982,67 @@ CREATE TABLE public.annulationutilisateur (
 ALTER TABLE public.annulationutilisateur OWNER TO postgres;
 
 --
+-- Name: calendrier_scolaire; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.calendrier_scolaire (
+    id character varying(10) NOT NULL,
+    titre character varying(200) NOT NULL,
+    description text,
+    date_debut date NOT NULL,
+    date_fin date,
+    heure_debut character varying(10),
+    heure_fin character varying(10),
+    couleur character varying(20) DEFAULT '#0095DA'::character varying,
+    idpromotion character varying(10),
+    created_by integer,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE public.calendrier_scolaire OWNER TO postgres;
+
+--
+-- Name: promotion; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.promotion (
+    id character varying(30) NOT NULL,
+    libelle character varying(100) NOT NULL,
+    annee integer NOT NULL,
+    id_option character varying(30)
+);
+
+
+ALTER TABLE public.promotion OWNER TO postgres;
+
+--
+-- Name: calendrier_scolaire_cpl; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.calendrier_scolaire_cpl AS
+ SELECT c.id,
+    c.titre,
+    c.description,
+    c.date_debut,
+    c.date_fin,
+    c.heure_debut,
+    c.heure_fin,
+    c.couleur,
+    c.idpromotion,
+    c.created_by,
+    c.created_at,
+        CASE
+            WHEN (p.libelle IS NOT NULL) THEN ((((p.libelle)::text || ' ('::text) || p.annee) || ')'::text)
+            ELSE 'Tous'::text
+        END AS libpromotion
+   FROM (public.calendrier_scolaire c
+     LEFT JOIN public.promotion p ON (((c.idpromotion)::text = (p.id)::text)));
+
+
+ALTER VIEW public.calendrier_scolaire_cpl OWNER TO postgres;
+
+--
 -- Name: categorie_activite; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -5201,7 +5271,8 @@ CREATE TABLE public.groupes (
     type_groupe character varying(50) DEFAULT 'ouvert'::character varying,
     created_by integer NOT NULL,
     actif integer DEFAULT 1,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    idpromotion character varying(30)
 );
 
 
@@ -5706,20 +5777,6 @@ COMMENT ON TABLE public.posts IS 'Table principale des publications alumni';
 
 
 --
--- Name: promotion; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.promotion (
-    id character varying(30) NOT NULL,
-    libelle character varying(100) NOT NULL,
-    annee integer NOT NULL,
-    id_option character varying(30)
-);
-
-
-ALTER TABLE public.promotion OWNER TO postgres;
-
---
 -- Name: reseau_utilisateur; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -5992,6 +6049,20 @@ CREATE SEQUENCE public.seq_caisse
 
 
 ALTER SEQUENCE public.seq_caisse OWNER TO postgres;
+
+--
+-- Name: seq_calendrier_scolaire; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.seq_calendrier_scolaire
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.seq_calendrier_scolaire OWNER TO postgres;
 
 --
 -- Name: seq_categorie_activite; Type: SEQUENCE; Schema: public; Owner: postgres
@@ -8220,6 +8291,34 @@ CREATE SEQUENCE public.seqfournisseur
 ALTER SEQUENCE public.seqfournisseur OWNER TO postgres;
 
 --
+-- Name: seqgroupemembres; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.seqgroupemembres
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.seqgroupemembres OWNER TO postgres;
+
+--
+-- Name: seqgroupes; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.seqgroupes
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.seqgroupes OWNER TO postgres;
+
+--
 -- Name: seqhistoimport; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -10284,6 +10383,15 @@ COPY public.annulationutilisateur (idannulationuser, refuser, daty) FROM stdin;
 
 
 --
+-- Data for Name: calendrier_scolaire; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.calendrier_scolaire (id, titre, description, date_debut, date_fin, heure_debut, heure_fin, couleur, idpromotion, created_by, created_at) FROM stdin;
+CAL000001	SMATCH'IN	Evenement efa akaiky izy ity ka tongava maro hanohana ny ekipa!	2026-03-13	2026-03-22	08:00	17:00	#99c1f1		1	2026-02-27 00:00:48.046
+\.
+
+
+--
 -- Data for Name: categorie_activite; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -10498,6 +10606,9 @@ categorie_activite
 --
 
 COPY public.groupe_membres (id, idutilisateur, idgroupe, idrole, statut, joined_at) FROM stdin;
+GMBR000001	1	GRP0000001	ROLE00003	actif	2026-02-26 21:59:44.982117
+GMBR000002	122	GRP0000017	ROLE00003	actif	2026-02-26 21:59:44.982117
+GMBR000003	142	GRP0000001	ROLE00003	actif	2026-02-26 21:59:44.982117
 \.
 
 
@@ -10505,7 +10616,32 @@ COPY public.groupe_membres (id, idutilisateur, idgroupe, idrole, statut, joined_
 -- Data for Name: groupes; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.groupes (id, nom, description, photo_couverture, photo_profil, type_groupe, created_by, actif, created_at) FROM stdin;
+COPY public.groupes (id, nom, description, photo_couverture, photo_profil, type_groupe, created_by, actif, created_at, idpromotion) FROM stdin;
+GRP0000001	Promotion Faneva	Espace privé de la promotion Faneva (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P1
+GRP0000002	Promotion Miritsoka	Espace privé de la promotion Miritsoka (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P2
+GRP0000003	Promotion Mampionona	Espace privé de la promotion Mampionona (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P3
+GRP0000004	Promotion Harena	Espace privé de la promotion Harena (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P4
+GRP0000005	Promotion Soa	Espace privé de la promotion Soa (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P5
+GRP0000006	Promotion Tsiky	Espace privé de la promotion Tsiky (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P6
+GRP0000007	Promotion Aina	Espace privé de la promotion Aina (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P7
+GRP0000008	Promotion Miaraka	Espace privé de la promotion Miaraka (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P8
+GRP0000009	Promotion Fanilo	Espace privé de la promotion Fanilo (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P9
+GRP0000010	Promotion Hery	Espace privé de la promotion Hery (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P10
+GRP0000011	Promotion Tiana	Espace privé de la promotion Tiana (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P11
+GRP0000012	Promotion Malala	Espace privé de la promotion Malala (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P12
+GRP0000013	Promotion Mamy	Espace privé de la promotion Mamy (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P13
+GRP0000014	Promotion Sitraka	Espace privé de la promotion Sitraka (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P14
+GRP0000015	Promotion Fitiavana	Espace privé de la promotion Fitiavana (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P15
+GRP0000016	Promotion Hasina	Espace privé de la promotion Hasina (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P16
+GRP0000017	Promotion Ravo	Espace privé de la promotion Ravo (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P17
+GRP0000018	Promotion Fetra	Espace privé de la promotion Fetra (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P18
+GRP0000019	Promotion Tovo	Espace privé de la promotion Tovo (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	P19
+GRP0000020	Promotion Faneva	Espace privé de la promotion Faneva (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	D1
+GRP0000021	Promotion Miritsoka	Espace privé de la promotion Miritsoka (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	D2
+GRP0000022	Promotion Mampionona	Espace privé de la promotion Mampionona (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	D3
+GRP0000023	Promotion Harena	Espace privé de la promotion Harena (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	D4
+GRP0000024	Promotion Soa	Espace privé de la promotion Soa (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	D5
+GRP0000025	Promotion Tsiky	Espace privé de la promotion Tsiky (année 2026)	\N	\N	promotion	1	1	2026-02-26 21:59:44.982117	D6
 \.
 
 
@@ -10736,6 +10872,32 @@ EX0002876701	2026-02-26	14:02:28:999	mg.cnaps.utilisateur.CNAPSUser	login	142	14
 EX0002876721	2026-02-26	14:05:15:375	mg.cnaps.utilisateur.CNAPSUser	login	1	1
 EX0002876741	2026-02-26	14:06:17:266	mg.cnaps.utilisateur.CNAPSUser	login	1	1
 EX0002876761	2026-02-26	14:19:18:422	mg.cnaps.utilisateur.CNAPSUser	login	1	1
+EX0002876781	2026-02-26	14:32:51:457	mg.cnaps.utilisateur.CNAPSUser	login	1	1
+EX0002876801	2026-02-26	14:54:09:118	mg.cnaps.utilisateur.CNAPSUser	login	122	122
+EX0002876821	2026-02-26	15:57:28:29	bean.Parcours	Insertion par 122	122	PARC000061
+EX0002876822	2026-02-26	15:57:28:30	bean.Parcours	Insertion par 122	122	PARC000062
+EX0002876841	2026-02-26	15:57:50:81	bean.Parcours	Suppression par 122	122	PARC000062
+EX0002876861	2026-02-26	15:04:32:853	mg.cnaps.utilisateur.CNAPSUser	login	122	122
+EX0002876881	2026-02-26	15:06:55:974	mg.cnaps.utilisateur.CNAPSUser	login	142	142
+EX0002876901	2026-02-26	15:09:22:807	mg.cnaps.utilisateur.CNAPSUser	login	142	142
+EX0002876921	2026-02-26	15:11:18:565	mg.cnaps.utilisateur.CNAPSUser	login	1	1
+EX0002876941	2026-02-26	15:12:57:590	mg.cnaps.utilisateur.CNAPSUser	login	142	142
+EX0002876961	2026-02-26	22:03:14:582	mg.cnaps.utilisateur.CNAPSUser	login	1	1
+EX0002876981	2026-02-26	22:14:22:097	mg.cnaps.utilisateur.CNAPSUser	login	122	122
+EX0002877001	2026-02-26	23:27:18:27	bean.Signalement	Insertion par 122	122	SIG000002
+EX0002877021	2026-02-26	22:27:24:611	mg.cnaps.utilisateur.CNAPSUser	login	1	1
+EX0002877041	2026-02-26	22:30:38:980	mg.cnaps.utilisateur.CNAPSUser	login	122	122
+EX0002877061	2026-02-26	22:31:56:616	mg.cnaps.utilisateur.CNAPSUser	login	1	1
+EX0002877081	2026-02-26	23:32:15:11	bean.Signalement	Insertion par 1	1	SIG000003
+EX0002877101	2026-02-26	22:32:26:521	mg.cnaps.utilisateur.CNAPSUser	login	1	1
+EX0002877121	2026-02-26	22:36:55:928	mg.cnaps.utilisateur.CNAPSUser	login	122	122
+EX0002877141	2026-02-26	22:38:31:832	mg.cnaps.utilisateur.CNAPSUser	login	122	122
+EX0002877161	2026-02-26	23:19:22:812	mg.cnaps.utilisateur.CNAPSUser	login	122	122
+EX0002877181	2026-02-26	23:40:10:208	mg.cnaps.utilisateur.CNAPSUser	login	122	122
+EX0002877201	2026-02-26	23:56:08:525	mg.cnaps.utilisateur.CNAPSUser	login	122	122
+EX0002877221	2026-02-26	23:57:43:466	mg.cnaps.utilisateur.CNAPSUser	login	122	122
+EX0002877241	2026-02-26	23:59:08:240	mg.cnaps.utilisateur.CNAPSUser	login	1	1
+EX0002877261	2026-02-27	01:00:48:06	bean.CalendrierScolaire	Insertion par 1	1	CAL000001
 \.
 
 
@@ -10791,6 +10953,10 @@ MENDYNADMIN-2	Historique	history	module.jsp?but=moderation/moderation-historique
 MENDYNADMIN-3	Publications	article	module.jsp?but=moderation/publication-admin-liste.jsp	3	2	MENDYNADMIN
 MENDYNADMIN-4	Signalements	report	module.jsp?but=moderation/signalement-liste.jsp	4	2	MENDYNADMIN
 MENUALUMNICHAT	Assistant IA	chat	module.jsp?but=chatbot/alumni-chat.jsp	5	1	\N
+MENDYNPROMO	Espace Promotion	school	module.jsp?but=promotion/espace-promotion.jsp	6	1	\N
+MENDYN007	Calendrier	calendar_today	#	5	1	\N
+MENDYN007-1	Calendrier scolaire	event	module.jsp?but=calendrier/calendrier-scolaire.jsp	1	2	MENDYN007
+MENDYN007-2	Gérer événements	edit_calendar	module.jsp?but=calendrier/evenement-liste.jsp	2	2	MENDYN007
 \.
 
 
@@ -10803,6 +10969,7 @@ MU001	82	1	banni	\N	2026-02-23 10:45:05.151189	\N
 MOD000001	82	1	leve	Débannissement par administrateur	2026-02-25 12:37:39.066	\N
 MOD000002	82	1	banni	Miteny ratsy	2026-02-26 14:05:40.246	2026-02-28
 MOD000003	82	1	leve	Débannissement par administrateur	2026-02-26 14:06:28.922	\N
+MOD000004	82	1	banni	MIteny ratsy	2026-02-26 14:48:13.512	\N
 \.
 
 
@@ -10864,6 +11031,7 @@ CRY000008	5	0	142
 COPY public.parcours (id, datedebut, datefin, idutilisateur, iddiplome, iddomaine, idecole) FROM stdin;
 PARC000021	2023-10-23	\N	1	DIPL0001	DOM00001	ECOL0001
 PARC000041	2026-02-24	\N	1	DIPL0002	DOM00002	ECOL0003
+PARC000061	2026-02-26	\N	122	DIPL0001	DOM00001	ECOL0001
 \.
 
 
@@ -10939,6 +11107,14 @@ POST000006	\N	\N	3	2026-02-25	2026-05-13	0.00	DIPL0001	\N	0	10	test@gmail.com	03
 --
 
 COPY public.post_topics (id, post_id, topic_id, created_at) FROM stdin;
+PTOP00001X	POST000006	TOP00010	2026-02-25 18:34:24.305768
+PTOP00002X	POST000007	TOP00011	2026-02-25 18:45:39.752038
+PTOP00003X	POST000008	TOP00011	2026-02-25 19:02:49.899277
+PTOP00004X	POST000010	TOP00022	2026-02-25 21:50:51.982988
+PTOP00005X	POST000011	TOP00022	2026-02-25 21:52:01.60642
+PTOP00006X	POST000014	TOP00011	2026-02-25 23:08:48.932
+PTOP00007X	POST000015	TOP00011	2026-02-26 14:00:08.114
+PTOP00008X	POST000016	TOP00011	2026-02-26 14:00:56.733
 \.
 
 
@@ -10954,8 +11130,9 @@ POST000011	1	\N	TYP00003	STAT00001	VISI00001		0	0	\N	0	0	0	2026-02-25 21:52:01.6
 POST000014	1	\N	TYP00002	STAT00002	VISI00001		0	0	\N	2	1	0	2026-02-25 23:08:48.932	\N	\N
 POST000006	1	\N	TYP00001	STAT00001	VISI00001		0	0	\N	0	0	0	2026-02-25 18:34:24.305768	\N	\N
 POST000015	142	\N	TYP00002	STAT00002	VISI00001		0	0	\N	0	0	0	2026-02-26 14:00:08.114	\N	\N
-POST000016	142	\N	TYP00002	STAT00002	VISI00001		0	0	\N	0	0	0	2026-02-26 14:00:56.733	\N	\N
-POST000017	142	\N	TYP00002	STAT00002	VISI00001		0	0	\N	0	0	0	2026-02-26 14:01:13.874	\N	\N
+POST000017	142	\N	TYP00002	STAT00005	VISI00001		0	1	2026-02-26 15:12:43.883	0	0	0	2026-02-26 14:01:13.874	\N	\N
+POST000016	142	\N	TYP00002	STAT00005	VISI00001		0	1	2026-02-26 22:34:39.062	0	0	0	2026-02-26 14:00:56.733	\N	\N
+POST000018	122	GRP0000017	TYP00004	STAT00002	VISI00004	Ho ataontsika tsara ny presentation rahampitso!	0	0	\N	0	0	0	2026-02-26 22:45:29.777	\N	\N
 \.
 
 
@@ -11051,6 +11228,7 @@ enseignant	Enseignant	4
 --
 
 COPY public.signalements (id, idutilisateur, post_id, commentaire_id, idmotifsignalement, idstatutsignalement, description, traite_par, traite_at, decision, created_at) FROM stdin;
+SIG000003	1	POST000016	\N	MSIG00002	SSIG00003	Cette publication ne doit pas etre la.	1	2026-02-26 22:34:39.103	Publication supprimée suite à signalement	2026-02-26 22:32:15.099
 \.
 
 
@@ -11226,6 +11404,10 @@ USRM_ETU_1	\N	MENDYNCARRIERE-2-2	etudiant	\N	\N	1
 USRM_ETU_2	\N	MENDYNCARRIERE-3-2	etudiant	\N	\N	1
 USRM_ETU_3	\N	MENDYNCARRIERE-4-2	etudiant	\N	\N	1
 USRMCHAT	*	MENUALUMNICHAT	\N	\N	\N	0
+USRM_PROMO	*	MENDYNPROMO	\N	\N	\N	0
+USRM_CAL_ALL	*	MENDYN007	\N	\N	\N	0
+USRM_CAL_ALL_1	*	MENDYN007-1	\N	\N	\N	0
+USRM_CAL_ADMIN	\N	MENDYN007-2	admin	\N	\N	0
 \.
 
 
@@ -11246,6 +11428,10 @@ COPY public.utilisateur (refuser, loginuser, pwduser, nomuser, adruser, teluser,
 --
 
 COPY public.utilisateur_interets (id, idutilisateur, topic_id, created_at) FROM stdin;
+UINT000001	122	TOP00023	2026-02-26 22:19:31.827
+UINT000002	122	TOP00012	2026-02-26 22:19:31.829
+UINT000003	122	TOP00001	2026-02-26 22:19:31.829
+UINT000004	122	TOP00024	2026-02-26 22:19:31.83
 \.
 
 
@@ -11260,6 +11446,9 @@ COPY public.utilisateur_specialite (idutilisateur, idspecialite) FROM stdin;
 1	SPEC0004
 1	SPEC0007
 1	SPEC0008
+122	SPEC0001
+122	SPEC0007
+122	SPEC0002
 \.
 
 
@@ -11293,13 +11482,14 @@ VISI00004	Promotion	promotion	fa-graduation-cap	#f39c12	\N	1	4	2026-02-24 17:38:
 
 COPY public.visibilite_utilisateur (idutilisateur, nomchamp, visible) FROM stdin;
 1	teluser	0
-1	adruser	1
+122	mail	0
 1	photo	1
 1	prenom	1
 1	nomuser	1
 1	loginuser	1
 1	idpromotion	1
 1	mail	0
+1	adruser	0
 \.
 
 
@@ -11399,6 +11589,13 @@ SELECT pg_catalog.setval('public.seq_branche', 223, true);
 --
 
 SELECT pg_catalog.setval('public.seq_caisse', 1, false);
+
+
+--
+-- Name: seq_calendrier_scolaire; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.seq_calendrier_scolaire', 1, true);
 
 
 --
@@ -11930,7 +12127,7 @@ SELECT pg_catalog.setval('public.seq_post_topics', 1, false);
 -- Name: seq_posts; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.seq_posts', 17, true);
+SELECT pg_catalog.setval('public.seq_posts', 18, true);
 
 
 --
@@ -12007,7 +12204,7 @@ SELECT pg_catalog.setval('public.seq_serveur', 1, true);
 -- Name: seq_signalements; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.seq_signalements', 1, true);
+SELECT pg_catalog.setval('public.seq_signalements', 3, true);
 
 
 --
@@ -12224,7 +12421,7 @@ SELECT pg_catalog.setval('public.seq_typetache', 20, true);
 -- Name: seq_utilisateur_interets; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.seq_utilisateur_interets', 1, false);
+SELECT pg_catalog.setval('public.seq_utilisateur_interets', 4, true);
 
 
 --
@@ -12515,6 +12712,20 @@ SELECT pg_catalog.setval('public.seqfournisseur', 1, false);
 
 
 --
+-- Name: seqgroupemembres; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.seqgroupemembres', 3, true);
+
+
+--
+-- Name: seqgroupes; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.seqgroupes', 25, true);
+
+
+--
 -- Name: seqhistoimport; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -12525,7 +12736,7 @@ SELECT pg_catalog.setval('public.seqhistoimport', 6960, true);
 -- Name: seqhistorique; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.seqhistorique', 2876780, true);
+SELECT pg_catalog.setval('public.seqhistorique', 2877280, true);
 
 
 --
@@ -12602,7 +12813,7 @@ SELECT pg_catalog.setval('public.seqmetierrelation', 1, true);
 -- Name: seqmoderationutilisateur; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.seqmoderationutilisateur', 3, true);
+SELECT pg_catalog.setval('public.seqmoderationutilisateur', 4, true);
 
 
 --
@@ -12679,7 +12890,7 @@ SELECT pg_catalog.setval('public.seqparamcrypt', 8, true);
 -- Name: seqparcours; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.seqparcours', 60, true);
+SELECT pg_catalog.setval('public.seqparcours', 80, true);
 
 
 --
@@ -13039,6 +13250,14 @@ ALTER TABLE ONLY public.action
 
 ALTER TABLE ONLY public.annulationutilisateur
     ADD CONSTRAINT annulationutilisateur_pkey PRIMARY KEY (idannulationuser);
+
+
+--
+-- Name: calendrier_scolaire calendrier_scolaire_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.calendrier_scolaire
+    ADD CONSTRAINT calendrier_scolaire_pkey PRIMARY KEY (id);
 
 
 --
@@ -13956,6 +14175,14 @@ CREATE TRIGGER trigger_init_places_restantes BEFORE INSERT ON public.post_activi
 
 
 --
+-- Name: calendrier_scolaire calendrier_scolaire_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.calendrier_scolaire
+    ADD CONSTRAINT calendrier_scolaire_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.utilisateur(refuser);
+
+
+--
 -- Name: commentaires commentaires_idutilisateur_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -14097,6 +14324,14 @@ ALTER TABLE ONLY public.groupe_membres
 
 ALTER TABLE ONLY public.groupes
     ADD CONSTRAINT groupes_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.utilisateur(refuser);
+
+
+--
+-- Name: groupes groupes_idpromotion_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.groupes
+    ADD CONSTRAINT groupes_idpromotion_fkey FOREIGN KEY (idpromotion) REFERENCES public.promotion(id);
 
 
 --
@@ -14412,14 +14647,6 @@ ALTER TABLE ONLY public.signalements
 
 
 --
--- Name: signalements signalements_traite_par_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.signalements
-    ADD CONSTRAINT signalements_traite_par_fkey FOREIGN KEY (traite_par) REFERENCES public.utilisateur(refuser);
-
-
---
 -- Name: stage_competence stage_competence_idcompetence_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -14527,5 +14754,5 @@ ALTER TABLE ONLY public.visibilite_utilisateur
 -- PostgreSQL database dump complete
 --
 
-\unrestrict l8UQ6PzeOColZlFLOqiZSGeLACtG9xnfP1Des201VsfvgLWfkwsiGulu2VzZ7pJ
+\unrestrict 7dz4xDoy9Q6yiXly6BIGdhzAtILmYNhhhl6gAQf23mTWjKFQPVddyrBpi4pew8b
 

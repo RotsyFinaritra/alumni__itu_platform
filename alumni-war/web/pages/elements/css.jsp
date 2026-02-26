@@ -1,5 +1,5 @@
 <%--material icon--%>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=add,arrow_drop_down,article,badge,business_center,chat,check,chevron_left,chevron_right,crop_landscape,crop_portrait,dashboard,event,event_available,event_note,file_export,filter_alt,group,history,list,list_alt,lock,more_vert,note_add,person,post_add,report,school,search,shield,star,unfold_less,unfold_more,view_column,work" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=add,arrow_drop_down,article,badge,business_center,calendar_today,chat,check,chevron_left,chevron_right,crop_landscape,crop_portrait,dashboard,edit_calendar,event,event_available,event_note,file_export,filter_alt,group,history,list,list_alt,lock,more_vert,note_add,person,post_add,report,school,search,shield,star,unfold_less,unfold_more,view_column,work" />
 <!-- jQuery 2.1.4 -->
 <script src="${pageContext.request.contextPath}/plugins/jQuery/jQuery-2.1.4.min.js"></script>
 <link href="${pageContext.request.contextPath}/plugins/select2/select2.min.css" rel="stylesheet" type="text/css" />
