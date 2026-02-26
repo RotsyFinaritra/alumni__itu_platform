@@ -42,36 +42,90 @@
     // Charger les types de notification pour le filtre
     TypeNotification[] typesNotif = (TypeNotification[]) CGenUtil.rechercher(new TypeNotification(), null, null, " AND actif = 1 ORDER BY ordre");
     
-    // Construire la requete SQL avec jointures
+    // Construire la requete SQL avec UNION pour grouper les likes par post
     Connection conn = new UtilDB().GetConn();
     
+    // Filtres WHERE communs
+    StringBuilder whereFilter = new StringBuilder();
+    List<Object> filterParams = new ArrayList<>();
+    
+    if (typeFilter != null && !typeFilter.isEmpty()) {
+        whereFilter.append(" AND n.idtypenotification = ?");
+        filterParams.add(typeFilter);
+    }
+    if (vuFilter != null && !vuFilter.isEmpty()) {
+        whereFilter.append(" AND n.vu = ?");
+        filterParams.add(Integer.parseInt(vuFilter));
+    }
+    
+    String filterStr = whereFilter.toString();
+    
+    // Requete UNION : likes groupes par post_id + autres notifications individuelles
     StringBuilder sql = new StringBuilder();
-    sql.append("SELECT n.*, ");
-    sql.append("tn.libelle as type_libelle, tn.icon as type_icon, tn.couleur as type_couleur, ");
-    sql.append("e.nomuser as emetteur_nom, e.prenom as emetteur_prenom, e.photo as emetteur_photo ");
+    
+    // Partie 1: Likes groupes par post_id
+    sql.append("SELECT ");
+    sql.append("  STRING_AGG(n.id, ',' ORDER BY n.created_at DESC) as id, ");
+    sql.append("  n.post_id, n.idutilisateur, MAX(n.idtypenotification) as idtypenotification, ");
+    sql.append("  n.lien, MIN(n.vu) as vu, MAX(n.created_at) as created_at, ");
+    sql.append("  COUNT(*) as like_count, ");
+    sql.append("  STRING_AGG(DISTINCT COALESCE(e.prenom,'') || ' ' || COALESCE(e.nomuser,''), ', ' ORDER BY COALESCE(e.prenom,'') || ' ' || COALESCE(e.nomuser,'')) as all_names, ");
+    sql.append("  (SELECT e2.photo FROM utilisateur e2 WHERE e2.refuser = (SELECT n2.emetteur_id FROM notifications n2 WHERE n2.post_id = n.post_id AND n2.idtypenotification = 'TNOT00001' AND n2.idutilisateur = ? ORDER BY n2.created_at DESC LIMIT 1)) as emetteur_photo, ");
+    sql.append("  tn.libelle as type_libelle, tn.icon as type_icon, tn.couleur as type_couleur, ");
+    sql.append("  'grouped_like' as notif_type ");
     sql.append("FROM notifications n ");
     sql.append("LEFT JOIN type_notification tn ON n.idtypenotification = tn.id ");
     sql.append("LEFT JOIN utilisateur e ON n.emetteur_id = e.refuser ");
-    sql.append("WHERE n.idutilisateur = ? ");
+    sql.append("WHERE n.idutilisateur = ? AND n.idtypenotification = 'TNOT00001' AND n.post_id IS NOT NULL ");
+    sql.append(filterStr);
+    sql.append(" GROUP BY n.post_id, n.idutilisateur, n.lien, tn.libelle, tn.icon, tn.couleur ");
     
-    // Filtres
-    List<Object> params = new ArrayList<>();
-    params.add(refuserInt);
+    sql.append("UNION ALL ");
     
-    if (typeFilter != null && !typeFilter.isEmpty()) {
-        sql.append("AND n.idtypenotification = ? ");
-        params.add(typeFilter);
-    }
-    if (vuFilter != null && !vuFilter.isEmpty()) {
-        sql.append("AND n.vu = ? ");
-        params.add(Integer.parseInt(vuFilter));
-    }
+    // Partie 2: Notifications non-like (individuelles)
+    sql.append("SELECT ");
+    sql.append("  n.id, n.post_id, n.idutilisateur, n.idtypenotification, ");
+    sql.append("  n.lien, n.vu, n.created_at, ");
+    sql.append("  1 as like_count, ");
+    sql.append("  COALESCE(e.prenom,'') || ' ' || COALESCE(e.nomuser,'') as all_names, ");
+    sql.append("  e.photo as emetteur_photo, ");
+    sql.append("  tn.libelle as type_libelle, tn.icon as type_icon, tn.couleur as type_couleur, ");
+    sql.append("  'single' as notif_type ");
+    sql.append("FROM notifications n ");
+    sql.append("LEFT JOIN type_notification tn ON n.idtypenotification = tn.id ");
+    sql.append("LEFT JOIN utilisateur e ON n.emetteur_id = e.refuser ");
+    sql.append("WHERE n.idutilisateur = ? AND n.idtypenotification != 'TNOT00001' ");
+    sql.append(filterStr);
     
-    // Compter le total
-    String countSql = sql.toString().replace("SELECT n.*, tn.libelle as type_libelle, tn.icon as type_icon, tn.couleur as type_couleur, e.nomuser as emetteur_nom, e.prenom as emetteur_prenom, e.photo as emetteur_photo", "SELECT COUNT(*)");
-    PreparedStatement psCount = conn.prepareStatement(countSql);
-    for (int i = 0; i < params.size(); i++) {
-        psCount.setObject(i + 1, params.get(i));
+    sql.append(" ORDER BY created_at DESC ");
+    
+    // Construire les parametres (refuserInt x3 pour sub-select + 2 WHERE + filtres x2)
+    List<Object> allParams = new ArrayList<>();
+    allParams.add(refuserInt); // pour la sous-requete photo
+    allParams.add(refuserInt); // WHERE likes
+    allParams.addAll(filterParams); // filtres likes
+    allParams.add(refuserInt); // WHERE non-likes
+    allParams.addAll(filterParams); // filtres non-likes
+    
+    // Compter le total (via requete separee)
+    StringBuilder countSql = new StringBuilder();
+    countSql.append("SELECT (");
+    countSql.append("  SELECT COUNT(DISTINCT post_id) FROM notifications n WHERE n.idutilisateur = ? AND n.idtypenotification = 'TNOT00001' AND n.post_id IS NOT NULL");
+    countSql.append(filterStr);
+    countSql.append(") + (");
+    countSql.append("  SELECT COUNT(*) FROM notifications n WHERE n.idutilisateur = ? AND n.idtypenotification != 'TNOT00001'");
+    countSql.append(filterStr);
+    countSql.append(")");
+    
+    List<Object> countParams = new ArrayList<>();
+    countParams.add(refuserInt);
+    countParams.addAll(filterParams);
+    countParams.add(refuserInt);
+    countParams.addAll(filterParams);
+    
+    PreparedStatement psCount = conn.prepareStatement(countSql.toString());
+    for (int i = 0; i < countParams.size(); i++) {
+        psCount.setObject(i + 1, countParams.get(i));
     }
     ResultSet rsCount = psCount.executeQuery();
     int totalNotifs = 0;
@@ -81,14 +135,14 @@
     
     int totalPages = (int) Math.ceil((double) totalNotifs / notifsPerPage);
     
-    // Ajouter ORDER BY et LIMIT
-    sql.append("ORDER BY n.created_at DESC LIMIT ? OFFSET ?");
-    params.add(notifsPerPage);
-    params.add((currentPage - 1) * notifsPerPage);
+    // Ajouter LIMIT et OFFSET au wrapper
+    String finalSql = "SELECT * FROM (" + sql.toString() + ") AS combined LIMIT ? OFFSET ?";
+    allParams.add(notifsPerPage);
+    allParams.add((currentPage - 1) * notifsPerPage);
     
-    PreparedStatement ps = conn.prepareStatement(sql.toString());
-    for (int i = 0; i < params.size(); i++) {
-        ps.setObject(i + 1, params.get(i));
+    PreparedStatement ps = conn.prepareStatement(finalSql);
+    for (int i = 0; i < allParams.size(); i++) {
+        ps.setObject(i + 1, allParams.get(i));
     }
     ResultSet rs = ps.executeQuery();
     
@@ -188,23 +242,66 @@
                     String lastDateGroup = "";
                     while (rs.next()) {
                         String notifId = rs.getString("id");
-                        String contenu = rs.getString("contenu");
                         String lienNotif = rs.getString("lien");
                         int vu = rs.getInt("vu");
                         Timestamp createdAt = rs.getTimestamp("created_at");
                         String typeIcon = rs.getString("type_icon");
                         String typeCouleur = rs.getString("type_couleur");
                         String typeLibelle = rs.getString("type_libelle");
-                        String emetteurNom = rs.getString("emetteur_nom");
-                        String emetteurPrenom = rs.getString("emetteur_prenom");
                         String emetteurPhoto = rs.getString("emetteur_photo");
+                        String notifType = rs.getString("notif_type");
+                        int likeCount = rs.getInt("like_count");
+                        String allNames = rs.getString("all_names");
+                        String postId = rs.getString("post_id");
                         
-                        String emetteurNomComplet = "";
-                        if (emetteurPrenom != null) emetteurNomComplet += emetteurPrenom + " ";
-                        if (emetteurNom != null) emetteurNomComplet += emetteurNom;
+                        // Construire le texte de la notification
+                        String contenuAffiche = "";
+                        boolean isGrouped = "grouped_like".equals(notifType) && likeCount > 1;
+                        
+                        if (isGrouped) {
+                            // Groupé : "Jean, Marie et 3 autres ont aimé votre publication"
+                            String[] names = allNames != null ? allNames.split(", ") : new String[0];
+                            if (likeCount == 2) {
+                                contenuAffiche = "<strong>" + names[0].trim() + "</strong> et <strong>" + (names.length > 1 ? names[1].trim() : "") + "</strong> ont aim&eacute; votre publication";
+                            } else {
+                                int others = likeCount - 1;
+                                contenuAffiche = "<strong>" + (names.length > 0 ? names[0].trim() : "") + "</strong> et <strong>" + others + " autre" + (others > 1 ? "s" : "") + "</strong> ont aim&eacute; votre publication";
+                            }
+                        } else if ("grouped_like".equals(notifType)) {
+                            // Like seul
+                            contenuAffiche = "<strong>" + (allNames != null ? allNames.trim() : "") + "</strong> a aim&eacute; votre publication";
+                        } else {
+                            // Notification normale
+                            String emetteurNomComplet = allNames != null ? allNames.trim() : "";
+                            if (!emetteurNomComplet.isEmpty()) {
+                                contenuAffiche = "<strong>" + emetteurNomComplet + "</strong> ";
+                            }
+                            // Pour les notifs normales, on utilise le contenu stocké
+                            // On fait une sous-requete pour le contenu
+                        }
                         
                         if (typeIcon == null) typeIcon = "fa-bell";
                         if (typeCouleur == null) typeCouleur = "#3498db";
+                        
+                        // Pour les notifs non-like, recuperer le contenu original
+                        String contenuOriginal = null;
+                        if ("single".equals(notifType)) {
+                            PreparedStatement psContenu = conn.prepareStatement("SELECT contenu FROM notifications WHERE id = ?");
+                            psContenu.setString(1, notifId);
+                            ResultSet rsContenu = psContenu.executeQuery();
+                            if (rsContenu.next()) contenuOriginal = rsContenu.getString("contenu");
+                            rsContenu.close();
+                            psContenu.close();
+                            
+                            String emetteurNomComplet = allNames != null ? allNames.trim() : "";
+                            if (!emetteurNomComplet.isEmpty() && contenuOriginal != null) {
+                                contenuAffiche = contenuOriginal;
+                            } else if (contenuOriginal != null) {
+                                contenuAffiche = contenuOriginal;
+                            } else {
+                                contenuAffiche = typeLibelle;
+                            }
+                        }
                         
                         // Grouper par jour
                         String dateGroup = "";
@@ -235,16 +332,19 @@
                             <i class="fa <%= typeIcon %>"></i>
                         </div>
                         <% } %>
+                        <% if (isGrouped) { %>
+                        <span class="notif-avatar-badge"><%= likeCount %></span>
+                        <% } %>
                     </div>
                     <div class="notif-card-body">
-                        <% if (lienNotif != null && !lienNotif.isEmpty()) { %>
-                        <a href="<%= lienNotif %>" class="notif-card-link" onclick="event.preventDefault(); marquerLu('<%= notifId %>', '<%= lienNotif %>')">
+                        <% if (lienNotif != null && !lienNotif.isEmpty()) { 
+                            // Pour les groupes, utiliser le premier ID pour marquer lu
+                            String markId = isGrouped ? notifId : notifId;
+                        %>
+                        <a href="<%= lienNotif %>" class="notif-card-link" onclick="event.preventDefault(); <%= isGrouped ? "marquerLuGroupe('" + postId + "', '" + lienNotif + "')" : "marquerLu('" + notifId + "', '" + lienNotif + "')" %>">
                         <% } %>
                         <p class="notif-card-text">
-                            <% if (!emetteurNomComplet.trim().isEmpty()) { %>
-                            <strong><%= emetteurNomComplet %></strong> 
-                            <% } %>
-                            <%= contenu != null ? contenu : typeLibelle %>
+                            <%= contenuAffiche %>
                         </p>
                         <% if (lienNotif != null && !lienNotif.isEmpty()) { %>
                         </a>
@@ -256,19 +356,24 @@
                             <span class="notif-card-type" style="background-color: <%= typeCouleur %>;">
                                 <i class="fa <%= typeIcon %>"></i> <%= typeLibelle %>
                             </span>
+                            <% if (isGrouped) { %>
+                            <span class="notif-card-count">
+                                <i class="fa fa-heart"></i> <%= likeCount %> j'aime
+                            </span>
+                            <% } %>
                         </div>
                     </div>
                     <div class="notif-card-actions">
                         <% if (vu == 0) { %>
-                        <button type="button" class="notif-action-btn" onclick="marquerLu('<%= notifId %>')" title="Marquer comme lu">
+                        <button type="button" class="notif-action-btn" onclick="<%= isGrouped ? "marquerLuGroupe('" + postId + "')" : "marquerLu('" + notifId + "')" %>" title="Marquer comme lu">
                             <i class="fa fa-check"></i>
                         </button>
                         <% } else { %>
-                        <button type="button" class="notif-action-btn" onclick="marquerNonLu('<%= notifId %>')" title="Marquer comme non lu">
+                        <button type="button" class="notif-action-btn" onclick="<%= isGrouped ? "marquerNonLuGroupe('" + postId + "')" : "marquerNonLu('" + notifId + "')" %>" title="Marquer comme non lu">
                             <i class="fa fa-eye-slash"></i>
                         </button>
                         <% } %>
-                        <button type="button" class="notif-action-btn delete" onclick="supprimerNotif('<%= notifId %>')" title="Supprimer">
+                        <button type="button" class="notif-action-btn delete" onclick="<%= isGrouped ? "supprimerGroupe('" + postId + "')" : "supprimerNotif('" + notifId + "')" %>" title="Supprimer">
                             <i class="fa fa-trash"></i>
                         </button>
                     </div>
@@ -546,6 +651,7 @@
 .notif-card-avatar {
     flex-shrink: 0;
     margin-right: 12px;
+    position: relative;
 }
 .notif-card-avatar img {
     width: 48px;
@@ -564,6 +670,22 @@
 .notif-avatar-placeholder i {
     color: #fff;
     font-size: 20px;
+}
+.notif-avatar-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -4px;
+    background: #ed4956;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
 }
 
 /* Body */
@@ -602,6 +724,11 @@
     border-radius: 3px;
     color: #fff;
     font-weight: 500;
+}
+.notif-card-count {
+    font-size: 12px;
+    color: #ed4956;
+    font-weight: 600;
 }
 
 /* Actions */
@@ -893,6 +1020,24 @@ function supprimerNotif(id) {
 
 function marquerToutLu() {
     window.location.href = lien + '?but=notification/apresNotification.jsp&acte=marquer_tout_lu';
+}
+
+// Actions groupees (likes par post)
+function marquerLuGroupe(postId, redirect) {
+    if (redirect) {
+        window.location.href = lien + '?but=notification/apresNotification.jsp&acte=marquer_lu_groupe&post_id=' + postId + '&redirect=' + encodeURIComponent(redirect);
+    } else {
+        window.location.href = lien + '?but=notification/apresNotification.jsp&acte=marquer_lu_groupe&post_id=' + postId;
+    }
+}
+
+function marquerNonLuGroupe(postId) {
+    window.location.href = lien + '?but=notification/apresNotification.jsp&acte=marquer_non_lu_groupe&post_id=' + postId;
+}
+
+function supprimerGroupe(postId) {
+    if (!confirm('Supprimer toutes les notifications de j\'aime pour cette publication ?')) return;
+    window.location.href = lien + '?but=notification/apresNotification.jsp&acte=supprimer_groupe&post_id=' + postId;
 }
 </script>
 

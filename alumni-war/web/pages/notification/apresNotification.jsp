@@ -13,6 +13,7 @@
         int refuserInt = u.getUser().getRefuser();
         String acte = request.getParameter("acte");
         String id = request.getParameter("id");
+        String postId = request.getParameter("post_id");
         String redirect = request.getParameter("redirect");
         String bute = "notification/notification-liste.jsp";
         
@@ -60,8 +61,47 @@
                 }
             }
         }
+        // === Actions groupees (likes par post) ===
+        else if ("marquer_lu_groupe".equals(acte) && postId != null) {
+            Notification notifCritere = new Notification();
+            Object[] notifs = CGenUtil.rechercher(notifCritere, null, null, 
+                " AND idutilisateur = " + refuserInt + " AND idtypenotification = 'TNOT00001' AND post_id = '" + postId + "' AND vu = 0");
+            if (notifs != null) {
+                java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
+                for (Object obj : notifs) {
+                    Notification n = (Notification) obj;
+                    n.setVu(1);
+                    n.setLu_at(now);
+                    u.updateObject(n);
+                }
+            }
+        }
+        else if ("marquer_non_lu_groupe".equals(acte) && postId != null) {
+            Notification notifCritere = new Notification();
+            Object[] notifs = CGenUtil.rechercher(notifCritere, null, null, 
+                " AND idutilisateur = " + refuserInt + " AND idtypenotification = 'TNOT00001' AND post_id = '" + postId + "' AND vu = 1");
+            if (notifs != null) {
+                for (Object obj : notifs) {
+                    Notification n = (Notification) obj;
+                    n.setVu(0);
+                    n.setLu_at(null);
+                    u.updateObject(n);
+                }
+            }
+        }
+        else if ("supprimer_groupe".equals(acte) && postId != null) {
+            Notification notifCritere = new Notification();
+            Object[] notifs = CGenUtil.rechercher(notifCritere, null, null, 
+                " AND idutilisateur = " + refuserInt + " AND idtypenotification = 'TNOT00001' AND post_id = '" + postId + "'");
+            if (notifs != null) {
+                for (Object obj : notifs) {
+                    Notification n = (Notification) obj;
+                    u.deleteObject(n);
+                }
+            }
+        }
         
-        if (redirect != null && !redirect.isEmpty() && "marquer_lu".equals(acte)) {
+        if (redirect != null && !redirect.isEmpty() && (acte != null && acte.contains("marquer_lu"))) {
 %><script language="JavaScript">document.location.replace("<%=redirect%>");</script><%
         } else {
 %><script language="JavaScript">document.location.replace("<%=lien%>?but=<%=bute%>");</script><%
