@@ -13,6 +13,7 @@
 <%@ page import="org.apache.commons.fileupload.FileItem" %>
 <%@ page import="affichage.*" %>
 <%@ page import="java.sql.Timestamp" %>
+<%@ page import="utils.PublicationPermission" %>
 
 <!DOCTYPE html>
 <html>
@@ -116,6 +117,22 @@
 
         String postId = formParams.get("id");
         String id = postId;
+
+        // ========================
+        // CONTRÔLE D'ACCÈS AVANT INSERT
+        // ========================
+        boolean isInsertAction = acte.toLowerCase().startsWith("insert");
+        if (isInsertAction && !PublicationPermission.peutPublier(u)) {
+            String messageErreur = PublicationPermission.getMessageErreur(u);
+%>
+<script>
+    alert('<%= messageErreur.replace("'", "\\'") %>');
+    window.location.href = '<%=lien%>?but=carriere/carriere-accueil.jsp';
+</script>
+<%
+            return;
+        }
+        // ========================
 
         // Repertoire d'upload pour les fichiers de carriere
         String uploadDir = System.getProperty("jboss.server.base.dir") +

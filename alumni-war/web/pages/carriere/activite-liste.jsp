@@ -2,7 +2,12 @@
 <%@page import="affichage.PageRecherche" %>
 <%@page import="bean.PostActiviteLib" %>
 <%@page import="utilitaire.Utilitaire" %>
+<%@page import="utils.PublicationPermission" %>
+<%@page import="user.UserEJB" %>
 <% try {
+    UserEJB u = (UserEJB) session.getValue("u");
+    boolean peutAjouter = PublicationPermission.afficherBoutonAjouter(u);
+    int pubRestantes = PublicationPermission.publicationsRestantes(u);
     PostActiviteLib t = new PostActiviteLib();
 
     String[] listeCrt = {"titre", "categorie_libelle", "lieu", "auteur_nom", "created_at"};
@@ -48,9 +53,18 @@
     </section>
     <section class="content">
         <div style="margin-bottom:10px; text-align:right;">
-            <a href="<%=pr.getLien()%>?but=carriere/activite-saisie.jsp" class="btn btn-danger btn-sm">
-                <i class="fa fa-plus"></i> Nouvelle activit&eacute;
-            </a>
+            <% if (peutAjouter) { %>
+                <% if (pubRestantes > 0 && pubRestantes < 100) { %>
+                    <span class="badge badge-info" style="margin-right:10px;">
+                        <i class="fa fa-info-circle"></i> <%= pubRestantes %> publication(s) restante(s) aujourd'hui
+                    </span>
+                <% } %>
+                <a href="<%=pr.getLien()%>?but=carriere/activite-saisie.jsp" class="btn btn-danger btn-sm">
+                    <i class="fa fa-plus"></i> Nouvelle activit&eacute;
+                </a>
+            <% } else { %>
+                <span class="text-muted"><i class="fa fa-lock"></i> Publication r&eacute;serv&eacute;e aux alumni et enseignants</span>
+            <% } %>
         </div>
         <form action="<%=pr.getLien()%>?but=<%= pr.getApres() %>" method="post">
             <% out.println(pr.getFormu().getHtmlEnsemble()); %>

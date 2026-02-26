@@ -49,60 +49,6 @@ SELECT
     p.created_at,
     p.edited_at,
     p.edited_by,
-    -- Infos utilisateur
-    u.nomuser,
-    u.prenom,
-    u.mail as email_auteur,
-    u.photo as photo_auteur,
-    CONCAT(u.nomuser, ' ', u.prenom) as nom_complet,
-    -- Type publication
-    tp.libelle as type_libelle,
-    tp.code as type_code,
-    tp.icon as type_icon,
-    tp.couleur as type_couleur,
-    -- Statut publication
-    sp.libelle as statut_libelle,
-    sp.code as statut_code,
-    sp.couleur as statut_couleur,
-    -- Visibilité
-    vp.libelle as visibilite_libelle,
-    vp.code as visibilite_code,
-    -- Groupe (optionnel)
-    g.nom as groupe_nom,
-    -- Statistiques réelles
-    (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as nb_likes_reel,
-    (SELECT COUNT(*) FROM commentaires WHERE post_id = p.id AND supprime = 0) as nb_commentaires_reel,
-    (SELECT COUNT(*) FROM partages WHERE post_id = p.id) as nb_partages_reel,
-    (SELECT COUNT(*) FROM post_fichiers WHERE post_id = p.id) as nb_fichiers,
-    (SELECT COUNT(*) FROM signalements WHERE post_id = p.id) as nb_signalements
-FROM posts p
-LEFT JOIN utilisateur u ON u.refuser = p.idutilisateur
-LEFT JOIN type_publication tp ON tp.id = p.idtypepublication
-LEFT JOIN statut_publication sp ON sp.id = p.idstatutpublication
-LEFT JOIN visibilite_publication vp ON vp.id = p.idvisibilite
-LEFT JOIN groupes g ON g.id = p.idgroupe;
-
-COMMIT;
-
-DROP VIEW IF EXISTS v_posts_admin;
-CREATE OR REPLACE VIEW v_posts_admin AS
-SELECT 
-    p.id,
-    p.idutilisateur,
-    p.idgroupe,
-    p.idtypepublication,
-    p.idstatutpublication,
-    p.idvisibilite,
-    p.contenu,
-    p.epingle,
-    p.supprime,
-    p.date_suppression,
-    p.nb_likes,
-    p.nb_commentaires,
-    p.nb_partages,
-    p.created_at,
-    p.edited_at,
-    p.edited_by,
     u.nomuser,
     u.prenom,
     u.mail as email_auteur,
