@@ -184,9 +184,28 @@ public class UtilisateurPg extends ClassMAPTable {
     }
 
     /**
-     * Rétrograder un utilisateur en utilisateur simple.
+     * Rétrograder un admin vers le rôle correspondant à son type d'utilisateur.
+     * - TU0000001 (Alumni) → 'alumni'
+     * - TU0000002 (Étudiant) → 'etudiant'
+     * - TU0000003 (Enseignant) → 'enseignant'
      */
     public static void retrograder(int refuserCible, Connection con) throws Exception {
-        changerRole(refuserCible, "utilisateur", con);
+        // Récupérer l'utilisateur via approche objet (CGenUtil)
+        UtilisateurPg critere = new UtilisateurPg();
+        critere.setRefuser(refuserCible);
+        
+        Object[] resultats = bean.CGenUtil.rechercher(critere, "", con);
+        
+        if (resultats == null || resultats.length == 0) {
+            throw new Exception("Utilisateur introuvable (refuser=" + refuserCible + ")");
+        }
+        
+        UtilisateurPg utilisateur = (UtilisateurPg) resultats[0];
+        
+        // Déterminer le rôle approprié basé sur le type d'utilisateur
+        String nouveauRole = getIdRoleEquivalent(utilisateur.getIdtypeutilisateur());
+        
+        // Appliquer le nouveau rôle
+        changerRole(refuserCible, nouveauRole, con);
     }
 }
