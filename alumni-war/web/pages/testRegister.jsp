@@ -10,6 +10,9 @@
 <%@ page import="org.apache.commons.fileupload.disk.DiskFileItemFactory" %>
 <%@ page import="org.apache.commons.fileupload.servlet.ServletFileUpload" %>
 <%@ page import="java.util.HashMap" %>
+<%@ page import="bean.Groupe" %>
+<%@ page import="bean.GroupeMembre" %>
+<%@ page import="bean.CGenUtil" %>
 
 <%
     // Constants for password encryption (same as admin)
@@ -152,6 +155,30 @@
         // Create ParamCrypt record for the new user
         ParamCrypt paramCrypt = new ParamCrypt(CRYPT_NIVEAU, CRYPT_CROISSANTE, String.valueOf(newUserId));
         paramCrypt.createObject("SYSTEM", c);
+
+        // Ajouter l'utilisateur au groupe de sa promotion
+        if (idpromotion != null && !idpromotion.trim().isEmpty()) {
+            try {
+                Object[] groupeResult = CGenUtil.rechercher(new Groupe(), null, null, 
+                    " AND idpromotion = '" + idpromotion.trim() + "' AND actif = 1");
+                if (groupeResult != null && groupeResult.length > 0) {
+                    Groupe groupe = (Groupe) groupeResult[0];
+                    GroupeMembre gm = new GroupeMembre();
+                    gm.construirePK(c);
+                    gm.setIdutilisateur(newUserId);
+                    gm.setIdgroupe(groupe.getId());
+                    gm.setIdrole("ROLE00003"); // Membre
+                    gm.setStatut("actif");
+                    gm.setJoined_at(new java.sql.Timestamp(System.currentTimeMillis()));
+                    gm.insertToTable(c);
+                    System.out.println("Registration: User " + newUserId + " added to group " + groupe.getId() + " (promotion " + idpromotion + ")");
+                }
+            } catch (Exception gmEx) {
+                System.err.println("Warning: Could not add user to promotion group: " + gmEx.getMessage());
+                // Ne pas bloquer l'inscription si l'ajout au groupe échoue
+            }
+        }
+
         // Commit transaction
         c.commit();
 

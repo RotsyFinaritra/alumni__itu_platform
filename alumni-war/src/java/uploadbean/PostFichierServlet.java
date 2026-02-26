@@ -76,6 +76,11 @@ public class PostFichierServlet extends HttpServlet {
         if (asyncFile.exists()) {
             return asyncFile;
         }
+        // Chercher dans dossier.war/post_fichiers/
+        File postFichiersFile = new File(StringUtil.PATH_DIR + File.separator + "post_fichiers" + File.separator + chemin);
+        if (postFichiersFile.exists()) {
+            return postFichiersFile;
+        }
         // Fallback: essayer dans dossier.war/ directement
         File directFile = new File(StringUtil.PATH_DIR + File.separator + chemin);
         if (directFile.exists()) {

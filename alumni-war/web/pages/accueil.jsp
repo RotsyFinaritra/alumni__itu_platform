@@ -56,14 +56,14 @@
     TypePublication[] typesPublication = (TypePublication[]) CGenUtil.rechercher(new TypePublication(), null, null, " AND actif = 1 ORDER BY ordre");
     VisibilitePublication[] visibilites = (VisibilitePublication[]) CGenUtil.rechercher(new VisibilitePublication(), null, null, " AND actif = 1 ORDER BY ordre");
     
-    // Charger les publications via CGenUtil
+    // Charger les publications via CGenUtil (exclure les posts de promotion/groupe)
     Post postFilter = new Post();
-    String apresWherePost = " AND supprime = 0 ORDER BY created_at DESC LIMIT " + postsPerPage + " OFFSET " + ((currentPage - 1) * postsPerPage);
+    String apresWherePost = " AND supprime = 0 AND (idvisibilite IS NULL OR idvisibilite != 'VISI00004') AND (idgroupe IS NULL OR idgroupe = '') ORDER BY created_at DESC LIMIT " + postsPerPage + " OFFSET " + ((currentPage - 1) * postsPerPage);
     Object[] postsResult = CGenUtil.rechercher(postFilter, null, null, apresWherePost);
     
-    // Compter le total pour pagination
+    // Compter le total pour pagination (exclure les posts de promotion/groupe)
     Post totalFilter = new Post();
-    Object[] allPostsResult = CGenUtil.rechercher(totalFilter, null, null, " AND supprime = 0");
+    Object[] allPostsResult = CGenUtil.rechercher(totalFilter, null, null, " AND supprime = 0 AND (idvisibilite IS NULL OR idvisibilite != 'VISI00004') AND (idgroupe IS NULL OR idgroupe = '')");
     int totalPosts = (allPostsResult != null) ? allPostsResult.length : 0;
     int totalPages = (int) Math.ceil((double) totalPosts / postsPerPage);
 %>
@@ -98,38 +98,47 @@
     <!-- ========== FIL D'ACTUALITÉ (CENTRE) ========== -->
     <div class="feed-main">
         
-        <!-- Formulaire de création de publication (compact) -->
+        <!-- Formulaire de création de publication -->
         <div class="create-post-compact">
-            <div class="create-header">
-                <img class="avatar-sm" src="<%= photoUser %>" alt="Photo">
-                <form action="<%= lien %>?but=publication/apresPublicationFichier.jsp" method="post" id="formPublication" class="create-form" enctype="multipart/form-data">
-                    <div class="create-input-container">
-                        <textarea name="contenu" class="create-input" placeholder="Quoi de neuf, <%= prenomUser %> ?" required rows="1" oninput="autoResize(this)"></textarea>
-                        <div id="file-preview-container" class="file-preview-container" style="display:none;">
-                            <div class="file-preview-item">
-                                <i class="fa fa-file file-icon"></i>
-                                <span id="file-preview-name" class="file-preview-name"></span>
-                                <button type="button" class="file-remove-btn" onclick="removeFile()"><i class="fa fa-times"></i></button>
-                            </div>
-                        </div>
+            <form action="<%= lien %>?but=publication/apresPublicationFichier.jsp" method="post" id="formPublication" enctype="multipart/form-data">
+                <input type="hidden" name="idtypepublication" value="TYP00004">
+                <input type="hidden" name="idvisibilite" value="VISI00001">
+                <input type="hidden" name="acte" value="insert">
+                <input type="hidden" name="bute" value="accueil.jsp">
+                <input type="file" id="fileInput" name="fichier" style="display:none;" onchange="previewFile(this)" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx">
+
+                <!-- Zone fichier en premier -->
+                <div id="file-drop-zone" class="file-drop-zone" onclick="document.getElementById('fileInput').click()">
+                    <div id="file-drop-placeholder" class="file-drop-placeholder">
+                        <i class="fa fa-cloud-upload"></i>
+                        <span>Ajouter une photo ou un fichier</span>
                     </div>
-                    <input type="hidden" name="idtypepublication" value="TYP00004">
-                    <input type="hidden" name="idvisibilite" value="VISI00001">
-                    <input type="hidden" name="acte" value="insert">
-                    <input type="hidden" name="bute" value="accueil.jsp">
-                    <input type="file" id="fileInput" name="fichier" style="display:none;" onchange="previewFile(this)" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx">
-                    <button type="button" class="btn-attach" onclick="document.getElementById('fileInput').click()" title="Joindre un fichier"><i class="fa fa-paperclip"></i></button>
-                    <button type="submit" class="btn-post"><i class="fa fa-paper-plane"></i></button>
-                </form>
-            </div>
-            <div class="create-actions">
-                <a href="<%= lien %>?but=carriere/emploi-saisie.jsp" class="action-link">
-                    <i class="fa fa-briefcase"></i> Offre d'emploi
-                </a>
-                <a href="<%= lien %>?but=carriere/stage-saisie.jsp" class="action-link">
-                    <i class="fa fa-graduation-cap"></i> Stage
-                </a>
-            </div>
+                    <div id="file-preview-container" class="file-preview-container" style="display:none;">
+                        <div class="file-preview-item">
+                            <i class="fa fa-file file-icon"></i>
+                            <span id="file-preview-name" class="file-preview-name"></span>
+                            <button type="button" class="file-remove-btn" onclick="event.stopPropagation(); removeFile()"><i class="fa fa-times"></i></button>
+                        </div>
+                        <img id="file-preview-img" class="file-preview-img" style="display:none;" />
+                    </div>
+                </div>
+
+                <!-- Zone texte + actions -->
+                <div class="create-bottom">
+                    <img class="avatar-sm" src="<%= photoUser %>" alt="Photo">
+                    <textarea name="contenu" class="create-input" placeholder="Quoi de neuf, <%= prenomUser %> ?" required rows="1" oninput="autoResize(this)"></textarea>
+                    <button type="submit" class="btn-post" title="Publier"><i class="fa fa-paper-plane"></i></button>
+                </div>
+
+                <div class="create-actions">
+                    <a href="<%= lien %>?but=carriere/emploi-saisie.jsp" class="action-link">
+                        <i class="fa fa-briefcase"></i> Emploi
+                    </a>
+                    <a href="<%= lien %>?but=carriere/stage-saisie.jsp" class="action-link">
+                        <i class="fa fa-graduation-cap"></i> Stage
+                    </a>
+                </div>
+            </form>
         </div>
         
         <!-- Fil d'actualité -->
@@ -567,157 +576,71 @@
 
 .sidebar-inner {
     position: sticky;
-    top: 20px;
+    top: 70px;
     width: 290px;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
 }
 
 /* ========== CREATE POST COMPACT ========== */
 .create-post-compact {
     background: #fff;
-    border: 1px solid #dbdbdb;
-    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
     margin-bottom: 20px;
-    padding: 12px 16px;
-}
-
-.create-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
+    overflow: hidden;
 }
 
 .avatar-sm {
-    width: 38px;
-    height: 38px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     object-fit: cover;
+    flex-shrink: 0;
 }
 
-.create-form {
-    flex: 1;
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-}
-
-.create-input:focus {
-    background: #fff;
-    border-color: #0095f6;
-}
-
-.btn-post {
-    background: #0095f6;
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
+/* --- File drop zone (premier) --- */
+.file-drop-zone {
+    border-bottom: 1px solid #f0f0f0;
     cursor: pointer;
+    transition: background 0.2s;
+}
+.file-drop-zone:hover {
+    background: #fafbfc;
+}
+.file-drop-placeholder {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s;
-}
-
-.btn-post:hover {
-    background: #0081d6;
-}
-
-.create-actions {
-    display: flex;
     gap: 8px;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid #efefef;
-}
-
-.action-link {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 6px;
+    padding: 18px 16px;
+    color: #8e8e8e;
     font-size: 13px;
-    color: #65676b;
-    text-decoration: none;
-    transition: background 0.2s;
 }
-
-.action-link:hover {
-    background: #f0f2f5;
-    color: #050505;
+.file-drop-placeholder i {
+    font-size: 18px;
+    color: #b0b0b0;
 }
-
-.action-link i {
-    font-size: 16px;
-}
-
-.action-link:nth-child(1) i { color: #0a66c2; }
-.action-link:nth-child(2) i { color: #7c3aed; }
-
-/* ========== FILE PREVIEW & ATTACH ========== */
-.create-input-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.create-input {
-    width: 100%;
-    border: 1px solid #e0e0e0;
-    border-radius: 20px;
-    padding: 10px 16px;
-    font-size: 14px;
-    background: #f5f5f5;
-    outline: none;
-    transition: all 0.2s;
-    resize: none;
-    min-height: 38px;
-    max-height: 120px;
-    overflow-y: auto;
-    font-family: inherit;
-    line-height: 1.4;
-}
-
-.btn-attach {
-    background: transparent;
-    color: #65676b;
-    border: none;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    font-size: 16px;
-}
-
-.btn-attach:hover {
-    background: #f0f2f5;
+.file-drop-zone:hover .file-drop-placeholder i {
     color: #0095f6;
+}
+.file-drop-zone:hover .file-drop-placeholder {
+    color: #555;
 }
 
 .file-preview-container {
-    background: #f8f9fa;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 8px 12px;
+    padding: 10px 16px;
 }
-
 .file-preview-item {
     display: flex;
     align-items: center;
     gap: 10px;
+    margin-bottom: 6px;
 }
-
 .file-icon {
     color: #0095f6;
-    font-size: 18px;
+    font-size: 16px;
 }
-
 .file-preview-name {
     flex: 1;
     font-size: 13px;
@@ -726,21 +649,106 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-
+.file-preview-img {
+    max-height: 160px;
+    max-width: 100%;
+    border-radius: 8px;
+    object-fit: cover;
+}
 .file-remove-btn {
     background: transparent;
     border: none;
-    color: #dc3545;
+    color: #999;
     cursor: pointer;
-    font-size: 14px;
-    padding: 4px;
+    font-size: 13px;
+    padding: 4px 6px;
     border-radius: 4px;
-    transition: background 0.2s;
+    transition: all 0.15s;
+}
+.file-remove-btn:hover {
+    background: #fee;
+    color: #dc3545;
 }
 
-.file-remove-btn:hover {
-    background: #ffebee;
+/* --- Bottom: avatar + textarea + submit --- */
+.create-bottom {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
 }
+
+.create-input {
+    flex: 1;
+    border: none;
+    padding: 8px 0;
+    font-size: 14px;
+    background: transparent;
+    outline: none;
+    resize: none;
+    min-height: 34px;
+    max-height: 100px;
+    overflow-y: auto;
+    font-family: inherit;
+    line-height: 1.4;
+    color: #262626;
+}
+.create-input::placeholder {
+    color: #b0b0b0;
+}
+
+.btn-post {
+    background: #0095f6;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    flex-shrink: 0;
+    font-size: 13px;
+}
+.btn-post:hover {
+    background: #0081d6;
+}
+
+/* --- Actions row --- */
+.create-actions {
+    display: flex;
+    gap: 0;
+    border-top: 1px solid #f0f0f0;
+}
+
+.action-link {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #65676b;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+.action-link:hover {
+    background: #f7f8fa;
+    color: #333;
+    text-decoration: none;
+}
+.action-link + .action-link {
+    border-left: 1px solid #f0f0f0;
+}
+.action-link i {
+    font-size: 14px;
+}
+.action-link:nth-child(1) i { color: #0a66c2; }
+.action-link:nth-child(2) i { color: #7c3aed; }
 
 /* ========== POST CARDS ========== */
 .post-card {
@@ -1610,12 +1618,13 @@ function previewFile(input) {
     var container = document.getElementById('file-preview-container');
     var nameSpan = document.getElementById('file-preview-name');
     var iconElem = container.querySelector('.file-icon');
+    var placeholder = document.getElementById('file-drop-placeholder');
+    var previewImg = document.getElementById('file-preview-img');
     
     if (input.files && input.files[0]) {
         var file = input.files[0];
         nameSpan.textContent = file.name;
         
-        // Changer l'icône selon le type
         var ext = file.name.split('.').pop().toLowerCase();
         var iconClass = 'fa-file';
         if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
@@ -1631,9 +1640,24 @@ function previewFile(input) {
         }
         iconElem.className = 'fa ' + iconClass + ' file-icon';
         
+        // Image preview
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                previewImg.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewImg.style.display = 'none';
+        }
+        
+        placeholder.style.display = 'none';
         container.style.display = 'block';
     } else {
+        placeholder.style.display = 'flex';
         container.style.display = 'none';
+        previewImg.style.display = 'none';
     }
 }
 
@@ -1641,6 +1665,8 @@ function removeFile() {
     var input = document.getElementById('fileInput');
     input.value = '';
     document.getElementById('file-preview-container').style.display = 'none';
+    document.getElementById('file-preview-img').style.display = 'none';
+    document.getElementById('file-drop-placeholder').style.display = 'flex';
 }
 </script>
 

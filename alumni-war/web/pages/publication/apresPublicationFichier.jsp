@@ -15,6 +15,7 @@ try {
     String contenu = null;
     String idtypepublication = "TYP00004";
     String idvisibilite = "VISI00001";
+    String idgroupe = null;
     String acte = null;
     
     FileItem fichierItem = null;
@@ -37,6 +38,8 @@ try {
                     idtypepublication = fieldValue;
                 } else if ("idvisibilite".equals(fieldName)) {
                     idvisibilite = fieldValue;
+                } else if ("idgroupe".equals(fieldName)) {
+                    idgroupe = fieldValue;
                 } else if ("acte".equals(fieldName)) {
                     acte = fieldValue;
                 } else if ("bute".equals(fieldName)) {
@@ -54,6 +57,7 @@ try {
         contenu = request.getParameter("contenu");
         idtypepublication = request.getParameter("idtypepublication");
         idvisibilite = request.getParameter("idvisibilite");
+        idgroupe = request.getParameter("idgroupe");
         acte = request.getParameter("acte");
         bute = request.getParameter("bute");
         if (bute == null) bute = "accueil.jsp";
@@ -76,10 +80,14 @@ try {
         post.setIdtypepublication(idtypepublication != null ? idtypepublication : "TYP00004");
         post.setIdvisibilite(idvisibilite != null ? idvisibilite : "VISI00001");
         post.setIdstatutpublication("STAT00002"); // Publié
+        if (idgroupe != null && !idgroupe.trim().isEmpty()) {
+            post.setIdgroupe(idgroupe.trim());
+        }
         post.setSupprime(0);
         post.setNb_likes(0);
         post.setNb_commentaires(0);
         post.setNb_partages(0);
+        post.setCreated_at(new Timestamp(System.currentTimeMillis()));
         
         post.construirePK(conn);
         post.insertToTable(conn);

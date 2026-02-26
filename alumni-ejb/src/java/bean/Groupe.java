@@ -13,6 +13,7 @@ public class Groupe extends ClassMAPTable {
     private int created_by;
     private int actif;
     private Timestamp created_at;
+    private String idpromotion;
 
     public Groupe() {
         super.setNomTable("groupes");
@@ -105,5 +106,13 @@ public class Groupe extends ClassMAPTable {
 
     public void setCreated_at(Timestamp created_at) {
         this.created_at = created_at;
+    }
+
+    public String getIdpromotion() {
+        return idpromotion;
+    }
+
+    public void setIdpromotion(String idpromotion) {
+        this.idpromotion = idpromotion;
     }
 }

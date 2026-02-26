@@ -177,5 +177,10 @@ folder instead of downloading all of them to reduce the load. -->
         background-color: rgba(255, 255, 255, 1);
     }
 
+    /* Fix: override AdminLTE .wrapper overflow:hidden to allow position:sticky */
+    .wrapper {
+        overflow: visible !important;
+    }
+
 </style>
 <!--end SIG-->

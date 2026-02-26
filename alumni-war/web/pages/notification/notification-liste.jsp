@@ -497,8 +497,10 @@
 }
 .notif-sidebar-inner {
     position: sticky;
-    top: 20px;
+    top: 70px;
     width: 290px;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
 }
 
 /* ========== PAGE HEADER ========== */
