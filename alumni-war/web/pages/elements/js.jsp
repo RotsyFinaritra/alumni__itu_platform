@@ -156,13 +156,27 @@
             }
         }
 
+        // Filtrer : ne garder que les champs du premier index (oldIdx)
+        // pour éviter de dupliquer les colonnes N fois (1 par ligne initiale)
+        var champsFiltered = [];
+        for (var i = 0; i < champs.length; i++) {
+            if (!champs[i] || !champs[i].nom) continue;
+            var lastU = champs[i].nom.lastIndexOf('_');
+            if (lastU >= 0) {
+                var idx = champs[i].nom.substring(lastU + 1);
+                if (idx === String(oldIdx)) {
+                    champsFiltered.push(champs[i]);
+                }
+            }
+        }
+
         var row = '<tr id="ligne-multiple-' + newIdx + '">';
         row += '<td style="text-align:center;vertical-align:middle;" align="center">'
              + '<input type="checkbox" value="' + newIdx + '" name="ids" id="checkbox' + newIdx + '"/>'
              + '</td>';
 
-        for (var j = 0; j < champs.length; j++) {
-            var ch = champs[j];
+        for (var j = 0; j < champsFiltered.length; j++) {
+            var ch = champsFiltered[j];
             if (!ch || !ch.visible) continue;
             var cellHtml = ch.html || ch.htmlTableauInsert || '';
             if (oldIdx !== null) {
