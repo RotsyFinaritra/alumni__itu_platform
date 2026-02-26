@@ -182,6 +182,15 @@
 <%--                </li>--%>
 <%--            </ul>--%>
 <%--        </div>--%>
+            <div class="navbar-custom-menu">
+                <ul class="nav navbar-nav">
+                    <li>
+                        <a class="btn-logout-header" href="<%= lien %>?but=deconnexion.jsp" title="D&eacute;connexion">
+                            <i class="fa fa-sign-out"></i> <span class="hidden-xs">D&eacute;connexion</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
     </nav>
 </header>
 <div class="modal fade" id="modalSendMessage" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
