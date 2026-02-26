@@ -1,5 +1,5 @@
 <%@ page pageEncoding="UTF-8" contentType="text/html; charset=UTF-8" %>
-<%@ page import="bean.*, utilitaire.Utilitaire, java.util.*, java.text.SimpleDateFormat" %>
+<%@ page import="bean.*, utilitaire.Utilitaire, utilitaire.UtilDB, java.util.*, java.text.SimpleDateFormat, java.sql.*" %>
 <%@ page import="user.UserEJB, utilisateurAcade.UtilisateurAcade" %>
 <% try {
     UserEJB u = (UserEJB) session.getValue("u");
@@ -56,16 +56,127 @@
     TypePublication[] typesPublication = (TypePublication[]) CGenUtil.rechercher(new TypePublication(), null, null, " AND actif = 1 ORDER BY ordre");
     VisibilitePublication[] visibilites = (VisibilitePublication[]) CGenUtil.rechercher(new VisibilitePublication(), null, null, " AND actif = 1 ORDER BY ordre");
     
-    // Charger les publications via CGenUtil (exclure les posts de promotion/groupe)
-    Post postFilter = new Post();
-    String apresWherePost = " AND supprime = 0 AND (idvisibilite IS NULL OR idvisibilite != 'VISI00004') AND (idgroupe IS NULL OR idgroupe = '') ORDER BY created_at DESC LIMIT " + postsPerPage + " OFFSET " + ((currentPage - 1) * postsPerPage);
-    Object[] postsResult = CGenUtil.rechercher(postFilter, null, null, apresWherePost);
+    // Charger les topics pour le tag manuel
+    Object[] allTopicsResult = CGenUtil.rechercher(new Topic(), null, null, " AND actif = 1 ORDER BY nom");
     
-    // Compter le total pour pagination (exclure les posts de promotion/groupe)
-    Post totalFilter = new Post();
-    Object[] allPostsResult = CGenUtil.rechercher(totalFilter, null, null, " AND supprime = 0 AND (idvisibilite IS NULL OR idvisibilite != 'VISI00004') AND (idgroupe IS NULL OR idgroupe = '')");
-    int totalPosts = (allPostsResult != null) ? allPostsResult.length : 0;
-    int totalPages = (int) Math.ceil((double) totalPosts / postsPerPage);
+    // Vérifier si l'utilisateur a déjà choisi ses intérêts
+    Object[] userInteretsResult = CGenUtil.rechercher(new UtilisateurInteret(), null, null, " AND idutilisateur = " + refuserInt);
+    boolean hasChosenInterets = (userInteretsResult != null && userInteretsResult.length > 0);
+    
+    // Charger les publications via CGenUtil (exclure les posts de promotion/groupe)
+    // === FILTRAGE MIXTE 70/30 BASÉ SUR LES INTÉRÊTS ===
+    Object[] postsResult = null;
+    int totalPosts = 0;
+    int totalPages = 0;
+    
+    if (hasChosenInterets) {
+        // Construire la liste des topic_ids de l'utilisateur
+        StringBuilder topicIdsList = new StringBuilder();
+        for (int i = 0; i < userInteretsResult.length; i++) {
+            UtilisateurInteret ui = (UtilisateurInteret) userInteretsResult[i];
+            if (i > 0) topicIdsList.append(",");
+            topicIdsList.append("'").append(ui.getTopic_id()).append("'");
+        }
+        String topicsIn = topicIdsList.toString();
+        
+        // Calculer les limites 70/30
+        int matchingLimit = (int) Math.ceil(postsPerPage * 0.7);
+        int otherLimit = postsPerPage - matchingLimit;
+        int offset = (currentPage - 1) * postsPerPage;
+        int matchingOffset = (int) Math.ceil(offset * 0.7);
+        int otherOffset = offset - matchingOffset;
+        
+        Connection connFeed = null;
+        try {
+            connFeed = new utilitaire.UtilDB().GetConn();
+            
+            // 1. Posts qui matchent les intérêts de l'utilisateur
+            String sqlMatching = "SELECT DISTINCT p.id FROM posts p " +
+                "INNER JOIN post_topics pt ON pt.post_id = p.id " +
+                "WHERE p.supprime = 0 AND (p.idvisibilite IS NULL OR p.idvisibilite != 'VISI00004') " +
+                "AND (p.idgroupe IS NULL OR p.idgroupe = '') " +
+                "AND pt.topic_id IN (" + topicsIn + ") " +
+                "ORDER BY p.id DESC LIMIT " + matchingLimit + " OFFSET " + matchingOffset;
+            
+            java.sql.Statement stmtMatch = connFeed.createStatement();
+            java.sql.ResultSet rsMatch = stmtMatch.executeQuery(sqlMatching);
+            List<String> matchingIds = new ArrayList<String>();
+            while (rsMatch.next()) {
+                matchingIds.add(rsMatch.getString("id"));
+            }
+            rsMatch.close();
+            stmtMatch.close();
+            
+            // 2. Posts récents qui NE matchent PAS (30%)
+            String excludeClause = "";
+            if (!matchingIds.isEmpty()) {
+                StringBuilder excludeBuilder = new StringBuilder();
+                for (int i = 0; i < matchingIds.size(); i++) {
+                    if (i > 0) excludeBuilder.append(",");
+                    excludeBuilder.append("'").append(matchingIds.get(i)).append("'");
+                }
+                excludeClause = " AND p.id NOT IN (" + excludeBuilder.toString() + ")";
+            }
+            
+            String sqlOther = "SELECT p.id FROM posts p " +
+                "WHERE p.supprime = 0 AND (p.idvisibilite IS NULL OR p.idvisibilite != 'VISI00004') " +
+                "AND (p.idgroupe IS NULL OR p.idgroupe = '')" + excludeClause +
+                " ORDER BY p.created_at DESC LIMIT " + otherLimit + " OFFSET " + otherOffset;
+            
+            java.sql.Statement stmtOther = connFeed.createStatement();
+            java.sql.ResultSet rsOther = stmtOther.executeQuery(sqlOther);
+            List<String> otherIds = new ArrayList<String>();
+            while (rsOther.next()) {
+                otherIds.add(rsOther.getString("id"));
+            }
+            rsOther.close();
+            stmtOther.close();
+            
+            // 3. Combiner : matching d'abord, puis autres
+            List<String> allIds = new ArrayList<String>();
+            allIds.addAll(matchingIds);
+            allIds.addAll(otherIds);
+            
+            // 4. Charger les posts via CGenUtil
+            if (!allIds.isEmpty()) {
+                StringBuilder inClause = new StringBuilder();
+                for (int i = 0; i < allIds.size(); i++) {
+                    if (i > 0) inClause.append(",");
+                    inClause.append("'").append(allIds.get(i)).append("'");
+                }
+                Post postFilter = new Post();
+                postsResult = CGenUtil.rechercher(postFilter, null, null, 
+                    " AND id IN (" + inClause.toString() + ") ORDER BY created_at DESC");
+            }
+            
+            // 5. Compter le total
+            String sqlTotal = "SELECT COUNT(DISTINCT p.id) as cnt FROM posts p " +
+                "WHERE p.supprime = 0 AND (p.idvisibilite IS NULL OR p.idvisibilite != 'VISI00004') " +
+                "AND (p.idgroupe IS NULL OR p.idgroupe = '')";
+            java.sql.Statement stmtTotal = connFeed.createStatement();
+            java.sql.ResultSet rsTotal = stmtTotal.executeQuery(sqlTotal);
+            if (rsTotal.next()) totalPosts = rsTotal.getInt("cnt");
+            rsTotal.close();
+            stmtTotal.close();
+            totalPages = (int) Math.ceil((double) totalPosts / postsPerPage);
+            
+        } catch (Exception feedEx) {
+            feedEx.printStackTrace();
+        } finally {
+            if (connFeed != null) try { connFeed.close(); } catch (Exception ignored) {}
+        }
+        
+    } else {
+        // Pas d'intérêts → affichage chronologique classique
+        Post postFilter = new Post();
+        String apresWherePost = " AND supprime = 0 AND (idvisibilite IS NULL OR idvisibilite != 'VISI00004') AND (idgroupe IS NULL OR idgroupe = '') ORDER BY created_at DESC LIMIT " + postsPerPage + " OFFSET " + ((currentPage - 1) * postsPerPage);
+        postsResult = CGenUtil.rechercher(postFilter, null, null, apresWherePost);
+        
+        Post totalFilter = new Post();
+        Object[] allPostsResult = CGenUtil.rechercher(totalFilter, null, null, " AND supprime = 0 AND (idvisibilite IS NULL OR idvisibilite != 'VISI00004') AND (idgroupe IS NULL OR idgroupe = '')");
+        totalPosts = (allPostsResult != null) ? allPostsResult.length : 0;
+        totalPages = (int) Math.ceil((double) totalPosts / postsPerPage);
+    }
 %>
 
 <%!
@@ -128,6 +239,26 @@
                     <img class="avatar-sm" src="<%= photoUser %>" alt="Photo">
                     <textarea name="contenu" class="create-input" placeholder="Quoi de neuf, <%= prenomUser %> ?" required rows="1" oninput="autoResize(this)"></textarea>
                     <button type="submit" class="btn-post" title="Publier"><i class="fa fa-paper-plane"></i></button>
+                </div>
+
+                <!-- Sélection de topics -->
+                <div class="topic-selector">
+                    <div class="topic-toggle" onclick="toggleTopicChips()">
+                        <i class="fa fa-tags"></i> <span>Ajouter des tags</span>
+                        <i class="fa fa-chevron-down topic-arrow"></i>
+                    </div>
+                    <div class="topic-chips-container" id="topicChipsContainer" style="display:none;">
+                        <% if (allTopicsResult != null) {
+                            for (Object topicObj : allTopicsResult) {
+                                Topic topic = (Topic) topicObj;
+                        %>
+                        <label class="topic-chip" data-topic-id="<%= topic.getId() %>" style="--chip-color: <%= topic.getCouleur() != null ? topic.getCouleur() : "#6c757d" %>">
+                            <input type="checkbox" name="topics" value="<%= topic.getId() %>" style="display:none;" onchange="toggleChipStyle(this)">
+                            <i class="fa <%= topic.getIcon() != null ? topic.getIcon() : "fa-tag" %>"></i>
+                            <span><%= topic.getNom() %></span>
+                        </label>
+                        <% }} %>
+                    </div>
                 </div>
 
                 <div class="create-actions">
@@ -243,6 +374,9 @@
                 fichierFilter.setPost_id(postId);
                 Object[] fichiersResult = CGenUtil.rechercher(fichierFilter, null, null, " ORDER BY ordre");
                 
+                // Charger les topics du post
+                Object[] postTopicsResult = CGenUtil.rechercher(new PostTopic(), null, null, " AND post_id = '" + postId + "'");
+                
                 // Vérifier si l'utilisateur a liké
                 Like likeCheck = new Like();
                 Object[] likeCheckResult = CGenUtil.rechercher(likeCheck, null, null, " AND post_id = '" + postId + "' AND idutilisateur = " + refuserInt);
@@ -283,6 +417,28 @@
             <div class="post-content">
                 <p><%= contenu != null ? contenu : "" %></p>
             </div>
+            
+            <!-- Tags du post -->
+            <% if (postTopicsResult != null && postTopicsResult.length > 0) { %>
+            <div class="post-tags">
+                <% for (Object ptObj : postTopicsResult) {
+                    PostTopic pt = (PostTopic) ptObj;
+                    // Trouver le topic
+                    if (allTopicsResult != null) {
+                        for (Object tObj : allTopicsResult) {
+                            Topic t = (Topic) tObj;
+                            if (t.getId().equals(pt.getTopic_id())) {
+                %>
+                <span class="post-tag" style="--tag-color: <%= t.getCouleur() != null ? t.getCouleur() : "#6c757d" %>">
+                    <i class="fa <%= t.getIcon() != null ? t.getIcon() : "fa-tag" %>"></i> <%= t.getNom() %>
+                </span>
+                <%              break;
+                            }
+                        }
+                    }
+                } %>
+            </div>
+            <% } %>
             
             <!-- Détails Stage -->
             <% if (postStage != null) { %>
@@ -541,6 +697,38 @@
                 </nav>
             </div>
             
+            <!-- Mes intérêts -->
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <span>Mes int&eacute;r&ecirc;ts</span>
+                    <a href="<%= lien %>?but=profil/mes-interets.jsp" class="section-edit-link" title="G&eacute;rer"><i class="fa fa-pencil"></i></a>
+                </div>
+                <div class="sidebar-topics">
+                    <% if (hasChosenInterets) {
+                        for (Object uiObj : userInteretsResult) {
+                            UtilisateurInteret ui = (UtilisateurInteret) uiObj;
+                            // Trouver le topic correspondant
+                            if (allTopicsResult != null) {
+                                for (Object tObj : allTopicsResult) {
+                                    Topic t = (Topic) tObj;
+                                    if (t.getId().equals(ui.getTopic_id())) {
+                    %>
+                    <span class="sidebar-topic-chip" style="--chip-color: <%= t.getCouleur() != null ? t.getCouleur() : "#6c757d" %>">
+                        <i class="fa <%= t.getIcon() != null ? t.getIcon() : "fa-tag" %>"></i> <%= t.getNom() %>
+                    </span>
+                    <%              break;
+                                    }
+                                }
+                            }
+                        }
+                    } else { %>
+                    <a href="<%= lien %>?but=profil/mes-interets.jsp" class="sidebar-choose-interests">
+                        <i class="fa fa-plus-circle"></i> Choisir mes int&eacute;r&ecirc;ts
+                    </a>
+                    <% } %>
+                </div>
+            </div>
+            
             <!-- Footer -->
             <div class="sidebar-footer">
                 <p>Alumni ITU Platform &copy; 2026</p>
@@ -551,6 +739,43 @@
 </div>
     </section>
 </div>
+
+<!-- ========== POPUP CHOIX INTÉRÊTS (premier login) ========== -->
+<% if (!hasChosenInterets) { %>
+<div class="interests-overlay" id="interestsOverlay">
+    <div class="interests-modal">
+        <div class="interests-header">
+            <h2><i class="fa fa-heart"></i> Bienvenue, <%= prenomUser %> !</h2>
+            <p>Choisissez vos centres d'int&eacute;r&ecirc;t pour personnaliser votre fil d'actualit&eacute;.</p>
+        </div>
+        <div class="interests-body">
+            <div class="interests-grid" id="interestsGrid">
+                <% if (allTopicsResult != null) {
+                    for (Object topicObj : allTopicsResult) {
+                        Topic topic = (Topic) topicObj;
+                %>
+                <div class="interest-card" data-topic-id="<%= topic.getId() %>" onclick="toggleInterest(this)" style="--card-color: <%= topic.getCouleur() != null ? topic.getCouleur() : "#6c757d" %>">
+                    <div class="interest-icon">
+                        <i class="fa <%= topic.getIcon() != null ? topic.getIcon() : "fa-tag" %>"></i>
+                    </div>
+                    <span class="interest-name"><%= topic.getNom() %></span>
+                    <div class="interest-check"><i class="fa fa-check"></i></div>
+                </div>
+                <% }} %>
+            </div>
+        </div>
+        <div class="interests-footer">
+            <span class="interests-counter"><span id="selectedCount">0</span> s&eacute;lectionn&eacute;(s)</span>
+            <button class="btn-save-interests" onclick="saveInterests()" id="btnSaveInterests" disabled>
+                <i class="fa fa-check"></i> Confirmer mes int&eacute;r&ecirc;ts
+            </button>
+            <button class="btn-skip-interests" onclick="skipInterests()">
+                Passer pour l'instant
+            </button>
+        </div>
+    </div>
+</div>
+<% } %>
 
 <style>
 /* ========== LAYOUT FEED ========== */
@@ -716,6 +941,68 @@
     background: #0081d6;
 }
 
+/* --- Topic Selector --- */
+.topic-selector {
+    border-top: 1px solid #f0f0f0;
+}
+.topic-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    font-size: 12px;
+    color: #65676b;
+    cursor: pointer;
+    transition: background 0.15s;
+    user-select: none;
+}
+.topic-toggle:hover {
+    background: #f7f8fa;
+    color: #333;
+}
+.topic-toggle .topic-arrow {
+    margin-left: auto;
+    font-size: 10px;
+    transition: transform 0.2s;
+}
+.topic-toggle.open .topic-arrow {
+    transform: rotate(180deg);
+}
+.topic-chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 14px 12px;
+}
+.topic-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1.5px solid #e0e0e0;
+    font-size: 11px;
+    font-weight: 500;
+    color: #555;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+.topic-chip:hover {
+    border-color: var(--chip-color, #6c757d);
+    color: var(--chip-color, #6c757d);
+    background: color-mix(in srgb, var(--chip-color, #6c757d) 6%, white);
+}
+.topic-chip.selected {
+    border-color: var(--chip-color, #6c757d);
+    background: var(--chip-color, #6c757d);
+    color: #fff;
+}
+.topic-chip i {
+    font-size: 11px;
+}
+
 /* --- Actions row --- */
 .create-actions {
     display: flex;
@@ -868,6 +1155,26 @@
     white-space: pre-wrap;
     color: #262626;
 }
+
+/* Post tags */
+.post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 0 16px 12px;
+}
+.post-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--tag-color, #6c757d);
+    background: color-mix(in srgb, var(--tag-color, #6c757d) 8%, white);
+}
+.post-tag i { font-size: 9px; }
 
 /* ========== POST ACTIONS (LIKE INSTAGRAM) ========== */
 .post-actions {
@@ -1192,6 +1499,48 @@
     margin: 0;
 }
 
+/* Sidebar topics */
+.section-edit-link {
+    color: #999;
+    font-size: 12px;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+.section-edit-link:hover { color: #0095f6; text-decoration: none; }
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.sidebar-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+}
+.sidebar-topic-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--chip-color, #6c757d);
+    background: color-mix(in srgb, var(--chip-color, #6c757d) 10%, white);
+    border: 1px solid color-mix(in srgb, var(--chip-color, #6c757d) 20%, white);
+}
+.sidebar-topic-chip i { font-size: 10px; }
+.sidebar-choose-interests {
+    font-size: 12px;
+    color: #0095f6;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.sidebar-choose-interests:hover { text-decoration: underline; }
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 992px) {
     .feed-sidebar {
@@ -1403,6 +1752,173 @@
     background: #b2dffc;
     cursor: not-allowed;
 }
+
+/* ========== POPUP INTERESTS ========== */
+.interests-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.interests-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 580px;
+    max-width: 92vw;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: slideUp 0.4s;
+    overflow: hidden;
+}
+.interests-header {
+    padding: 28px 28px 16px;
+    text-align: center;
+    border-bottom: 1px solid #f0f0f0;
+}
+.interests-header h2 {
+    font-size: 20px;
+    color: #1a1a2e;
+    margin: 0 0 6px;
+    font-weight: 700;
+}
+.interests-header h2 i {
+    color: #e74c3c;
+    margin-right: 6px;
+}
+.interests-header p {
+    color: #888;
+    font-size: 13px;
+    margin: 0;
+}
+.interests-body {
+    padding: 20px 28px;
+    overflow-y: auto;
+    flex: 1;
+}
+.interests-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+.interest-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 8px;
+    border-radius: 12px;
+    border: 2px solid #e8e8e8;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    background: #fafafa;
+}
+.interest-card:hover {
+    border-color: var(--card-color, #6c757d);
+    background: color-mix(in srgb, var(--card-color, #6c757d) 5%, white);
+    transform: translateY(-2px);
+}
+.interest-card.selected {
+    border-color: var(--card-color, #6c757d);
+    background: color-mix(in srgb, var(--card-color, #6c757d) 10%, white);
+}
+.interest-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: var(--card-color, #6c757d);
+    background: color-mix(in srgb, var(--card-color, #6c757d) 12%, white);
+    transition: all 0.2s;
+}
+.interest-card.selected .interest-icon {
+    background: var(--card-color, #6c757d);
+    color: #fff;
+}
+.interest-name {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #555;
+    text-align: center;
+}
+.interest-card.selected .interest-name {
+    color: #333;
+}
+.interest-check {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--card-color, #6c757d);
+    color: #fff;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+.interest-card.selected .interest-check {
+    display: flex;
+}
+.interests-footer {
+    padding: 16px 28px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fafafa;
+}
+.interests-counter {
+    font-size: 12px;
+    color: #888;
+    font-weight: 500;
+}
+.btn-save-interests {
+    flex: 1;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #0095f6;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-save-interests:hover:not(:disabled) {
+    background: #0081d6;
+}
+.btn-save-interests:disabled {
+    background: #b2dffc;
+    cursor: not-allowed;
+}
+.btn-skip-interests {
+    padding: 10px 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    color: #888;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-skip-interests:hover {
+    background: #f5f5f5;
+    color: #333;
+}
 </style>
 
 <!-- Modal Commentaires -->
@@ -1609,6 +2125,29 @@ document.getElementById('commentInput').addEventListener('keydown', function(e) 
 });
 
 // ========== FONCTIONS POUR LE FORMULAIRE DE PUBLICATION ==========
+
+// --- Topic selector ---
+function toggleTopicChips() {
+    var container = document.getElementById('topicChipsContainer');
+    var toggle = document.querySelector('.topic-toggle');
+    if (container.style.display === 'none') {
+        container.style.display = 'flex';
+        toggle.classList.add('open');
+    } else {
+        container.style.display = 'none';
+        toggle.classList.remove('open');
+    }
+}
+
+function toggleChipStyle(checkbox) {
+    var chip = checkbox.closest('.topic-chip');
+    if (checkbox.checked) {
+        chip.classList.add('selected');
+    } else {
+        chip.classList.remove('selected');
+    }
+}
+
 function autoResize(textarea) {
     textarea.style.height = 'auto';
     textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
@@ -1667,6 +2206,42 @@ function removeFile() {
     document.getElementById('file-preview-container').style.display = 'none';
     document.getElementById('file-preview-img').style.display = 'none';
     document.getElementById('file-drop-placeholder').style.display = 'flex';
+}
+
+// ========== POPUP INTERESTS ==========
+function toggleInterest(card) {
+    card.classList.toggle('selected');
+    var count = document.querySelectorAll('.interest-card.selected').length;
+    document.getElementById('selectedCount').textContent = count;
+    document.getElementById('btnSaveInterests').disabled = (count === 0);
+}
+
+function saveInterests() {
+    var selectedCards = document.querySelectorAll('.interest-card.selected');
+    if (selectedCards.length === 0) return;
+    
+    var topicIds = [];
+    selectedCards.forEach(function(card) {
+        topicIds.push(card.getAttribute('data-topic-id'));
+    });
+    
+    // Envoyer via AJAX
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '<%= lien %>?but=publication/apresInterets.jsp&acte=saveInterets&topics=' + topicIds.join(','), true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            document.getElementById('interestsOverlay').style.display = 'none';
+            if (xhr.status === 200) {
+                // Recharger pour appliquer le filtrage
+                document.location.replace('<%= lien %>?but=accueil.jsp');
+            }
+        }
+    };
+    xhr.send();
+}
+
+function skipInterests() {
+    document.getElementById('interestsOverlay').style.display = 'none';
 }
 </script>
 

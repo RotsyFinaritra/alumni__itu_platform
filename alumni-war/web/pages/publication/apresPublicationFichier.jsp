@@ -1,6 +1,28 @@
 <%@ page pageEncoding="UTF-8" contentType="text/html; charset=UTF-8" %>
 <%@ page import="bean.*, utilitaire.*, java.sql.*, java.io.*, java.util.*, user.UserEJB" %>
 <%@ page import="org.apache.commons.fileupload.*, org.apache.commons.fileupload.disk.*, org.apache.commons.fileupload.servlet.*" %>
+<%!
+    // Mapping type publication → topic auto-tag
+    private String getAutoTagTopicId(String idtypepublication) {
+        if (idtypepublication == null) return null;
+        switch (idtypepublication) {
+            case "TYP00001": return "TOP00010"; // Stage
+            case "TYP00002": return "TOP00011"; // Emploi CDI
+            case "TYP00003": return "TOP00022"; // Activité → Événements
+            default: return null;
+        }
+    }
+    
+    // Insérer un PostTopic
+    private void insertPostTopic(Connection conn, String postId, String topicId) throws Exception {
+        PostTopic pt = new PostTopic();
+        pt.construirePK(conn);
+        pt.setPost_id(postId);
+        pt.setTopic_id(topicId);
+        pt.setCreated_at(new Timestamp(System.currentTimeMillis()));
+        pt.insertToTable(conn);
+    }
+%>
 <%
 try {
     UserEJB u = (UserEJB) session.getValue("u");
@@ -19,6 +41,7 @@ try {
     String acte = null;
     
     FileItem fichierItem = null;
+    List<String> manualTopicIds = new ArrayList<String>();
     
     // Parser le formulaire multipart
     if (ServletFileUpload.isMultipartContent(request)) {
@@ -44,6 +67,8 @@ try {
                     acte = fieldValue;
                 } else if ("bute".equals(fieldName)) {
                     bute = fieldValue;
+                } else if ("topics".equals(fieldName) && fieldValue != null && !fieldValue.trim().isEmpty()) {
+                    manualTopicIds.add(fieldValue.trim());
                 }
             } else {
                 // C'est un fichier
@@ -155,6 +180,22 @@ try {
             pf.setOrdre(1);
             
             pf.insertToTable(conn);
+        }
+        
+        // 3. Auto-tag basé sur le type de publication
+        String autoTopicId = getAutoTagTopicId(idtypepublication);
+        Set<String> insertedTopics = new HashSet<String>();
+        if (autoTopicId != null) {
+            insertPostTopic(conn, newPostId, autoTopicId);
+            insertedTopics.add(autoTopicId);
+        }
+        
+        // 4. Insérer les topics manuels (éviter doublons avec auto-tag)
+        for (String topicId : manualTopicIds) {
+            if (!insertedTopics.contains(topicId)) {
+                insertPostTopic(conn, newPostId, topicId);
+                insertedTopics.add(topicId);
+            }
         }
         
         conn.commit();

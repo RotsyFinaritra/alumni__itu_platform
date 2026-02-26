@@ -1,5 +1,5 @@
 <%@ page pageEncoding="UTF-8" contentType="text/html; charset=UTF-8" %>
-<%@ page import="bean.*, utilitaire.*, java.sql.*, user.UserEJB, affichage.PageInsert, utilisateurAcade.UtilisateurAcade" %>
+<%@ page import="bean.*, utilitaire.*, java.sql.*, user.UserEJB, affichage.PageInsert, utilisateurAcade.UtilisateurAcade, java.util.*" %>
 <%!
     // Helper pour update les compteurs sans toucher à edited_by
     public void updatePostCounter(String postId, String colonne, int valeur) throws Exception {
@@ -16,6 +16,27 @@
             if (ps != null) try { ps.close(); } catch (Exception ignored) {}
             if (conn != null) try { conn.close(); } catch (Exception ignored) {}
         }
+    }
+    
+    // Mapping type publication → topic auto-tag
+    private String getAutoTagTopicId(String idtypepublication) {
+        if (idtypepublication == null) return null;
+        switch (idtypepublication) {
+            case "TYP00001": return "TOP00010"; // Stage
+            case "TYP00002": return "TOP00011"; // Emploi CDI
+            case "TYP00003": return "TOP00022"; // Activité → Événements
+            default: return null;
+        }
+    }
+    
+    // Insérer un PostTopic
+    private void insertPostTopic(Connection conn, String postId, String topicId) throws Exception {
+        PostTopic pt = new PostTopic();
+        pt.construirePK(conn);
+        pt.setPost_id(postId);
+        pt.setTopic_id(topicId);
+        pt.setCreated_at(new Timestamp(System.currentTimeMillis()));
+        pt.insertToTable(conn);
     }
 %>
 <%
@@ -64,6 +85,37 @@ try {
         
         Post created = (Post) u.createObject(post);
         String newId = created != null ? created.getTuppleID() : "";
+        
+        // Auto-tag + manual topics
+        if (newId != null && !newId.isEmpty()) {
+            Connection connTag = null;
+            try {
+                connTag = new UtilDB().GetConn();
+                Set<String> insertedTopics = new HashSet<String>();
+                
+                // Auto-tag basé sur le type
+                String autoTopicId = getAutoTagTopicId(idtypepublication);
+                if (autoTopicId != null) {
+                    insertPostTopic(connTag, newId, autoTopicId);
+                    insertedTopics.add(autoTopicId);
+                }
+                
+                // Topics manuels
+                String[] manualTopics = request.getParameterValues("topics");
+                if (manualTopics != null) {
+                    for (String topicId : manualTopics) {
+                        if (topicId != null && !topicId.trim().isEmpty() && !insertedTopics.contains(topicId.trim())) {
+                            insertPostTopic(connTag, newId, topicId.trim());
+                            insertedTopics.add(topicId.trim());
+                        }
+                    }
+                }
+            } catch (Exception tagEx) {
+                tagEx.printStackTrace(); // Non-bloquant
+            } finally {
+                if (connTag != null) try { connTag.close(); } catch (Exception ignored) {}
+            }
+        }
         
 %><script language="JavaScript"> document.location.replace("<%=lien%>?but=<%=bute%>&id=<%=newId%>");</script><%
         return;
