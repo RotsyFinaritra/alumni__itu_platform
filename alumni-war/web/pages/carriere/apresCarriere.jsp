@@ -119,19 +119,17 @@
         String id = postId;
 
         // ========================
-        // CONTRÔLE D'ACCÈS AVANT INSERT
+        // CONTRÔLE D'ACCÈS AVANT INSERT - DÉSACTIVÉ
         // ========================
-        // boolean isInsertAction = acte.toLowerCase().startsWith("insert");
-        // if (isInsertAction && !PublicationPermission.peutPublier(u)) {
-        //    String messageErreur = PublicationPermission.getMessageErreur(u);
-// %>
-// <script>
-//     alert('<%= messageErreur.replace("'", "\\'") %>');
-//     window.location.href = '<%=lien%>?but=carriere/carriere-accueil.jsp';
-// </script>
-// <%
-//             return;
-//         } 
+        /*
+        boolean isInsertAction = acte.toLowerCase().startsWith("insert");
+        if (isInsertAction && !PublicationPermission.peutPublier(u)) {
+            String messageErreur = PublicationPermission.getMessageErreur(u);
+            // alert JS + redirect vers carriere-accueil.jsp
+            response.sendRedirect(lien + "?but=carriere/carriere-accueil.jsp");
+            return;
+        }
+        */
         // ========================
 
         // Repertoire d'upload pour les fichiers de carriere
