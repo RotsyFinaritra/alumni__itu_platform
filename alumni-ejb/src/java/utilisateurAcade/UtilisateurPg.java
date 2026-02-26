@@ -83,6 +83,16 @@ public class UtilisateurPg extends ClassMAPTable {
     public String getIdpromotion() { return idpromotion; }
     public void setIdpromotion(String idpromotion) { this.idpromotion = idpromotion; }
 
+    public static String getIdRoleEquivalent(String idtypeutilisateur) {
+        if (idtypeutilisateur == null) return "alumni";
+        switch (idtypeutilisateur.trim()) {
+            case "TU0000002": return "etudiant";
+            case "TU0000003": return "enseignant";
+            case "TU0000001":
+            default:           return "alumni";
+        }
+    }
+
     // --- APJ identity ---
 
     @Override

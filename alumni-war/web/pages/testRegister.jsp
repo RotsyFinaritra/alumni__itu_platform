@@ -133,7 +133,7 @@
         utilisateur.setEtu((etu != null && !etu.trim().isEmpty()) ? etu : null);
         utilisateur.setTeluser(teluser != null ? teluser : "");
         utilisateur.setAdruser(adruser != null ? adruser : "");
-        utilisateur.setIdrole("alumni");
+        utilisateur.setIdrole(UtilisateurPg.getIdRoleEquivalent(idtypeutilisateur));
         utilisateur.setIdtypeutilisateur(idtypeutilisateur);
         utilisateur.setIdpromotion((idpromotion != null && !idpromotion.trim().isEmpty()) ? idpromotion : null);
         if (photoPath != null) {
@@ -152,7 +152,6 @@
         // Create ParamCrypt record for the new user
         ParamCrypt paramCrypt = new ParamCrypt(CRYPT_NIVEAU, CRYPT_CROISSANTE, String.valueOf(newUserId));
         paramCrypt.createObject("SYSTEM", c);
-
         // Commit transaction
         c.commit();
 

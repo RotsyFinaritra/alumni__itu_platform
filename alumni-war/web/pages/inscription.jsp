@@ -152,6 +152,28 @@
                         </span>
                     </label>
 
+                    <label class="field">
+                        <span class="label">Type d'utilisateur</span>
+                        <span class="input-wrap">
+                            <span class="icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-5.33 0-8 2.67-8 6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1c0-3.33-2.67-6-8-6z"/></svg>
+                            </span>
+                            <select name="idtypeutilisateur" id="idtypeutilisateur-select" required onchange="toggleEtuPromoFields()">
+                                <option value="">Sélectionner un type</option>
+                                <%
+                                    if (typesUtilisateur != null) {
+                                        for (int i = 0; i < typesUtilisateur.length; i++) {
+                                            bean.TypeUtilisateur tu = typesUtilisateur[i];
+                                %>
+                                    <option value="<%= tu.getId() %>"><%= tu.getLibelle() %></option>
+                                <%
+                                        }
+                                    }
+                                %>
+                            </select>
+                        </span>
+                    </label>
+
 
                     <div class="field" id="etu-promo-fields">
                         <div>
@@ -259,27 +281,7 @@
                         </span>
                     </label>
 
-                    <label class="field">
-                        <span class="label">Type d'utilisateur</span>
-                        <span class="input-wrap">
-                            <span class="icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-5.33 0-8 2.67-8 6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1c0-3.33-2.67-6-8-6z"/></svg>
-                            </span>
-                            <select name="idtypeutilisateur" id="idtypeutilisateur-select" required onchange="toggleEtuPromoFields()">
-                                <option value="">Sélectionner un type</option>
-                                <%
-                                    if (typesUtilisateur != null) {
-                                        for (int i = 0; i < typesUtilisateur.length; i++) {
-                                            bean.TypeUtilisateur tu = typesUtilisateur[i];
-                                %>
-                                    <option value="<%= tu.getId() %>"><%= tu.getLibelle() %></option>
-                                <%
-                                        }
-                                    }
-                                %>
-                            </select>
-                        </span>
-                    </label>
+                    
 
                     <script>
                         function toggleEtuPromoFields() {
