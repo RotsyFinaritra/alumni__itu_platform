@@ -157,6 +157,7 @@ try {
             Like newLike = new Like();
             newLike.setPost_id(postId);
             newLike.setIdutilisateur(refuserInt);
+            newLike.setCreated_at(new java.sql.Timestamp(System.currentTimeMillis()));
             u.createObject(newLike);
             
             // Mettre à jour compteur et créer notification

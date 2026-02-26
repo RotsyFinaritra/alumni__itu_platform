@@ -1206,10 +1206,31 @@
 }
 .action-btn i {
     font-size: 24px;
+    transition: all 0.2s ease;
 }
+
+/* Animation du cœur Instagram-style */
+@keyframes likeHeartAnimation {
+    0% { transform: scale(1); }
+    15% { transform: scale(1.3); }
+    30% { transform: scale(0.95); }
+    45% { transform: scale(1.15); }
+    60% { transform: scale(1); }
+    100% { transform: scale(1); }
+}
+
 .action-btn.liked i {
     color: #ed4956;
 }
+
+.action-btn i.heart-animating {
+    animation: likeHeartAnimation 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.action-btn:active i {
+    transform: scale(0.9);
+}
+
 .bookmark-btn {
     margin-left: auto;
 }
@@ -1532,7 +1553,18 @@ document.addEventListener('click', function(e) {
 });
 
 function toggleLike() {
-    window.location.href = '<%= lien %>?but=publication/apresPublication.jsp&acte=like&id=<%= postId %>&bute=publication/publication-fiche.jsp';
+    // Animation du cœur avant redirection
+    var btn = document.getElementById('like-btn');
+    if (btn) {
+        var icon = btn.querySelector('i');
+        if (icon) {
+            icon.classList.add('heart-animating');
+        }
+    }
+    // Redirection avec petit délai pour voir l'animation
+    setTimeout(function() {
+        window.location.href = '<%= lien %>?but=publication/apresPublication.jsp&acte=like&id=<%= postId %>&bute=publication/publication-fiche.jsp';
+    }, 150);
 }
 
 function sharePost() {

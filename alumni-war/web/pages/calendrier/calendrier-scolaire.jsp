@@ -27,6 +27,13 @@
     
     // Mode recherche activé uniquement si au moins une date est renseignée
     boolean modeRecherche = (dateDebutRecherche != null) || (dateFinRecherche != null);
+    
+    // Debug : afficher les paramètres reçus
+    if (modeRecherche) {
+        System.out.println("=== MODE RECHERCHE CALENDRIER ===");
+        System.out.println("Date début: " + dateDebutRecherche);
+        System.out.println("Date fin: " + dateFinRecherche);
+    }
 
     // Mois/année courant ou paramétré
     Calendar cal = Calendar.getInstance();
@@ -78,6 +85,13 @@
     CalendrierScolaire filtre = new CalendrierScolaire();
     String whereClause = " AND ((date_debut <= '" + dateFinMois + "' AND (date_fin >= '" + dateDebutMois + "' OR (date_fin IS NULL AND date_debut >= '" + dateDebutMois + "'))))";
     
+    // Debug SQL
+    if (modeRecherche) {
+        System.out.println("dateDebutMois: " + dateDebutMois);
+        System.out.println("dateFinMois: " + dateFinMois);
+        System.out.println("WHERE clause: " + whereClause);
+    }
+    
     // Ajouter filtre promotion si sélectionnée
     if (filtrePromo != null && !filtrePromo.isEmpty() && !"TOUTES".equals(filtrePromo)) {
         whereClause += " AND idpromotion = '" + filtrePromo + "'";
@@ -87,14 +101,25 @@
     
     whereClause += " ORDER BY date_debut";
     Object[] events = CGenUtil.rechercher(filtre, null, null, whereClause);
+    
+    // Debug résultats
+    if (modeRecherche) {
+        System.out.println("Nombre d'événements trouvés: " + (events != null ? events.length : 0));
+        if (events != null) {
+            for (int i = 0; i < events.length; i++) {
+                CalendrierScolaire ev = (CalendrierScolaire) events[i];
+                System.out.println("  - " + ev.getTitre() + " (" + ev.getDate_debut() + " → " + ev.getDate_fin() + ")");
+            }
+        }
+    }
 
     // Charger les promotions pour le filtre
     Promotion promoFiltre = new Promotion();
     Object[] promos = CGenUtil.rechercher(promoFiltre, null, null, " ORDER BY annee DESC, libelle");
 
-    // Map jour → liste d'événements
+    // Map jour → liste d'événements (uniquement pour l'affichage calendrier, pas pour la recherche)
     Map<Integer, List<CalendrierScolaire>> eventsParJour = new HashMap<Integer, List<CalendrierScolaire>>();
-    if (events != null) {
+    if (events != null && !modeRecherche) {
         for (int d = 1; d <= nbJours; d++) {
             Calendar jourCal = Calendar.getInstance();
             jourCal.set(anneeActuelle, moisActuel, d);

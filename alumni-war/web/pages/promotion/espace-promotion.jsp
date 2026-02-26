@@ -645,8 +645,33 @@
 .post-actions { display: flex; padding: 8px 16px; border-top: 1px solid #efefef; }
 .action-btn { background: none; border: none; padding: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 14px; color: #262626; }
 .action-btn:hover { color: #8e8e8e; }
-.action-btn i { font-size: 24px; }
-.action-btn.liked i { color: #ed4956; }
+.action-btn i {
+    font-size: 24px;
+    transition: all 0.2s ease;
+}
+
+/* Animation du cœur Instagram-style */
+@keyframes likeHeartAnimation {
+    0% { transform: scale(1); }
+    15% { transform: scale(1.3); }
+    30% { transform: scale(0.95); }
+    45% { transform: scale(1.15); }
+    60% { transform: scale(1); }
+    100% { transform: scale(1); }
+}
+
+.action-btn.liked i {
+    color: #ed4956;
+}
+
+.action-btn i.heart-animating {
+    animation: likeHeartAnimation 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.action-btn:active i {
+    transform: scale(0.9);
+}
+
 .post-likes-summary { padding: 0 16px 12px; font-size: 14px; }
 
 /* ========== MEDIA ========== */
@@ -812,16 +837,28 @@ document.addEventListener('click', function(e) {
 
 // Like
 function likePromoPost(postId) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', '<%= lien %>?but=publication/apresPublication.jsp', true);
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) {
-            // Rafraîchir la page pour voir le résultat
-            location.reload();
+    // Animation du cœur avant le rechargement
+    var btn = document.getElementById('like-btn-' + postId);
+    if (btn) {
+        var icon = btn.querySelector('i');
+        if (icon) {
+            icon.classList.add('heart-animating');
         }
-    };
-    xhr.send('acte=like&post_id=' + postId);
+    }
+    
+    // Envoyer la requête avec petit délai pour voir l'animation
+    setTimeout(function() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '<%= lien %>?but=publication/apresPublication.jsp', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                // Rafraîchir la page pour voir le résultat
+                location.reload();
+            }
+        };
+        xhr.send('acte=like&post_id=' + postId);
+    }, 150);
 }
 
 // Supprimer
