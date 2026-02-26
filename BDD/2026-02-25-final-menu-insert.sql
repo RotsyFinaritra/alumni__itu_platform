@@ -127,11 +127,14 @@ INSERT INTO usermenu VALUES
 -- Accès Espace carrière niveau 3
 INSERT INTO usermenu VALUES
 ('USRM_CAR_1', '*', 'MENDYNCARRIERE-2-1', NULL, NULL, NULL, 0),
-('USRM_CAR_2', '*', 'MENDYNCARRIERE-2-2', NULL, NULL, NULL, 0),
+('USRM_CAR_2', '*', 'MENDYNCARRIERE-2-2', 'admin', NULL, NULL, 0),
 ('USRM_CAR_3', '*', 'MENDYNCARRIERE-3-1', NULL, NULL, NULL, 0),
-('USRM_CAR_4', '*', 'MENDYNCARRIERE-3-2', NULL, NULL, NULL, 0),
+('USRM_CAR_4', '*', 'MENDYNCARRIERE-3-2', 'admin', NULL, NULL, 0),
 ('USRM_CAR_5', '*', 'MENDYNCARRIERE-4-1', NULL, NULL, NULL, 0),
-('USRM_CAR_6', '*', 'MENDYNCARRIERE-4-2', NULL, NULL, NULL, 0);
+('USRM_CAR_6', '*', 'MENDYNCARRIERE-4-2', 'admin', NULL, NULL, 0),
+('USRM_CAR_7', '*', 'MENDYNCARRIERE-2-2', 'alumni', NULL, NULL, 0),
+('USRM_CAR_8', '*', 'MENDYNCARRIERE-3-2', 'alumni', NULL, NULL, 0),
+('USRM_CAR_9', '*', 'MENDYNCARRIERE-4-2', 'alumni', NULL, NULL, 0);
 
 -- Modération : admin uniquement
 INSERT INTO usermenu VALUES
@@ -140,6 +143,12 @@ INSERT INTO usermenu VALUES
 ('USRM_MOD_3', NULL, 'MENDYNADMIN-2', 'admin', NULL, NULL, 0),
 ('USRM_MOD_4', NULL, 'MENDYNADMIN-3', 'admin', NULL, NULL, 0),
 ('USRM_MOD_5', NULL, 'MENDYNADMIN-4', 'admin', NULL, NULL, 0);
+
+-- Étudiants : interdiction de publier (interdit=1)
+INSERT INTO usermenu VALUES
+('USRM_ETU_1', NULL, 'MENDYNCARRIERE-2-2', 'etudiant', NULL, NULL, 1),  -- Publier emploi interdit
+('USRM_ETU_2', NULL, 'MENDYNCARRIERE-3-2', 'etudiant', NULL, NULL, 1),  -- Publier stage interdit
+('USRM_ETU_3', NULL, 'MENDYNCARRIERE-4-2', 'etudiant', NULL, NULL, 1);  -- Publier activité interdit
 
 INSERT INTO usermenu (id, refuser, idmenu, idrole, codeservice, codedir, interdit)
 VALUES ('USRMCHAT', '*', 'MENUALUMNICHAT', NULL, NULL, NULL, 0)

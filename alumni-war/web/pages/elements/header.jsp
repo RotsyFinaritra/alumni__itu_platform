@@ -185,7 +185,7 @@
             <div class="navbar-custom-menu">
                 <ul class="nav navbar-nav">
                     <li>
-                        <a class="btn-logout-header" href="<%= lien %>?but=deconnexion.jsp" title="D&eacute;connexion">
+                        <a class="btn-logout-header" href="deconnexion.jsp" title="D&eacute;connexion">
                             <i class="fa fa-sign-out"></i> <span class="hidden-xs">D&eacute;connexion</span>
                         </a>
                     </li>

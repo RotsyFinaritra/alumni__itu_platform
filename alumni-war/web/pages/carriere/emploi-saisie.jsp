@@ -2,11 +2,33 @@
 <%@ page import="bean.*" %>
 <%@ page import="utilitaire.*" %>
 <%@ page import="affichage.*" %>
+<%@ page import="utils.PublicationPermission" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     try {
         UserEJB u = (UserEJB) session.getValue("u");
         String lien = (String) session.getValue("lien");
+        
+        // === CONTRÔLE D'ACCÈS PAR RÔLE ===
+        if (!PublicationPermission.peutPublier(u)) {
+            String messageErreur = PublicationPermission.getMessageErreur(u);
+%>
+<div class="content-wrapper">
+    <section class="content">
+        <div class="alert alert-danger" style="margin: 50px;">
+            <h4><i class="fa fa-ban"></i> Acc&egrave;s refus&eacute;</h4>
+            <p><%= messageErreur %></p>
+            <a href="<%=lien%>?but=carriere/emploi-liste.jsp" class="btn btn-secondary">
+                <i class="fa fa-arrow-left"></i> Retour &agrave; la liste
+            </a>
+        </div>
+    </section>
+</div>
+<%
+            return;
+        }
+        // === FIN CONTRÔLE D'ACCÈS ===
+        
         PostEmploi a = new PostEmploi();
         PageInsert pi = new PageInsert(a, request, u);
         pi.setLien(lien);

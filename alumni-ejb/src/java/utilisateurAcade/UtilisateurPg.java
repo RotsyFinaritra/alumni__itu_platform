@@ -83,6 +83,16 @@ public class UtilisateurPg extends ClassMAPTable {
     public String getIdpromotion() { return idpromotion; }
     public void setIdpromotion(String idpromotion) { this.idpromotion = idpromotion; }
 
+    public static String getIdRoleEquivalent(String idtypeutilisateur) {
+        if (idtypeutilisateur == null) return "alumni";
+        switch (idtypeutilisateur.trim()) {
+            case "TU0000002": return "etudiant";
+            case "TU0000003": return "enseignant";
+            case "TU0000001":
+            default:           return "alumni";
+        }
+    }
+
     // --- APJ identity ---
 
     @Override
@@ -174,9 +184,25 @@ public class UtilisateurPg extends ClassMAPTable {
     }
 
     /**
-     * Rétrograder un utilisateur en utilisateur simple.
+     * Rétrograder un admin vers le rôle correspondant à son type d'utilisateur.
+     * - TU0000001 (Alumni) → 'alumni'
+     * - TU0000002 (Étudiant) → 'etudiant'
+     * - TU0000003 (Enseignant) → 'enseignant'
      */
     public static void retrograder(int refuserCible, Connection con) throws Exception {
-        changerRole(refuserCible, "utilisateur", con);
+        // Récupérer l'utilisateur via CGenUtil avec apresWhere explicite et connexion
+        Object[] resultats = bean.CGenUtil.rechercher(new UtilisateurPg(), null, null, con, " and refuser=" + refuserCible);
+
+        if (resultats == null || resultats.length == 0) {
+            throw new Exception("Utilisateur introuvable (refuser=" + refuserCible + ")");
+        }
+
+        UtilisateurPg utilisateur = (UtilisateurPg) resultats[0];
+
+        // Déterminer le rôle approprié basé sur le type d'utilisateur
+        String nouveauRole = getIdRoleEquivalent(utilisateur.getIdtypeutilisateur());
+
+        // Appliquer le nouveau rôle
+        changerRole(refuserCible, nouveauRole, con);
     }
 }
