@@ -19,7 +19,7 @@
         CalendrierScolaireLib liste = new CalendrierScolaireLib();
         String[] libEntete = {"id", "titre", "date_debut", "date_fin", "couleur", "libpromotion"};
         String[] listeCrt = {"titre", "idpromotion"};
-        String[] listeInt = {"date_debut"};
+        String[] listeInt = {"date_debut", "date_fin"};
 
         PageRecherche pr = new PageRecherche(liste, request, listeCrt, listeInt, 3, libEntete, libEntete.length);
         pr.setTitre("Gestion des &eacute;v&eacute;nements");
@@ -39,10 +39,16 @@
         }
         
         c = pr.getFormu().getChamp("date_debut1");
-        if (c != null) c.setLibelle("Date d&eacute;but min");
+        if (c != null) c.setLibelle("Date d&eacute;but (de)");
         
         c = pr.getFormu().getChamp("date_debut2");
-        if (c != null) c.setLibelle("Date d&eacute;but max");
+        if (c != null) c.setLibelle("Date d&eacute;but (&agrave;)");
+        
+        c = pr.getFormu().getChamp("date_fin1");
+        if (c != null) c.setLibelle("Date fin (de)");
+        
+        c = pr.getFormu().getChamp("date_fin2");
+        if (c != null) c.setLibelle("Date fin (&agrave;)");
 
         String[] colSomme = null;
         pr.creerObjetPage(libEntete, colSomme);

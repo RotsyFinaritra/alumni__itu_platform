@@ -13,6 +13,21 @@
     String idrole = u.getUser().getIdrole() != null ? u.getUser().getIdrole() : "";
     boolean isAdmin = "admin".equalsIgnoreCase(idrole);
 
+    // Paramètres de recherche par dates
+    String dateDebutRecherche = request.getParameter("date_debut");
+    String dateFinRecherche = request.getParameter("date_fin");
+    
+    // Nettoyer les valeurs vides
+    if (dateDebutRecherche != null && dateDebutRecherche.trim().isEmpty()) {
+        dateDebutRecherche = null;
+    }
+    if (dateFinRecherche != null && dateFinRecherche.trim().isEmpty()) {
+        dateFinRecherche = null;
+    }
+    
+    // Mode recherche activé uniquement si au moins une date est renseignée
+    boolean modeRecherche = (dateDebutRecherche != null) || (dateFinRecherche != null);
+
     // Mois/année courant ou paramétré
     Calendar cal = Calendar.getInstance();
     String paramMois = request.getParameter("mois");
@@ -41,11 +56,21 @@
     calSuiv.add(Calendar.MONTH, 1);
 
     // Charger les événements du mois
-    // Premier et dernier jour du mois
-    cal.set(Calendar.DAY_OF_MONTH, 1);
-    String dateDebutMois = new SimpleDateFormat("yyyy-MM-dd").format(cal.getTime());
-    cal.set(Calendar.DAY_OF_MONTH, nbJours);
-    String dateFinMois = new SimpleDateFormat("yyyy-MM-dd").format(cal.getTime());
+    // Premier et dernier jour du mois (ou dates de recherche)
+    String dateDebutMois, dateFinMois;
+    if (modeRecherche) {
+        // Mode recherche par dates personnalisées
+        dateDebutMois = (dateDebutRecherche != null && !dateDebutRecherche.isEmpty()) 
+                        ? dateDebutRecherche : "1900-01-01";
+        dateFinMois = (dateFinRecherche != null && !dateFinRecherche.isEmpty()) 
+                      ? dateFinRecherche : "2099-12-31";
+    } else {
+        // Mode mois par défaut
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        dateDebutMois = new SimpleDateFormat("yyyy-MM-dd").format(cal.getTime());
+        cal.set(Calendar.DAY_OF_MONTH, nbJours);
+        dateFinMois = new SimpleDateFormat("yyyy-MM-dd").format(cal.getTime());
+    }
 
     // Filtre par promotion (optionnel)
     String filtrePromo = request.getParameter("promo");
@@ -102,7 +127,22 @@
         <div class="cal-header">
             <div class="cal-header-left">
                 <h1 class="cal-title"><i class="material-icons" style="vertical-align: middle; margin-right: 8px;">calendar_today</i>Calendrier Scolaire</h1>
-                <p class="cal-subtitle"><%= nomsMois[moisActuel] %> <%= anneeActuelle %></p>
+                <p class="cal-subtitle" style="font-size: 18px; font-weight: 500; color: #0095DA;">
+                    <% if (modeRecherche) { %>
+                        <i class="material-icons" style="vertical-align: middle; font-size: 20px;">search</i>
+                        Résultats de recherche
+                        <% if (dateDebutRecherche != null && !dateDebutRecherche.isEmpty() && dateFinRecherche != null && !dateFinRecherche.isEmpty()) { %>
+                            (<%= dateDebutRecherche %> - <%= dateFinRecherche %>)
+                        <% } else if (dateDebutRecherche != null && !dateDebutRecherche.isEmpty()) { %>
+                            (à partir du <%= dateDebutRecherche %>)
+                        <% } else if (dateFinRecherche != null && !dateFinRecherche.isEmpty()) { %>
+                            (jusqu'au <%= dateFinRecherche %>)
+                        <% } %>
+                    <% } else { %>
+                        <i class="material-icons" style="vertical-align: middle; font-size: 20px;">event</i>
+                        <%= nomsMois[moisActuel] %> <%= anneeActuelle %>
+                    <% } %>
+                </p>
             </div>
             <div class="cal-header-right">
                 <!-- Filtre promotion -->
@@ -127,8 +167,56 @@
             </div>
         </div>
 
+        <!-- Formulaire de recherche par dates -->
+        <div class="cal-search-box" style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <form action="<%= lien %>?but=calendrier/calendrier-scolaire.jsp" method="post" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label style="font-weight: 500; color: #555;">
+                        <i class="material-icons" style="vertical-align: middle; font-size: 18px;">date_range</i>
+                        Recherche par période :
+                    </label>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <label style="color: #666; font-size: 14px;">Du :</label>
+                    <input type="date" name="date_debut" class="form-control" 
+                           value="<%= dateDebutRecherche != null ? dateDebutRecherche : "" %>"
+                           style="padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <label style="color: #666; font-size: 14px;">Au :</label>
+                    <input type="date" name="date_fin" class="form-control" 
+                           value="<%= dateFinRecherche != null ? dateFinRecherche : "" %>"
+                           style="padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <input type="hidden" name="promo" value="<%= filtrePromo != null ? filtrePromo : "TOUTES" %>">
+                <button type="submit" class="btn btn-primary btn-sm" style="padding: 6px 15px;">
+                    <i class="material-icons" style="vertical-align: middle; font-size: 18px;">search</i>
+                    Rechercher
+                </button>
+                <% if (modeRecherche) { %>
+                <a href="<%= lien %>?but=calendrier/calendrier-scolaire.jsp<%= (filtrePromo != null && !filtrePromo.isEmpty() && !"TOUTES".equals(filtrePromo) ? "&promo=" + filtrePromo : "") %>" 
+                   class="btn btn-default btn-sm" style="padding: 6px 15px;">
+                    <i class="material-icons" style="vertical-align: middle; font-size: 18px;">clear</i>
+                    Réinitialiser
+                </a>
+                <% } %>
+            </form>
+            <% if (modeRecherche) { %>
+            <div style="margin-top: 10px; padding: 8px 12px; background: #e8f4fd; border-left: 3px solid #0095DA; color: #0056a3; font-size: 13px;">
+                <i class="material-icons" style="vertical-align: middle; font-size: 16px;">info</i>
+                Mode recherche activé 
+                <% if (dateDebutRecherche != null) { %>
+                    du <%= dateDebutRecherche %>
+                <% } %>
+                <% if (dateFinRecherche != null) { %>
+                    au <%= dateFinRecherche %>
+                <% } %>
+            </div>
+            <% } %>
+        </div>
+
         <!-- Navigation mois -->
-        <div class="cal-nav">
+        <div class="cal-nav" <%= modeRecherche ? "style='display: none;'" : "" %>>
             <a href="<%= lien %>?but=calendrier/calendrier-scolaire.jsp&mois=<%= calPrec.get(Calendar.MONTH) %>&annee=<%= calPrec.get(Calendar.YEAR) %><%= (filtrePromo != null && !filtrePromo.isEmpty() ? "&promo=" + filtrePromo : "") %>" class="cal-nav-btn">
                 <i class="material-icons">chevron_left</i>
             </a>
@@ -140,6 +228,7 @@
         </div>
 
         <!-- Grille calendrier -->
+        <% if (!modeRecherche) { %>
         <div class="cal-grid">
             <!-- Entêtes jours -->
             <div class="cal-day-header">Lun</div>
@@ -189,14 +278,26 @@
             <div class="cal-cell cal-empty"></div>
             <% } %>
         </div>
+        <% } else { %>
+        <div class="alert alert-info" style="margin-bottom: 20px; padding: 15px; background: #e8f4fd; border-left: 4px solid #0095DA;">
+            <i class="material-icons" style="vertical-align: middle;">info</i>
+            <strong>Mode recherche activé</strong> - La vue calendrier est masquée. Seuls les événements correspondant à vos critères sont affichés ci-dessous.
+        </div>
+        <% } %>
 
         <!-- Liste des événements du mois -->
         <div class="cal-events-list">
-            <h2 class="cal-events-title">Événements du mois</h2>
+            <h2 class="cal-events-title">
+                <% if (modeRecherche) { %>
+                    Résultats de recherche (<%= events != null ? events.length : 0 %> événement<%= (events != null && events.length > 1) ? "s" : "" %>)
+                <% } else { %>
+                    Événements du mois
+                <% } %>
+            </h2>
             <% if (events == null || events.length == 0) { %>
             <div class="cal-no-events">
                 <i class="material-icons" style="font-size: 48px; color: #ccc;">event_busy</i>
-                <p>Aucun événement ce mois-ci</p>
+                <p><%= modeRecherche ? "Aucun événement trouvé pour cette période" : "Aucun événement ce mois-ci" %></p>
             </div>
             <% } else {
                 SimpleDateFormat dfDate = new SimpleDateFormat("dd/MM/yyyy");

@@ -3,6 +3,7 @@
 <%@ page import="historique.ParamCrypt" %>
 <%@ page import="utilitaire.UtilDB" %>
 <%@ page import="utilitaire.Utilitaire" %>
+<%@ page import="validation.EtudiantValidator" %>
 <%@ page import="java.sql.Connection" %>
 <%@ page import="java.io.File" %>
 <%@ page import="java.util.List" %>
@@ -98,8 +99,9 @@
             pwduser == null || pwduser.trim().isEmpty() ||
             nomuser == null || nomuser.trim().isEmpty() ||
             prenom == null || prenom.trim().isEmpty() ||
-            mail == null || mail.trim().isEmpty()) {
-            session.setAttribute("errorInscription", "Tous les champs obligatoires doivent être renseignés.");
+            mail == null || mail.trim().isEmpty() ||
+            etu == null || etu.trim().isEmpty()) {
+            session.setAttribute("errorInscription", "Tous les champs obligatoires doivent être renseignés (y compris l'ETU).");
             response.sendRedirect("inscription.jsp");
             return;
         }
@@ -111,6 +113,52 @@
             return;
         }
 
+        // Open database connection
+        c = new UtilDB().GetConn();
+        
+        // VALIDATION 1: Vérifier si l'ETU est déjà inscrit
+        if (EtudiantValidator.isEtuDejaInscrit(etu, c)) {
+            session.setAttribute("errorInscription", "Le numéro étudiant " + etu + " est déjà inscrit. Veuillez vous connecter.");
+            response.sendRedirect("inscription.jsp");
+            return;
+        }
+        
+        // VALIDATION 2: Valider l'ETU avec nom/prénom et récupérer la promotion
+        EtudiantValidator validator = null;
+        EtudiantValidator.ValidationResult validationResult = null;
+        try {
+            validator = new EtudiantValidator();
+            validationResult = validator.valider(etu, nomuser, prenom);
+        } catch (Exception ex) {
+            System.err.println("Erreur lors du chargement de la liste des étudiants: " + ex.getMessage());
+            ex.printStackTrace();
+            session.setAttribute("errorInscription", "Erreur système: impossible de valider votre inscription. Veuillez contacter l'administration.");
+            response.sendRedirect("inscription.jsp");
+            return;
+        }
+        
+        if (!validationResult.isValide()) {
+            session.setAttribute("errorInscription", validationResult.getMessage());
+            response.sendRedirect("inscription.jsp");
+            return;
+        }
+        
+        // Récupérer la promotion depuis la validation
+        String promotionValidee = validationResult.getPromotion();
+        
+        // Récupérer l'ID de la promotion depuis la base
+        bean.Promotion promoObj = new bean.Promotion();
+        promoObj.setId(promotionValidee);
+        Object[] promoResult = bean.CGenUtil.rechercher(promoObj, null, null, c, "");
+        if (promoResult == null || promoResult.length == 0) {
+            session.setAttribute("errorInscription", "Promotion " + promotionValidee + " non trouvée dans la base de données. Veuillez contacter l'administration.");
+            response.sendRedirect("inscription.jsp");
+            return;
+        }
+        
+        // Utiliser la promotion validée (écrase celle du formulaire si différente)
+        idpromotion = promotionValidee;
+
         // Encrypt password
         String encryptedPwd = Utilitaire.cryptWord(pwduser, CRYPT_NIVEAU, CRYPT_CROISSANTE);
 
@@ -119,10 +167,9 @@
                ", nomuser=" + nomuser +
                ", prenom=" + prenom +
                ", mail=" + mail +
-               ", etu=" + etu);
+               ", etu=" + etu +
+               ", promotion=" + idpromotion);
 
-        // Open database connection
-        c = new UtilDB().GetConn();
         c.setAutoCommit(false);
 
         // Create UtilisateurPg object (refuser est int, compatible avec la BDD)

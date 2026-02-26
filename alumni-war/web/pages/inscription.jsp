@@ -122,6 +122,20 @@
                             %>
 
                 <form class="form" action="testRegister.jsp" method="post" enctype="multipart/form-data">
+                    <div class="alert" style="background: #e8f4fd; border-left: 4px solid #0095DA; padding: 12px; margin-bottom: 15px; border-radius: 4px;">
+                        <strong>ℹ️ Information importante :</strong> Votre numéro étudiant (ETU) sera votre identifiant de connexion.
+                    </div>
+
+                    <label class="field">
+                        <span class="label">Numéro étudiant (ETU) <span style="color: red;">*</span></span>
+                        <span class="input-wrap">
+                            <span class="icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3 6v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2zm2 0h14v12H5V6zm7 2a2 2 0 1 1-2 2 2 2 0 0 1 2-2z"/></svg>
+                            </span>
+                            <input type="text" name="etu" id="etu-input" placeholder="Ex: ETU001234" required />
+                        </span>
+                    </label>
+
                     <label class="field">
                         <span class="label">Nom</span>
                         <span class="input-wrap">
@@ -175,61 +189,18 @@
                     </label>
 
 
-                    <div class="field" id="etu-promo-fields">
-                        <div>
-                            <label style="flex:1;">
-                                <span class="label">Numéro étudiant</span>
-                                <span class="input-wrap">
-                                    <span class="icon" aria-hidden="true">
-                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3 6v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2zm2 0h14v12H5V6zm7 2a2 2 0 1 1-2 2 2 2 0 0 1 2-2z"/></svg>
-                                    </span>
-                                    <input type="text" name="etu" placeholder="Entrer votre numéro étudiant" />
-                                </span>
-                            </label>
-                            <label style="flex:1;">
-                                <span class="label">Promotion</span>
-                                <span class="input-wrap">
-                                    <span class="icon" aria-hidden="true">
-                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 17.93V20h-2v-.07A8.12 8.12 0 0 1 4.07 13H4v-2h.07A8.12 8.12 0 0 1 11 4.07V4h2v.07A8.12 8.12 0 0 1 19.93 11H20v2h-.07A8.12 8.12 0 0 1 13 19.93z"/></svg>
-                                    </span>
-                                    <select name="promotion" id="promotion-select">
-                                        <option value="">Sélectionner une promotion</option>
-                                        <%
-                                            java.sql.Connection cPromo = null;
-                                            bean.Promotion[] promotions = null;
-                                            try {
-                                                cPromo = new utilitaire.UtilDB().GetConn();
-                                                bean.Promotion promo = new bean.Promotion();
-                                                promotions = (bean.Promotion[]) bean.CGenUtil.rechercher(promo, null, null, cPromo, "");
-                                            } catch (Exception e) {
-                                                e.printStackTrace();
-                                            } finally {
-                                                if (cPromo != null) try { cPromo.close(); } catch (Exception ex) {}
-                                            }
-                                            if (promotions != null) {
-                                                for (int i = 0; i < promotions.length; i++) {
-                                                    bean.Promotion promo = promotions[i];
-                                        %>
-                                            <option value="<%= promo.getId() %>"><%= promo.getId() %> (<%= promo.getLibelle() %>)</option>
-                                        <%
-                                                }
-                                            }
-                                        %>
-                                    </select>
-                                </span>
-                            </label>
-                        </div>
-                    </div>
-
                     <label class="field">
-                        <span class="label">Nom d'utilisateur</span>
+                        <span class="label">Promotion (assignée automatiquement)</span>
                         <span class="input-wrap">
                             <span class="icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-5.33 0-8 2.67-8 6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1c0-3.33-2.67-6-8-6z"/></svg>
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 17.93V20h-2v-.07A8.12 8.12 0 0 1 4.07 13H4v-2h.07A8.12 8.12 0 0 1 11 4.07V4h2v.07A8.12 8.12 0 0 1 19.93 11H20v2h-.07A8.12 8.12 0 0 1 13 19.93z"/></svg>
                             </span>
-                            <input type="text" name="loginuser" placeholder="Entrer votre nom d'utilisateur" required />
+                            <input type="text" name="promotion_display" id="promotion-display" placeholder="Sera assignée automatiquement" readonly style="background: #f5f5f5; cursor: not-allowed;" />
+                            <input type="hidden" name="promotion" id="promotion-hidden" />
                         </span>
                     </label>
+
+                    <input type="hidden" name="loginuser" id="loginuser-hidden" />
 
                     <label class="field">
                         <span class="label">Mot de passe</span>
@@ -319,5 +290,24 @@
         </aside>
     </div>
 </div>
+
+<script>
+// Copier automatiquement le numéro ETU dans le champ login caché
+document.getElementById('etu-input').addEventListener('input', function() {
+    document.getElementById('loginuser-hidden').value = this.value;
+});
+
+// S'assurer que le login est rempli avant soumission
+document.querySelector('form.form').addEventListener('submit', function(e) {
+    var etu = document.getElementById('etu-input').value.trim();
+    if (etu) {
+        document.getElementById('loginuser-hidden').value = etu;
+    } else {
+        e.preventDefault();
+        alert('Le numéro étudiant (ETU) est obligatoire.');
+    }
+});
+</script>
+
 </body>
 </html>

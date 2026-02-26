@@ -1,0 +1,30 @@
+{
+  "version": "2026-02-26",
+  "description": "Liste des étudiants autorisés à s'inscrire sur la plateforme Alumni ITU",
+  "etudiants": [
+    {
+      "etu": "ETU003083",
+      "nom": "ANDRIAMARISON",
+      "prenom": "Fanilo Hasina",
+      "promotion": "P17"
+    },
+    {
+      "etu": "ETU001235",
+      "nom": "RABE",
+      "prenom": "Marie",
+      "promotion": "P18"
+    },
+    {
+      "etu": "ETU001236",
+      "nom": "RANDRIA",
+      "prenom": "Paul",
+      "promotion": "P11"
+    },
+    {
+      "etu": "ETU001237",
+      "nom": "RAZAFINDRAKOTO",
+      "prenom": "Sophie",
+      "promotion": "P15"
+    }
+  ]
+}

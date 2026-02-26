@@ -1,6 +1,6 @@
 <project name="deploy-ejb" default="deploy" basedir="./build-file">
     <property environment="env" />
-    <property name="deploy.dir" value="/opt/wildfly-10.1.0.Final/standalone/deployments" />
+    <property name="deploy.dir" value="F:\wildfly-10.1.0.Final\standalone\deployments" />
     <property name="alumni-warname" value="alumni.war" />
     <property name="front-warname" value="front.war" />
     <property name="alumni-jarname" value="alumni-ejb.jar" />
@@ -101,6 +101,9 @@
             tofile="${build-alumni-ejb_jar}/java/resources/text.properties" />
         <copy file="../alumni-ejb/src/java/ressources/text_zh.properties"
             tofile="${build-alumni-ejb_jar}/java/resources/text_zh.properties" />
+        <!-- Copier le fichier JSON de validation des étudiants -->
+        <copy file="../alumni-ejb/src/conf/etudiants_autorises.json"
+            tofile="${build-alumni-ejb_jar}/etudiants_autorises.json" />
 
         <echo> initialisation done </echo>
     </target>
