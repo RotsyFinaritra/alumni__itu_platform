@@ -23,11 +23,6 @@ public class PublicationPermission {
     // Limite quotidienne pour les alumni
     public static final int LIMITE_QUOTIDIENNE_ALUMNI = 3;
     
-    /**
-     * Vérifie si l'utilisateur a le droit de publier.
-     * @param u UserEJB de l'utilisateur connecté
-     * @return true si l'utilisateur peut publier, false sinon
-     */
     public static boolean peutPublier(UserEJB u) {
         if (u == null || u.getUser() == null) return false;
         
@@ -53,11 +48,6 @@ public class PublicationPermission {
         return false;
     }
     
-    /**
-     * Vérifie si l'utilisateur peut voir le bouton "Ajouter".
-     * @param u UserEJB de l'utilisateur connecté
-     * @return true si le bouton doit être affiché
-     */
     public static boolean afficherBoutonAjouter(UserEJB u) {
         if (u == null || u.getUser() == null) return false;
         
