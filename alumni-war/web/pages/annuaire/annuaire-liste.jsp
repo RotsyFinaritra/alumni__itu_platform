@@ -1,24 +1,27 @@
 <%@page import="affichage.PageRecherche"%>
 <%@page import="affichage.Liste"%>
 <%@page import="annuaire.UtilisateurPgLibCPL"%>
-<%@page import="bean.Promotion"%>
-<%@page import="bean.Pays"%>
-<%@page import="bean.Ville"%>
-<%@page import="bean.TypeUtilisateur"%>
+<%@page import="bean.PromotionAff"%>
+<%@page import="bean.PaysAff"%>
+<%@page import="bean.VilleAff"%>
+<%@page import="bean.TypeUtilisateurAff"%>
+<%@page import="bean.CompetenceAff"%>
+<%@page import="bean.EntrepriseAff"%>
 <%@page import="bean.CGenUtil"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <% 
 try {
     UtilisateurPgLibCPL filtre = new UtilisateurPgLibCPL();
     
-    // Champs de critères : les ID pour les selects, texte pour les autres
-    String listeCrt[] = {"nomuser", "prenom", "idpromotion", "idtypeutilisateur", "competence", "entreprise", "idpays", "idville"};
+    // Champs de critères : texte et autocomplete
+    // Note: idcompetence est géré via sous-requête (relation N:N), identreprise est l'ID de l'entreprise actuelle
+    String listeCrt[] = {"nomuser", "prenom", "idpromotion", "idtypeutilisateur", "identreprise", "idpays", "idville"};
     String listeInt[] = {};
     // Colonnes affichées dans le tableau
     String libEntete[] = {"photo", "nomuser", "prenom", "promotion", "typeutilisateur", "competence", "entreprise", "ville", "pays", "mail"};
     
     PageRecherche pr = new PageRecherche(filtre, request, listeCrt, listeInt, 3, libEntete, libEntete.length);
-    pr.setTitre("Annuaire des Alumni");
+    pr.setTitre("Annuaire des utilisateurs");
     user.UserEJB currentUser = (user.UserEJB) session.getValue("u");
     pr.setUtilisateur(currentUser);
     pr.setLien((String) session.getValue("lien"));
@@ -26,25 +29,31 @@ try {
     pr.setNpp(24);
     
     // Exclure l'utilisateur connecté des résultats
-    pr.setAWhere(" AND refuser <> " + currentUser.getUser().getTuppleID());
+    String whereClause = " AND refuser <> " + currentUser.getUser().getTuppleID();
     
-    // Convertir les champs FK en listes déroulantes
-    Liste[] listes = new Liste[3];
-    listes[0] = new Liste("idtypeutilisateur", new TypeUtilisateur(), "libelle", "id");
-    listes[1] = new Liste("idpays", new Pays(), "libelle", "id");
-    listes[2] = new Liste("idville", new Ville(), "libelle", "id");
-    pr.getFormu().changerEnChamp(listes);
+    // Gérer la recherche par compétence (relation N:N via sous-requête)
+    String idcompetence = request.getParameter("idcompetence");
+    if (idcompetence != null && !idcompetence.trim().isEmpty()) {
+        whereClause += " AND refuser IN (SELECT idutilisateur FROM competence_utilisateur WHERE idcompetence = '" + idcompetence.replace("'", "''") + "')";
+    }
+    pr.setAWhere(whereClause);
     
-    // Promotion avec autocomplete recherchable
-    pr.getFormu().getChamp("idpromotion").setPageAppelComplete("bean.Promotion", "id", "promotion");
+    // Utiliser des autocomplete avec affichage id-libelle (beans Aff)
+    pr.getFormu().getChamp("idpromotion").setPageAppelComplete("bean.PromotionAff", "id", "v_promotion_aff");
+    pr.getFormu().getChamp("idtypeutilisateur").setPageAppelComplete("bean.TypeUtilisateurAff", "id", "v_type_utilisateur_aff");
+    pr.getFormu().getChamp("idpays").setPageAppelComplete("bean.PaysAff", "id", "v_pays_aff");
+    // Ville dépend du pays sélectionné - compare avec la ville de l'entreprise actuelle
+    pr.getFormu().getChamp("idpays").setAutre("onchange=\"updateVilleFilter(this.value)\"");
+    pr.getFormu().getChamp("idville").setPageAppelComplete("bean.VilleAff", "id", "v_ville_aff");
+    // Entreprise en autocomplete avec ID
+    pr.getFormu().getChamp("identreprise").setPageAppelComplete("bean.EntrepriseAff", "id", "v_entreprise_aff");
     
     // Labels des champs de recherche
     pr.getFormu().getChamp("nomuser").setLibelle("Nom");
     pr.getFormu().getChamp("prenom").setLibelle("Pr&eacute;nom");
     pr.getFormu().getChamp("idpromotion").setLibelle("Promotion");
     pr.getFormu().getChamp("idtypeutilisateur").setLibelle("Type");
-    pr.getFormu().getChamp("competence").setLibelle("Comp&eacute;tence");
-    pr.getFormu().getChamp("entreprise").setLibelle("Entreprise");
+    pr.getFormu().getChamp("identreprise").setLibelle("Entreprise");
     pr.getFormu().getChamp("idpays").setLibelle("Pays");
     pr.getFormu().getChamp("idville").setLibelle("Ville");
     
@@ -79,7 +88,7 @@ try {
     outline-offset: 2px;
 }
 .alumni-card-header {
-    background: linear-gradient(135deg, #3c8dbc 0%, #2c6090 100%);
+    background: linear-gradient(135deg, #5b8dd9 0%, #4a75ba 100%);
     padding: 20px;
     text-align: center;
 }
@@ -103,7 +112,7 @@ try {
 }
 .alumni-promo {
     font-size: 13px;
-    color: #3c8dbc;
+    color: #5b8dd9;
     text-align: center;
     margin-bottom: 12px;
 }
@@ -116,7 +125,7 @@ try {
 }
 .alumni-info i {
     width: 18px;
-    color: #3c8dbc;
+    color: #5b8dd9;
     margin-right: 8px;
     text-align: center;
 }
@@ -163,6 +172,17 @@ try {
         <div class="search-section">
             <form action="<%=pr.getLien()%>?but=annuaire/annuaire-liste.jsp" method="post">
                 <% out.println(pr.getFormu().getHtmlEnsemble()); %>
+                <!-- Champ compétence supplémentaire (relation N:N, géré via sous-requête) -->
+                <div class="form-group" style="margin-top: 10px;">
+                    <label for="idcompetence">Comp&eacute;tence</label>
+                    <input type="text" class="form-control autocomplete" id="idcompetencelibelle" name="idcompetencelibelle"
+                           placeholder="Rechercher une comp&eacute;tence..."
+                           ac_classe="bean.CompetenceAff" ac_nomTable="v_competence_aff" 
+                           ac_champValeur="id" ac_champAffiche="aff"
+                           ac_useMotCle="true" value="<%= request.getParameter("idcompetencelibelle") != null ? request.getParameter("idcompetencelibelle") : "" %>" />
+                    <input type="hidden" id="idcompetence" name="idcompetence" 
+                           value="<%= request.getParameter("idcompetence") != null ? request.getParameter("idcompetence") : "" %>" />
+                </div>
             </form>
         </div>
         
@@ -248,6 +268,25 @@ try {
         <% } %>
     </section>
 </div>
+
+<script>
+// Fonction pour filtrer les villes en fonction du pays sélectionné
+function updateVilleFilter(idpays) {
+    var villeInput = document.querySelector('input[name="idville"]');
+    if (villeInput) {
+        // Réinitialiser le champ ville quand le pays change
+        villeInput.value = '';
+        
+        // Mettre à jour le filtre WHERE pour l'autocomplete ville
+        if (idpays && idpays.trim() !== '') {
+            villeInput.setAttribute('ac_where', "AND idpays = '" + idpays + "'");
+        } else {
+            villeInput.removeAttribute('ac_where');
+        }
+    }
+}
+</script>
+
 <%
 } catch(Exception e) {
     e.printStackTrace();

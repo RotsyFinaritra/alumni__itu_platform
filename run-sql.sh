@@ -34,3 +34,4 @@ PGPASSWORD=root psql -h localhost -U postgres -d alumni_itu -f BDD/2026-02-25-Ro
 PGPASSWORD=root psql -h localhost -U postgres -d alumni_itu -f BDD/2026-02-25-Elyance-1.sql
 PGPASSWORD=root psql -h localhost -U postgres -d alumni_itu -f BDD/2026-02-25-final-menu-insert.sql
 PGPASSWORD=root psql -h localhost -U postgres -d alumni_itu -f BDD/2026-02-25-menu-insert.sql
+

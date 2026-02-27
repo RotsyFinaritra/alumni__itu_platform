@@ -57,12 +57,12 @@
 	<div>
 		<a href="<%= lien %>?but=accueil.jsp" class="logo" style="background-color:var(--Background-primaire);color: var(--Text-primary);">
             <span class="logo-mini" style="color:#333;font-weight: 600;">
-                <img src="${pageContext.request.contextPath}/assets/img/alumni.png"/>
+                <img src="${pageContext.request.contextPath}/assets/img/alumni.png" style="width: auto;height:54px;"/>
             </span>
             <!-- logo for regular state and mobile devices -->
             <span class="logo-lg">
 
-                <img src="${pageContext.request.contextPath}/assets/img/alumni.png"/>
+                <img src="${pageContext.request.contextPath}/assets/img/alumni.png" style="width: auto;height:54px;"/>
             </span>
         </a>
 	</div>

@@ -17,6 +17,7 @@ public class UtilisateurPgLibCPL extends ClassMAPTable {
     private String promotion;
     private String typeutilisateur;
     private String competence;
+    private String identreprise;
     private String entreprise;
     private String idville;
     private String ville;
@@ -53,6 +54,8 @@ public class UtilisateurPgLibCPL extends ClassMAPTable {
     public void setTypeutilisateur(String typeutilisateur) { this.typeutilisateur = typeutilisateur; }
     public String getCompetence() { return competence; }
     public void setCompetence(String competence) { this.competence = competence; }
+    public String getIdentreprise() { return identreprise; }
+    public void setIdentreprise(String identreprise) { this.identreprise = identreprise; }
     public String getEntreprise() { return entreprise; }
     public void setEntreprise(String entreprise) { this.entreprise = entreprise; }
     public String getIdville() { return idville; }
