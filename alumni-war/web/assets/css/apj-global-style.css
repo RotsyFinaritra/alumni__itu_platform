@@ -983,17 +983,22 @@ th.contenuetable>a>i{
         flex-direction: column;
         align-items: start;
         margin-top: 0;
+        z-index: 1; /* Derrière le menu sur mobile */
+        position: relative;
     }
     .global-search-input {
         width: 100% !important;
     }
     .recherche-global {
         width: 100% !important;
+        z-index: 1; /* Derrière le menu sur mobile */
+        position: relative;
     }
     .navbar.navbar-static-top {
         margin-left: 0 !important;
         display: flex;
         align-items: center;
+        z-index: 10; /* Inférieur au menu sidebar */
     }
     .dropdown.user.user-menu {
         display: flex;
@@ -1048,6 +1053,11 @@ th.contenuetable>a>i{
 }
 .gap-2 {
     gap: var(--Bases-4-space-2);
+}
+@media screen and (max-width: 500px) {
+    .form-input.col-md-12.form-input-apj.recherche-global-container {
+        display: none;
+    }
 }
 @media screen and (max-width: 500px){
     .form-input{

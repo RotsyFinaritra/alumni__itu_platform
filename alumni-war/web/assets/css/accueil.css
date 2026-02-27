@@ -399,6 +399,7 @@
 /* ========== POST ACTIONS (LIKE INSTAGRAM) ========== */
 .post-actions {
     display: flex;
+    gap: 40px;
     padding: 8px 16px;
     border-top: 1px solid #efefef;
 }

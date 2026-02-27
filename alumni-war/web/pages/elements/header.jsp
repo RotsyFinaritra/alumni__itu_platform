@@ -52,7 +52,7 @@
         }
         
         </script>
-<header class="main-header" style="position: fixed; left: 0; right: 0;">
+<header class="main-header" style="position: fixed; left: 0; right: 0;display:flex">
     <!-- Logo -->
 	<div>
 		<a href="<%= lien %>?but=accueil.jsp" class="logo" style="background-color:var(--Background-primaire);color: var(--Text-primary);">

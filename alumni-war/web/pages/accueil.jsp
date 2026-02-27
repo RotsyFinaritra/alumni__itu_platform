@@ -355,50 +355,6 @@
                     }
                 }
                 
-                // Charger les détails selon le type
-                PostStage postStage = null;
-                PostEmploi postEmploi = null;
-                PostActivite postActivite = null;
-                String entrepriseNom = "";
-                String categorieNom = "";
-                
-                if ("TYP00001".equals(post.getIdtypepublication())) {
-                    PostStage sf = new PostStage(); sf.setPost_id(postId);
-                    Object[] sr = CGenUtil.rechercher(sf, null, null, "");
-                    if (sr != null && sr.length > 0) {
-                        postStage = (PostStage) sr[0];
-                        if (postStage.getIdentreprise() != null && !postStage.getIdentreprise().isEmpty()) {
-                            Entreprise ent = new Entreprise(); ent.setId(postStage.getIdentreprise());
-                            Object[] er = CGenUtil.rechercher(ent, null, null, "");
-                            if (er != null && er.length > 0) entrepriseNom = ((Entreprise)er[0]).getLibelle();
-                        }
-                        if (entrepriseNom.isEmpty() && postStage.getEntreprise() != null) entrepriseNom = postStage.getEntreprise();
-                    }
-                } else if ("TYP00002".equals(post.getIdtypepublication())) {
-                    PostEmploi ef = new PostEmploi(); ef.setPost_id(postId);
-                    Object[] er = CGenUtil.rechercher(ef, null, null, "");
-                    if (er != null && er.length > 0) {
-                        postEmploi = (PostEmploi) er[0];
-                        if (postEmploi.getIdentreprise() != null && !postEmploi.getIdentreprise().isEmpty()) {
-                            Entreprise ent = new Entreprise(); ent.setId(postEmploi.getIdentreprise());
-                            Object[] entr = CGenUtil.rechercher(ent, null, null, "");
-                            if (entr != null && entr.length > 0) entrepriseNom = ((Entreprise)entr[0]).getLibelle();
-                        }
-                        if (entrepriseNom.isEmpty() && postEmploi.getEntreprise() != null) entrepriseNom = postEmploi.getEntreprise();
-                    }
-                } else if ("TYP00003".equals(post.getIdtypepublication())) {
-                    PostActivite af = new PostActivite(); af.setPost_id(postId);
-                    Object[] ar = CGenUtil.rechercher(af, null, null, "");
-                    if (ar != null && ar.length > 0) {
-                        postActivite = (PostActivite) ar[0];
-                        if (postActivite.getIdcategorie() != null && !postActivite.getIdcategorie().isEmpty()) {
-                            CategorieActivite cat = new CategorieActivite(); cat.setId(postActivite.getIdcategorie());
-                            Object[] cr = CGenUtil.rechercher(cat, null, null, "");
-                            if (cr != null && cr.length > 0) categorieNom = ((CategorieActivite)cr[0]).getLibelle();
-                        }
-                    }
-                }
-                
                 // Charger les fichiers attachés
                 PostFichier fichierFilter = new PostFichier();
                 fichierFilter.setPost_id(postId);
@@ -470,112 +426,6 @@
             </div>
             <% } %>
             
-            <!-- Détails Stage -->
-            <% if (postStage != null) { %>
-            <div class="accueil-detail accueil-detail-stage">
-                <div class="accueil-detail-head">
-                    <span class="accueil-detail-icon stage-bg"><i class="fa fa-briefcase"></i></span>
-                    <div>
-                        <strong>Offre de Stage</strong>
-                        <% if (!entrepriseNom.isEmpty()) { %><br><span class="accueil-detail-sub"><i class="fa fa-building-o"></i> <%= entrepriseNom %></span><% } %>
-                    </div>
-                </div>
-                <div class="accueil-detail-chips">
-                    <% if (postStage.getLocalisation() != null && !postStage.getLocalisation().isEmpty()) { %>
-                    <span class="achip"><i class="fa fa-map-marker"></i> <%= postStage.getLocalisation() %></span>
-                    <% } %>
-                    <% if (postStage.getDuree() != null && !postStage.getDuree().isEmpty()) { %>
-                    <span class="achip"><i class="fa fa-clock-o"></i> <%= postStage.getDuree() %></span>
-                    <% } %>
-                    <% if (postStage.getIndemnite() > 0) { %>
-                    <span class="achip achip-hl"><i class="fa fa-money"></i> <%= String.format("%,.0f", postStage.getIndemnite()) %> Ar</span>
-                    <% } %>
-                    <% if (postStage.getNiveau_etude_requis() != null && !postStage.getNiveau_etude_requis().isEmpty()) { %>
-                    <span class="achip"><i class="fa fa-graduation-cap"></i> <%= postStage.getNiveau_etude_requis() %></span>
-                    <% } %>
-                </div>
-                <% if (postStage.getLien_candidature() != null && !postStage.getLien_candidature().isEmpty()) { %>
-                <a href="<%= postStage.getLien_candidature() %>" target="_blank" class="accueil-btn-apply"><i class="fa fa-paper-plane"></i> Postuler</a>
-                <% } %>
-            </div>
-            <% } %>
-            
-            <!-- Détails Emploi -->
-            <% if (postEmploi != null) { %>
-            <div class="accueil-detail accueil-detail-emploi">
-                <div class="accueil-detail-head">
-                    <span class="accueil-detail-icon emploi-bg"><i class="fa fa-suitcase"></i></span>
-                    <div>
-                        <strong><%= postEmploi.getPoste() != null && !postEmploi.getPoste().isEmpty() ? postEmploi.getPoste() : "Offre d'emploi" %></strong>
-                        <% if (!entrepriseNom.isEmpty()) { %><br><span class="accueil-detail-sub"><i class="fa fa-building-o"></i> <%= entrepriseNom %></span><% } %>
-                    </div>
-                </div>
-                <div class="accueil-detail-chips">
-                    <% if (postEmploi.getLocalisation() != null && !postEmploi.getLocalisation().isEmpty()) { %>
-                    <span class="achip"><i class="fa fa-map-marker"></i> <%= postEmploi.getLocalisation() %></span>
-                    <% } %>
-                    <% if (postEmploi.getType_contrat() != null && !postEmploi.getType_contrat().isEmpty()) { %>
-                    <span class="achip"><i class="fa fa-file-text-o"></i> <%= postEmploi.getType_contrat() %></span>
-                    <% } %>
-                    <% if (postEmploi.getSalaire_min() > 0 || postEmploi.getSalaire_max() > 0) { %>
-                    <span class="achip achip-hl"><i class="fa fa-money"></i>
-                        <%= (postEmploi.getSalaire_min() > 0 ? String.format("%,.0f", postEmploi.getSalaire_min()) : "") %>
-                        <%= (postEmploi.getSalaire_min() > 0 && postEmploi.getSalaire_max() > 0 ? " - " : "") %>
-                        <%= (postEmploi.getSalaire_max() > 0 ? String.format("%,.0f", postEmploi.getSalaire_max()) : "") %>
-                        <%= postEmploi.getDevise() != null && !postEmploi.getDevise().isEmpty() ? postEmploi.getDevise() : "Ar" %>
-                    </span>
-                    <% } %>
-                    <% if (postEmploi.getExperience_requise() != null && !postEmploi.getExperience_requise().isEmpty()) { %>
-                    <span class="achip"><i class="fa fa-star"></i> <%= postEmploi.getExperience_requise() %></span>
-                    <% } %>
-                    <% if (postEmploi.getTeletravail_possible() == 1) { %>
-                    <span class="achip achip-ok"><i class="fa fa-home"></i> T&eacute;l&eacute;travail</span>
-                    <% } %>
-                </div>
-                <% if (postEmploi.getDate_limite() != null) { %>
-                <div class="accueil-detail-date"><i class="fa fa-hourglass-end"></i> Date limite : <strong><%= new SimpleDateFormat("dd/MM/yyyy").format(postEmploi.getDate_limite()) %></strong></div>
-                <% } %>
-                <% if (postEmploi.getLien_candidature() != null && !postEmploi.getLien_candidature().isEmpty()) { %>
-                <a href="<%= postEmploi.getLien_candidature() %>" target="_blank" class="accueil-btn-apply"><i class="fa fa-paper-plane"></i> Postuler</a>
-                <% } %>
-            </div>
-            <% } %>
-            
-            <!-- Détails Activité -->
-            <% if (postActivite != null) { %>
-            <div class="accueil-detail accueil-detail-activite">
-                <div class="accueil-detail-head">
-                    <span class="accueil-detail-icon activite-bg"><i class="fa fa-calendar"></i></span>
-                    <div>
-                        <strong><%= postActivite.getTitre() != null && !postActivite.getTitre().isEmpty() ? postActivite.getTitre() : "&Eacute;v&eacute;nement" %></strong>
-                        <% if (!categorieNom.isEmpty()) { %><br><span class="accueil-detail-sub"><i class="fa fa-tag"></i> <%= categorieNom %></span><% } %>
-                    </div>
-                </div>
-                <div class="accueil-detail-chips">
-                    <% if (postActivite.getLieu() != null && !postActivite.getLieu().isEmpty()) { %>
-                    <span class="achip"><i class="fa fa-map-marker"></i> <%= postActivite.getLieu() %></span>
-                    <% } %>
-                    <% if (postActivite.getPrix() > 0) { %>
-                    <span class="achip achip-hl"><i class="fa fa-ticket"></i> <%= String.format("%,.0f", postActivite.getPrix()) %> Ar</span>
-                    <% } else { %>
-                    <span class="achip achip-ok"><i class="fa fa-gift"></i> Gratuit</span>
-                    <% } %>
-                    <% if (postActivite.getNombre_places() > 0) { %>
-                    <span class="achip"><i class="fa fa-users"></i> <%= postActivite.getPlaces_restantes() %>/<%= postActivite.getNombre_places() %> places</span>
-                    <% } %>
-                </div>
-                <% if (postActivite.getDate_debut() != null || postActivite.getDate_fin() != null) { %>
-                <div class="accueil-detail-date"><i class="fa fa-calendar"></i>
-                    <% if (postActivite.getDate_debut() != null) { %>Du <strong><%= new SimpleDateFormat("dd/MM/yyyy HH:mm").format(postActivite.getDate_debut()) %></strong><% } %>
-                    <% if (postActivite.getDate_fin() != null) { %> au <strong><%= new SimpleDateFormat("dd/MM/yyyy HH:mm").format(postActivite.getDate_fin()) %></strong><% } %>
-                </div>
-                <% } %>
-                <% if (postActivite.getLien_inscription() != null && !postActivite.getLien_inscription().isEmpty()) { %>
-                <a href="<%= postActivite.getLien_inscription() %>" target="_blank" class="accueil-btn-apply accueil-btn-inscrire"><i class="fa fa-check-circle"></i> S'inscrire</a>
-                <% } %>
-            </div>
-            <% } %>
-            
             <!-- Fichiers attachés -->
             <% if (fichiersResult != null && fichiersResult.length > 0) { 
                 // Séparer images, vidéos, documents
@@ -627,12 +477,6 @@
                     <i class="fa fa-comment-o"></i>
                     <span><%= nbComments %></span>
                 </a>
-                <button class="action-btn">
-                    <i class="fa fa-paper-plane-o"></i>
-                </button>
-                <button class="action-btn bookmark-btn">
-                    <i class="fa fa-bookmark-o"></i>
-                </button>
             </div>
             <div class="post-likes-summary">
                 <% if (nbLikes > 0) { %>

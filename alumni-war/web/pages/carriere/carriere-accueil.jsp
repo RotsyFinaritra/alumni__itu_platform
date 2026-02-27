@@ -98,29 +98,6 @@
         padding: 25px;
     }
     
-    /* === HEADER === */
-    .dashboard-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 40px;
-        border-radius: 16px;
-        color: #fff;
-        margin-bottom: 30px;
-        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.25);
-    }
-    .dashboard-header h1 {
-        margin: 0 0 10px;
-        font-weight: 600;
-        font-size: 32px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-    .dashboard-header p {
-        margin: 0;
-        opacity: 0.95;
-        font-size: 16px;
-    }
-    
     /* === STATISTIQUES === */
     .stats-grid {
         display: grid;
@@ -436,13 +413,15 @@
 </style>
 
 <div class="content-wrapper" style="background: #f8f9fc;">
-    <div class="dashboard-container">
-        
-        <!-- Header -->
-        <div class="dashboard-header">
-            <h1><i class="material-symbols-rounded" style="font-size:40px;">rocket_launch</i> Tableau de Bord Carrière</h1>
-            <p>Vue d'ensemble des opportunités professionnelles et stages pour la communauté ITU</p>
-        </div>
+    <section class="content-header">
+        <h1><i class="fa fa-briefcase"></i> Tableau de Bord Carrière</h1>
+        <ol class="breadcrumb">
+            <li><a href="<%=lien%>?but=accueil.jsp"><i class="fa fa-home"></i> Accueil</a></li>
+            <li class="active">Espace Carrière</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="dashboard-container">
 
         <!-- Statistiques -->
         <div class="stats-grid">
@@ -666,8 +645,8 @@
         </div>
         <% } %>
 
-    </div>
-</div>
+        </div>
+    </section>
 </div>
 
 <%
