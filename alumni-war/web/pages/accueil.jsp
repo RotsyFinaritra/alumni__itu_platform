@@ -355,50 +355,6 @@
                     }
                 }
                 
-                // Charger les détails selon le type
-                PostStage postStage = null;
-                PostEmploi postEmploi = null;
-                PostActivite postActivite = null;
-                String entrepriseNom = "";
-                String categorieNom = "";
-                
-                if ("TYP00001".equals(post.getIdtypepublication())) {
-                    PostStage sf = new PostStage(); sf.setPost_id(postId);
-                    Object[] sr = CGenUtil.rechercher(sf, null, null, "");
-                    if (sr != null && sr.length > 0) {
-                        postStage = (PostStage) sr[0];
-                        if (postStage.getIdentreprise() != null && !postStage.getIdentreprise().isEmpty()) {
-                            Entreprise ent = new Entreprise(); ent.setId(postStage.getIdentreprise());
-                            Object[] er = CGenUtil.rechercher(ent, null, null, "");
-                            if (er != null && er.length > 0) entrepriseNom = ((Entreprise)er[0]).getLibelle();
-                        }
-                        if (entrepriseNom.isEmpty() && postStage.getEntreprise() != null) entrepriseNom = postStage.getEntreprise();
-                    }
-                } else if ("TYP00002".equals(post.getIdtypepublication())) {
-                    PostEmploi ef = new PostEmploi(); ef.setPost_id(postId);
-                    Object[] er = CGenUtil.rechercher(ef, null, null, "");
-                    if (er != null && er.length > 0) {
-                        postEmploi = (PostEmploi) er[0];
-                        if (postEmploi.getIdentreprise() != null && !postEmploi.getIdentreprise().isEmpty()) {
-                            Entreprise ent = new Entreprise(); ent.setId(postEmploi.getIdentreprise());
-                            Object[] entr = CGenUtil.rechercher(ent, null, null, "");
-                            if (entr != null && entr.length > 0) entrepriseNom = ((Entreprise)entr[0]).getLibelle();
-                        }
-                        if (entrepriseNom.isEmpty() && postEmploi.getEntreprise() != null) entrepriseNom = postEmploi.getEntreprise();
-                    }
-                } else if ("TYP00003".equals(post.getIdtypepublication())) {
-                    PostActivite af = new PostActivite(); af.setPost_id(postId);
-                    Object[] ar = CGenUtil.rechercher(af, null, null, "");
-                    if (ar != null && ar.length > 0) {
-                        postActivite = (PostActivite) ar[0];
-                        if (postActivite.getIdcategorie() != null && !postActivite.getIdcategorie().isEmpty()) {
-                            CategorieActivite cat = new CategorieActivite(); cat.setId(postActivite.getIdcategorie());
-                            Object[] cr = CGenUtil.rechercher(cat, null, null, "");
-                            if (cr != null && cr.length > 0) categorieNom = ((CategorieActivite)cr[0]).getLibelle();
-                        }
-                    }
-                }
-                
                 // Charger les fichiers attachés
                 PostFichier fichierFilter = new PostFichier();
                 fichierFilter.setPost_id(postId);
@@ -446,6 +402,119 @@
             </div>
             <div class="post-content">
                 <p><%= contenu != null ? contenu : "" %></p>
+                
+                <%
+                // Charger les détails spécifiques selon le type de publication
+                if ("TYP00001".equals(post.getIdtypepublication())) {
+                    // STAGE
+                    PostStage stageDetails = new PostStage();
+                    stageDetails.setPost_id(postId);
+                    Object[] stageResult = CGenUtil.rechercher(stageDetails, null, null, " AND post_id = '" + postId + "'");
+                    if (stageResult != null && stageResult.length > 0) {
+                        PostStage stage = (PostStage) stageResult[0];
+                %>
+                <div class="post-details">
+                    <% if (stage.getEntreprise() != null) { %>
+                    <p><strong>Entreprise :</strong> <%= stage.getEntreprise() %></p>
+                    <% } %>
+                    <% if (stage.getLocalisation() != null) { %>
+                    <p><strong>Lieu :</strong> <%= stage.getLocalisation() %></p>
+                    <% } %>
+                    <% if (stage.getDuree() != null) { %>
+                    <p><strong>Durée :</strong> <%= stage.getDuree() %></p>
+                    <% } %>
+                    <% if (stage.getDate_debut() != null || stage.getDate_fin() != null) { %>
+                    <p><strong>Période :</strong> 
+                    <%= stage.getDate_debut() != null ? new SimpleDateFormat("dd/MM/yyyy").format(stage.getDate_debut()) : "?" %> 
+                    - 
+                    <%= stage.getDate_fin() != null ? new SimpleDateFormat("dd/MM/yyyy").format(stage.getDate_fin()) : "?" %>
+                    </p>
+                    <% } %>
+                    <% if (stage.getIndemnite() > 0) { %>
+                    <p><strong>Indemnité :</strong> <%= String.format("%,.0f", stage.getIndemnite()) %> Ar</p>
+                    <% } %>
+                    <% if (stage.getCompetences_requises() != null) { %>
+                    <p><strong>Compétences requises :</strong> <%= stage.getCompetences_requises() %></p>
+                    <% } %>
+                </div>
+                <%
+                    }
+                } else if ("TYP00002".equals(post.getIdtypepublication())) {
+                    // EMPLOI
+                    PostEmploi emploiDetails = new PostEmploi();
+                    emploiDetails.setPost_id(postId);
+                    Object[] emploiResult = CGenUtil.rechercher(emploiDetails, null, null, " AND post_id = '" + postId + "'");
+                    if (emploiResult != null && emploiResult.length > 0) {
+                        PostEmploi emploi = (PostEmploi) emploiResult[0];
+                %>
+                <div class="post-details">
+                    <% if (emploi.getPoste() != null) { %>
+                    <p><strong>Poste :</strong> <%= emploi.getPoste() %></p>
+                    <% } %>
+                    <% if (emploi.getEntreprise() != null) { %>
+                    <p><strong>Entreprise :</strong> <%= emploi.getEntreprise() %></p>
+                    <% } %>
+                    <% if (emploi.getLocalisation() != null) { %>
+                    <p><strong>Lieu :</strong> <%= emploi.getLocalisation() %></p>
+                    <% } %>
+                    <% if (emploi.getType_contrat() != null) { %>
+                    <p><strong>Type de contrat :</strong> <%= emploi.getType_contrat() %></p>
+                    <% } %>
+                    <% if (emploi.getSalaire_min() > 0 || emploi.getSalaire_max() > 0) { %>
+                    <p><strong>Salaire :</strong> 
+                    <%= emploi.getSalaire_min() > 0 ? String.format("%,.0f", emploi.getSalaire_min()) : "?" %> 
+                    - 
+                    <%= emploi.getSalaire_max() > 0 ? String.format("%,.0f", emploi.getSalaire_max()) : "?" %> 
+                    <%= emploi.getDevise() != null ? emploi.getDevise() : "Ar" %>
+                    </p>
+                    <% } %>
+                    <% if (emploi.getExperience_requise() != null) { %>
+                    <p><strong>Expérience :</strong> <%= emploi.getExperience_requise() %></p>
+                    <% } %>
+                    <% if (emploi.getCompetences_requises() != null) { %>
+                    <p><strong>Compétences requises :</strong> <%= emploi.getCompetences_requises() %></p>
+                    <% } %>
+                    <% if (emploi.getDate_limite() != null) { %>
+                    <p><strong>Date limite :</strong> <%= new SimpleDateFormat("dd/MM/yyyy").format(emploi.getDate_limite()) %></p>
+                    <% } %>
+                </div>
+                <%
+                    }
+                } else if ("TYP00003".equals(post.getIdtypepublication())) {
+                    // ACTIVITÉ
+                    PostActivite activiteDetails = new PostActivite();
+                    activiteDetails.setPost_id(postId);
+                    Object[] activiteResult = CGenUtil.rechercher(activiteDetails, null, null, " AND post_id = '" + postId + "'");
+                    if (activiteResult != null && activiteResult.length > 0) {
+                        PostActivite activite = (PostActivite) activiteResult[0];
+                %>
+                <div class="post-details">
+                    <% if (activite.getTitre() != null) { %>
+                    <p><strong>Titre :</strong> <%= activite.getTitre() %></p>
+                    <% } %>
+                    <% if (activite.getLieu() != null) { %>
+                    <p><strong>Lieu :</strong> <%= activite.getLieu() %></p>
+                    <% } %>
+                    <% if (activite.getDate_debut() != null || activite.getDate_fin() != null) { %>
+                    <p><strong>Date :</strong> 
+                    <%= activite.getDate_debut() != null ? new SimpleDateFormat("dd/MM/yyyy HH:mm").format(activite.getDate_debut()) : "?" %>
+                    <% if (activite.getDate_fin() != null) { %> - <%= new SimpleDateFormat("dd/MM/yyyy HH:mm").format(activite.getDate_fin()) %><% } %>
+                    </p>
+                    <% } %>
+                    <% if (activite.getPrix() > 0) { %>
+                    <p><strong>Prix :</strong> <%= String.format("%,.0f", activite.getPrix()) %> Ar</p>
+                    <% } %>
+                    <% if (activite.getNombre_places() > 0) { %>
+                    <p><strong>Places :</strong> <%= activite.getPlaces_restantes() > 0 ? activite.getPlaces_restantes() : activite.getNombre_places() %> / <%= activite.getNombre_places() %> disponibles</p>
+                    <% } %>
+                    <% if (activite.getLien_inscription() != null) { %>
+                    <p><a href="<%= activite.getLien_inscription() %>" target="_blank" style="color:#0095f6;"><i class="fa fa-external-link"></i> S'inscrire</a></p>
+                    <% } %>
+                </div>
+                <%
+                    }
+                }
+                %>
             </div>
             
             <!-- Tags du post -->
@@ -467,112 +536,6 @@
                         }
                     }
                 } %>
-            </div>
-            <% } %>
-            
-            <!-- Détails Stage -->
-            <% if (postStage != null) { %>
-            <div class="accueil-detail accueil-detail-stage">
-                <div class="accueil-detail-head">
-                    <span class="accueil-detail-icon stage-bg"><i class="fa fa-briefcase"></i></span>
-                    <div>
-                        <strong>Offre de Stage</strong>
-                        <% if (!entrepriseNom.isEmpty()) { %><br><span class="accueil-detail-sub"><i class="fa fa-building-o"></i> <%= entrepriseNom %></span><% } %>
-                    </div>
-                </div>
-                <div class="accueil-detail-chips">
-                    <% if (postStage.getLocalisation() != null && !postStage.getLocalisation().isEmpty()) { %>
-                    <span class="achip"><i class="fa fa-map-marker"></i> <%= postStage.getLocalisation() %></span>
-                    <% } %>
-                    <% if (postStage.getDuree() != null && !postStage.getDuree().isEmpty()) { %>
-                    <span class="achip"><i class="fa fa-clock-o"></i> <%= postStage.getDuree() %></span>
-                    <% } %>
-                    <% if (postStage.getIndemnite() > 0) { %>
-                    <span class="achip achip-hl"><i class="fa fa-money"></i> <%= String.format("%,.0f", postStage.getIndemnite()) %> Ar</span>
-                    <% } %>
-                    <% if (postStage.getNiveau_etude_requis() != null && !postStage.getNiveau_etude_requis().isEmpty()) { %>
-                    <span class="achip"><i class="fa fa-graduation-cap"></i> <%= postStage.getNiveau_etude_requis() %></span>
-                    <% } %>
-                </div>
-                <% if (postStage.getLien_candidature() != null && !postStage.getLien_candidature().isEmpty()) { %>
-                <a href="<%= postStage.getLien_candidature() %>" target="_blank" class="accueil-btn-apply"><i class="fa fa-paper-plane"></i> Postuler</a>
-                <% } %>
-            </div>
-            <% } %>
-            
-            <!-- Détails Emploi -->
-            <% if (postEmploi != null) { %>
-            <div class="accueil-detail accueil-detail-emploi">
-                <div class="accueil-detail-head">
-                    <span class="accueil-detail-icon emploi-bg"><i class="fa fa-suitcase"></i></span>
-                    <div>
-                        <strong><%= postEmploi.getPoste() != null && !postEmploi.getPoste().isEmpty() ? postEmploi.getPoste() : "Offre d'emploi" %></strong>
-                        <% if (!entrepriseNom.isEmpty()) { %><br><span class="accueil-detail-sub"><i class="fa fa-building-o"></i> <%= entrepriseNom %></span><% } %>
-                    </div>
-                </div>
-                <div class="accueil-detail-chips">
-                    <% if (postEmploi.getLocalisation() != null && !postEmploi.getLocalisation().isEmpty()) { %>
-                    <span class="achip"><i class="fa fa-map-marker"></i> <%= postEmploi.getLocalisation() %></span>
-                    <% } %>
-                    <% if (postEmploi.getType_contrat() != null && !postEmploi.getType_contrat().isEmpty()) { %>
-                    <span class="achip"><i class="fa fa-file-text-o"></i> <%= postEmploi.getType_contrat() %></span>
-                    <% } %>
-                    <% if (postEmploi.getSalaire_min() > 0 || postEmploi.getSalaire_max() > 0) { %>
-                    <span class="achip achip-hl"><i class="fa fa-money"></i>
-                        <%= (postEmploi.getSalaire_min() > 0 ? String.format("%,.0f", postEmploi.getSalaire_min()) : "") %>
-                        <%= (postEmploi.getSalaire_min() > 0 && postEmploi.getSalaire_max() > 0 ? " - " : "") %>
-                        <%= (postEmploi.getSalaire_max() > 0 ? String.format("%,.0f", postEmploi.getSalaire_max()) : "") %>
-                        <%= postEmploi.getDevise() != null && !postEmploi.getDevise().isEmpty() ? postEmploi.getDevise() : "Ar" %>
-                    </span>
-                    <% } %>
-                    <% if (postEmploi.getExperience_requise() != null && !postEmploi.getExperience_requise().isEmpty()) { %>
-                    <span class="achip"><i class="fa fa-star"></i> <%= postEmploi.getExperience_requise() %></span>
-                    <% } %>
-                    <% if (postEmploi.getTeletravail_possible() == 1) { %>
-                    <span class="achip achip-ok"><i class="fa fa-home"></i> T&eacute;l&eacute;travail</span>
-                    <% } %>
-                </div>
-                <% if (postEmploi.getDate_limite() != null) { %>
-                <div class="accueil-detail-date"><i class="fa fa-hourglass-end"></i> Date limite : <strong><%= new SimpleDateFormat("dd/MM/yyyy").format(postEmploi.getDate_limite()) %></strong></div>
-                <% } %>
-                <% if (postEmploi.getLien_candidature() != null && !postEmploi.getLien_candidature().isEmpty()) { %>
-                <a href="<%= postEmploi.getLien_candidature() %>" target="_blank" class="accueil-btn-apply"><i class="fa fa-paper-plane"></i> Postuler</a>
-                <% } %>
-            </div>
-            <% } %>
-            
-            <!-- Détails Activité -->
-            <% if (postActivite != null) { %>
-            <div class="accueil-detail accueil-detail-activite">
-                <div class="accueil-detail-head">
-                    <span class="accueil-detail-icon activite-bg"><i class="fa fa-calendar"></i></span>
-                    <div>
-                        <strong><%= postActivite.getTitre() != null && !postActivite.getTitre().isEmpty() ? postActivite.getTitre() : "&Eacute;v&eacute;nement" %></strong>
-                        <% if (!categorieNom.isEmpty()) { %><br><span class="accueil-detail-sub"><i class="fa fa-tag"></i> <%= categorieNom %></span><% } %>
-                    </div>
-                </div>
-                <div class="accueil-detail-chips">
-                    <% if (postActivite.getLieu() != null && !postActivite.getLieu().isEmpty()) { %>
-                    <span class="achip"><i class="fa fa-map-marker"></i> <%= postActivite.getLieu() %></span>
-                    <% } %>
-                    <% if (postActivite.getPrix() > 0) { %>
-                    <span class="achip achip-hl"><i class="fa fa-ticket"></i> <%= String.format("%,.0f", postActivite.getPrix()) %> Ar</span>
-                    <% } else { %>
-                    <span class="achip achip-ok"><i class="fa fa-gift"></i> Gratuit</span>
-                    <% } %>
-                    <% if (postActivite.getNombre_places() > 0) { %>
-                    <span class="achip"><i class="fa fa-users"></i> <%= postActivite.getPlaces_restantes() %>/<%= postActivite.getNombre_places() %> places</span>
-                    <% } %>
-                </div>
-                <% if (postActivite.getDate_debut() != null || postActivite.getDate_fin() != null) { %>
-                <div class="accueil-detail-date"><i class="fa fa-calendar"></i>
-                    <% if (postActivite.getDate_debut() != null) { %>Du <strong><%= new SimpleDateFormat("dd/MM/yyyy HH:mm").format(postActivite.getDate_debut()) %></strong><% } %>
-                    <% if (postActivite.getDate_fin() != null) { %> au <strong><%= new SimpleDateFormat("dd/MM/yyyy HH:mm").format(postActivite.getDate_fin()) %></strong><% } %>
-                </div>
-                <% } %>
-                <% if (postActivite.getLien_inscription() != null && !postActivite.getLien_inscription().isEmpty()) { %>
-                <a href="<%= postActivite.getLien_inscription() %>" target="_blank" class="accueil-btn-apply accueil-btn-inscrire"><i class="fa fa-check-circle"></i> S'inscrire</a>
-                <% } %>
             </div>
             <% } %>
             
@@ -627,12 +590,6 @@
                     <i class="fa fa-comment-o"></i>
                     <span><%= nbComments %></span>
                 </a>
-                <button class="action-btn">
-                    <i class="fa fa-paper-plane-o"></i>
-                </button>
-                <button class="action-btn bookmark-btn">
-                    <i class="fa fa-bookmark-o"></i>
-                </button>
             </div>
             <div class="post-likes-summary">
                 <% if (nbLikes > 0) { %>

@@ -118,25 +118,14 @@
                         %>
                         
                         <!-- Section fichiers -->
-                        <div class="card card-outline card-info mt-3 mb-4">
-                            <div class="card-header">
-                                <h4 class="card-title"><i class="fa fa-paperclip"></i> Fichiers joints (optionnel)</h4>
-                                <div class="card-tools">
-                                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                        <i class="fa fa-minus"></i>
-                                    </button>
-                                </div>
+                        <div class="form-group mt-4">
+                            <label><i class="fa fa-paperclip"></i> Fichiers joints <small class="text-muted">(optionnel)</small></label>
+                            <div id="fichiers-container" style="margin-top: 10px;">
+                                <!-- Première ligne ajoutée automatiquement -->
                             </div>
-                            <div class="card-body">
-                                <p class="text-muted">Ajoutez des fichiers en cliquant sur le bouton +</p>
-                                
-                                <div id="fichiers-container">
-                                </div>
-                                
-                                <button type="button" class="btn btn-sm btn-success mt-2" onclick="ajouterLigneFichier()">
-                                    <i class="fa fa-plus"></i> Ajouter un fichier
-                                </button>
-                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="ajouterLigneFichier()">
+                                <i class="fa fa-plus"></i> Ajouter un autre fichier
+                            </button>
                         </div>
                         
                         <script>
@@ -153,31 +142,35 @@
                             compteurFichier++;
                             var container = document.getElementById('fichiers-container');
                             var div = document.createElement('div');
-                            div.className = 'fichier-ligne mb-3 p-2 border rounded';
+                            div.className = 'fichier-ligne mb-2';
                             div.id = 'fichier-ligne-' + compteurFichier;
+                            div.style.padding = '10px';
+                            div.style.background = '#f8f9fa';
+                            div.style.borderRadius = '6px';
+                            div.style.border = '1px solid #e9ecef';
                             div.innerHTML = 
-                                '<div class="row mb-2">' +
-                                    '<div class="col-md-4">' +
-                                        '<select name="typeFichier[]" class="form-control form-control-sm">' +
+                                '<div class="row align-items-center">' +
+                                    '<div class="col-md-3">' +
+                                        '<select name="typeFichier[]" class="form-control form-control-sm" required>' +
                                             typesFichiersOptions +
                                         '</select>' +
                                     '</div>' +
-                                    '<div class="col-md-6">' +
+                                    '<div class="col-md-7">' +
                                         '<input type="file" name="fichier[]" class="form-control form-control-sm" ' +
-                                               'onchange="previewFichier(this, ' + compteurFichier + ')" accept="image/*,.pdf,.doc,.docx">' +
+                                               'onchange="previewFichier(this, ' + compteurFichier + ')" accept="image/*,.pdf,.doc,.docx" required>' +
                                     '</div>' +
-                                    '<div class="col-md-2">' +
-                                        '<button type="button" class="btn btn-sm btn-danger" onclick="supprimerLigneFichier(' + compteurFichier + ')">' +
-                                            '<i class="fa fa-trash"></i>' +
+                                    '<div class="col-md-2 text-right">' +
+                                        '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="supprimerLigneFichier(' + compteurFichier + ')" title="Supprimer">' +
+                                            '<i class="fa fa-times"></i>' +
                                         '</button>' +
                                     '</div>' +
                                 '</div>' +
-                                '<div class="row">' +
+                                '<div class="row mt-2">' +
                                     '<div class="col-12">' +
-                                        '<div id="preview-' + compteurFichier + '" class="preview-container" style="display:none;">' +
+                                        '<div id="preview-' + compteurFichier + '" class="preview-container" style="display:none; padding:8px;">' +
                                             '<img id="preview-img-' + compteurFichier + '" src="" alt="Aperçu" ' +
-                                                 'style="max-width:200px; max-height:150px; border-radius:5px; box-shadow:0 2px 5px rgba(0,0,0,0.2);">' +
-                                            '<span id="preview-file-' + compteurFichier + '" class="badge badge-secondary ml-2" style="display:none;">' +
+                                                 'style="max-width:150px; max-height:100px; border-radius:4px; border:1px solid #dee2e6;">' +
+                                            '<span id="preview-file-' + compteurFichier + '" class="badge badge-light ml-2" style="display:none; border: 1px solid #dee2e6;">' +
                                                 '<i class="fa fa-file-o"></i> <span class="filename"></span>' +
                                             '</span>' +
                                         '</div>' +
@@ -230,6 +223,11 @@
                                 ligne.remove();
                             }
                         }
+                        
+                        // Ajouter automatiquement la première ligne au chargement
+                        window.addEventListener('DOMContentLoaded', function() {
+                            ajouterLigneFichier();
+                        });
                         </script>
                         
                         <input name="acte" type="hidden" value="insertActivite">

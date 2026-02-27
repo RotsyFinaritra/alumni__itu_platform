@@ -69,7 +69,7 @@
     <!-- Header Navbar: style can be found in header.less -->
     <nav class="navbar navbar-static-top" role="navigation">
         <!-- Sidebar toggle button-->
-        <button class="sidebar-toggle" style="background:none;border:none;cursor:pointer;color:var(--Text-primary)"
+        <button class="sidebar-toggle" style="background:none;border:none;cursor:pointer;color:var(--Text-primary);position: fixed;top: 0;left: 0;"
                 data-toggle="offcanvas" role="button" aria-label="Toggle navigation">
 
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 12 13" fill="none">
