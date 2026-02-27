@@ -410,6 +410,26 @@
                             <div class="info-value"><%= signaleurEmail %></div>
                         </div>
                     </div>
+                    <div class="box-body">
+                        <table class="table table-bordered">
+                            <tr><th width="35%">Date signalement</th><td><%= createdAt %></td></tr>
+                            <tr><th>Signal&eacute; par</th><td><%= signaleurNom %></td></tr>
+                            <tr><th>Email signaleur</th><td><%= signaleurEmail %></td></tr>
+                            <tr>
+                                <th>Motif</th>
+                                <td>
+                                    <span style="color:<%= motifCouleur %>">
+                                        <i class="fa <%= motifIcon %>"></i>
+                                        <%= motifLibelle %>
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr><th>Statut</th><td><span style="color:<%= statutCouleur %>"><%= statutLibelle %></span></td></tr>
+                            <tr><th>Description</th><td><%= description %></td></tr>
+                            <% if (estTraite) { %>
+                            <tr><th>Trait&eacute; par</th><td><%= moderateurNom %></td></tr>
+                            <tr><th>Trait&eacute; le</th><td><%= traiteAt %></td></tr>
+                            <tr><th>D&eacute;cision</th><td><%= decision %></td></tr>
                     
                     <div style="margin-top: 20px;">
                         <div class="info-label" style="margin-bottom: 8px;">Motif du signalement</div>

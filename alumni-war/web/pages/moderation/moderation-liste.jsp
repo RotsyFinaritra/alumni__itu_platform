@@ -23,6 +23,10 @@ try {
     
     UtilisateurModerationLibCPL filtre = new UtilisateurModerationLibCPL();
     
+    // Récupérer le filtre de statut depuis l'URL
+    String statutFilter = request.getParameter("statutFilter");
+    if (statutFilter == null) statutFilter = "tous";
+    
     // Champs de critères
     String listeCrt[] = {"nomuser", "prenom", "mail", "idrole", "statut"};
     String listeInt[] = {};
@@ -36,8 +40,15 @@ try {
     pr.setApres("moderation/moderation-liste.jsp");
     pr.setNpp(20);
     
-    // Exclure l'utilisateur connecté et les admins (rang < 1)
-    pr.setAWhere(" AND refuser <> " + currentUser.getUser().getTuppleID());
+    // Construire le WHERE clause selon le filtre
+    String whereClause = " AND refuser <> " + currentUser.getUser().getTuppleID();
+    if ("banni".equals(statutFilter)) {
+        whereClause += " AND statut = 'banni'";
+    } else if ("actif".equals(statutFilter)) {
+        whereClause += " AND (statut IS NULL OR statut = 'actif')";
+    }
+    // "tous" n'ajoute pas de filtre supplémentaire
+    pr.setAWhere(whereClause);
     
     // Labels des champs de recherche
     pr.getFormu().getChamp("nomuser").setLibelle("Nom");
@@ -60,6 +71,22 @@ try {
         <h1><i class="fa fa-shield"></i> Mod&eacute;ration des utilisateurs</h1>
     </section>
     <section class="content">
+        <!-- Onglets de filtrage par statut -->
+        <div class="filter-tabs" style="margin-bottom: 20px;">
+            <a href="<%=lien%>?but=moderation/moderation-liste.jsp&statutFilter=tous" 
+               class="btn <%= "tous".equals(statutFilter) ? "btn-primary" : "btn-default" %>">
+                <i class="fa fa-users"></i> Tous
+            </a>
+            <a href="<%=lien%>?but=moderation/moderation-liste.jsp&statutFilter=actif" 
+               class="btn <%= "actif".equals(statutFilter) ? "btn-success" : "btn-default" %>">
+                <i class="fa fa-check-circle"></i> Actifs
+            </a>
+            <a href="<%=lien%>?but=moderation/moderation-liste.jsp&statutFilter=banni" 
+               class="btn <%= "banni".equals(statutFilter) ? "btn-danger" : "btn-default" %>">
+                <i class="fa fa-ban"></i> Bannis
+            </a>
+        </div>
+        
         <!-- Section de recherche APJ -->
         <div class="search-section">
             <h4><i class="fa fa-search"></i> Rechercher des utilisateurs</h4>
@@ -84,9 +111,9 @@ try {
                 UtilisateurModerationLibCPL u = (UtilisateurModerationLibCPL) resultats[i];
                 String contextPath = request.getContextPath();
                 String photoUrl = (u.getPhoto() != null && !u.getPhoto().isEmpty()) 
-                    ? contextPath + "/assets/images/users/" + u.getPhoto() 
-                    : contextPath + "/assets/images/users/default-avatar.png";
-                String defaultPhoto = contextPath + "/assets/images/users/default-avatar.png";
+                    ? contextPath + "/profile-photo?file=" + u.getPhoto() 
+                    : contextPath + "/assets/img/user-placeholder.svg";
+                String defaultPhoto = contextPath + "/assets/img/user-placeholder.svg";
                 String statut = (u.getStatut() != null) ? u.getStatut() : "actif";
                 String badgeStatut = "badge-actif";
                 if ("banni".equalsIgnoreCase(statut)) badgeStatut = "badge-banni";

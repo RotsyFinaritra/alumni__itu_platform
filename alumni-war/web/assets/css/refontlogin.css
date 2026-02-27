@@ -44,7 +44,7 @@ body {
     width: 100vw;
     height: 100vh;
     display: grid;
-    grid-template-columns: 35% 65%;
+    grid-template-columns: 50% 50%;
     background: var(--panel-bg);
     box-shadow: none;
     border-radius: 0;
