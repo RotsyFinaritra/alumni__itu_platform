@@ -138,9 +138,6 @@
                                         <i class="fa <%= motifIcon %>"></i>
                                         <%= motifLibelle %>
                                     </span>
-                                    <% if (motifGravite > 0) { %>
-                                    <span class="badge bg-red">Gravit&eacute;: <%= motifGravite %></span>
-                                    <% } %>
                                 </td>
                             </tr>
                             <tr><th>Statut</th><td><span style="color:<%= statutCouleur %>"><%= statutLibelle %></span></td></tr>

@@ -15,10 +15,10 @@ try {
     
     // Champs de critères : texte et autocomplete
     // Note: idcompetence est géré via sous-requête (relation N:N), identreprise est l'ID de l'entreprise actuelle
-    String listeCrt[] = {"nomuser", "prenom", "idpromotion", "idtypeutilisateur", "identreprise", "idpays", "idville"};
+    String listeCrt[] = {"nomuser", "prenom", "idpromotion", "identreprise", "idpays", "idville"};
     String listeInt[] = {};
     // Colonnes affichées dans le tableau
-    String libEntete[] = {"photo", "nomuser", "prenom", "promotion", "typeutilisateur", "competence", "entreprise", "ville", "pays", "mail"};
+    String libEntete[] = {"photo", "nomuser", "prenom", "promotion", "competence", "entreprise", "ville", "pays", "mail"};
     
     PageRecherche pr = new PageRecherche(filtre, request, listeCrt, listeInt, 3, libEntete, libEntete.length);
     pr.setTitre("Annuaire des utilisateurs");
@@ -28,8 +28,8 @@ try {
     pr.setApres("annuaire/annuaire-liste.jsp");
     pr.setNpp(24);
     
-    // Exclure l'utilisateur connecté des résultats
-    String whereClause = " AND refuser <> " + currentUser.getUser().getTuppleID();
+    // Exclure l'utilisateur connecté des résultats et afficher uniquement les alumni
+    String whereClause = " AND refuser <> " + currentUser.getUser().getTuppleID() + " AND idtypeutilisateur = 'TU0000001'";
     
     // Gérer la recherche par compétence (relation N:N via sous-requête)
     String idcompetence = request.getParameter("idcompetence");
@@ -40,7 +40,6 @@ try {
     
     // Utiliser des autocomplete avec affichage id-libelle (beans Aff)
     pr.getFormu().getChamp("idpromotion").setPageAppelComplete("bean.PromotionAff", "id", "v_promotion_aff");
-    pr.getFormu().getChamp("idtypeutilisateur").setPageAppelComplete("bean.TypeUtilisateurAff", "id", "v_type_utilisateur_aff");
     pr.getFormu().getChamp("idpays").setPageAppelComplete("bean.PaysAff", "id", "v_pays_aff");
     // Ville dépend du pays sélectionné - compare avec la ville de l'entreprise actuelle
     pr.getFormu().getChamp("idpays").setAutre("onchange=\"updateVilleFilter(this.value)\"");
@@ -52,7 +51,6 @@ try {
     pr.getFormu().getChamp("nomuser").setLibelle("Nom");
     pr.getFormu().getChamp("prenom").setLibelle("Pr&eacute;nom");
     pr.getFormu().getChamp("idpromotion").setLibelle("Promotion");
-    pr.getFormu().getChamp("idtypeutilisateur").setLibelle("Type");
     pr.getFormu().getChamp("identreprise").setLibelle("Entreprise");
     pr.getFormu().getChamp("idpays").setLibelle("Pays");
     pr.getFormu().getChamp("idville").setLibelle("Ville");
@@ -209,13 +207,6 @@ try {
                     <h4 class="alumni-name"><%= nomComplet.trim() %></h4>
                     <% if (u.getPromotion() != null && !u.getPromotion().isEmpty()) { %>
                     <div class="alumni-promo"><i class="fa fa-graduation-cap"></i> <%= u.getPromotion() %></div>
-                    <% } %>
-                    
-                    <% if (u.getTypeutilisateur() != null && !u.getTypeutilisateur().isEmpty()) { %>
-                    <div class="alumni-info">
-                        <i class="fa fa-user"></i>
-                        <span><%= u.getTypeutilisateur() %></span>
-                    </div>
                     <% } %>
                     
                     <% if (u.getEntreprise() != null && !u.getEntreprise().isEmpty()) { %>

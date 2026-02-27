@@ -99,17 +99,11 @@
                 <li class="<%= isPublications ? "active" : "" %>">
                     <a href="<%=lien%>?but=moderation/signalement-liste.jsp&tab=publications">
                         <i class="fa fa-file-text"></i> Publications
-                        <% if (nbCommAttente > 0) { %>
-                        <span class="badge bg-red"><%= nbCommAttente %></span>
-                        <% } %>
                     </a>
                 </li>
                 <li class="<%= !isPublications ? "active" : "" %>">
                     <a href="<%=lien%>?but=moderation/signalement-liste.jsp&tab=commentaires">
                         <i class="fa fa-comment"></i> Commentaires
-                        <% if (nbPubAttente > 0) { %>
-                        <span class="badge bg-blue"><%= nbPubAttente %></span>
-                        <% } %>
                     </a>
                 </li>
             </ul>
