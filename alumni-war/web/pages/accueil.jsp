@@ -402,6 +402,119 @@
             </div>
             <div class="post-content">
                 <p><%= contenu != null ? contenu : "" %></p>
+                
+                <%
+                // Charger les détails spécifiques selon le type de publication
+                if ("TYP00001".equals(post.getIdtypepublication())) {
+                    // STAGE
+                    PostStage stageDetails = new PostStage();
+                    stageDetails.setPost_id(postId);
+                    Object[] stageResult = CGenUtil.rechercher(stageDetails, null, null, " AND post_id = '" + postId + "'");
+                    if (stageResult != null && stageResult.length > 0) {
+                        PostStage stage = (PostStage) stageResult[0];
+                %>
+                <div class="post-details">
+                    <% if (stage.getEntreprise() != null) { %>
+                    <p><strong>Entreprise :</strong> <%= stage.getEntreprise() %></p>
+                    <% } %>
+                    <% if (stage.getLocalisation() != null) { %>
+                    <p><strong>Lieu :</strong> <%= stage.getLocalisation() %></p>
+                    <% } %>
+                    <% if (stage.getDuree() != null) { %>
+                    <p><strong>Durée :</strong> <%= stage.getDuree() %></p>
+                    <% } %>
+                    <% if (stage.getDate_debut() != null || stage.getDate_fin() != null) { %>
+                    <p><strong>Période :</strong> 
+                    <%= stage.getDate_debut() != null ? new SimpleDateFormat("dd/MM/yyyy").format(stage.getDate_debut()) : "?" %> 
+                    - 
+                    <%= stage.getDate_fin() != null ? new SimpleDateFormat("dd/MM/yyyy").format(stage.getDate_fin()) : "?" %>
+                    </p>
+                    <% } %>
+                    <% if (stage.getIndemnite() > 0) { %>
+                    <p><strong>Indemnité :</strong> <%= String.format("%,.0f", stage.getIndemnite()) %> Ar</p>
+                    <% } %>
+                    <% if (stage.getCompetences_requises() != null) { %>
+                    <p><strong>Compétences requises :</strong> <%= stage.getCompetences_requises() %></p>
+                    <% } %>
+                </div>
+                <%
+                    }
+                } else if ("TYP00002".equals(post.getIdtypepublication())) {
+                    // EMPLOI
+                    PostEmploi emploiDetails = new PostEmploi();
+                    emploiDetails.setPost_id(postId);
+                    Object[] emploiResult = CGenUtil.rechercher(emploiDetails, null, null, " AND post_id = '" + postId + "'");
+                    if (emploiResult != null && emploiResult.length > 0) {
+                        PostEmploi emploi = (PostEmploi) emploiResult[0];
+                %>
+                <div class="post-details">
+                    <% if (emploi.getPoste() != null) { %>
+                    <p><strong>Poste :</strong> <%= emploi.getPoste() %></p>
+                    <% } %>
+                    <% if (emploi.getEntreprise() != null) { %>
+                    <p><strong>Entreprise :</strong> <%= emploi.getEntreprise() %></p>
+                    <% } %>
+                    <% if (emploi.getLocalisation() != null) { %>
+                    <p><strong>Lieu :</strong> <%= emploi.getLocalisation() %></p>
+                    <% } %>
+                    <% if (emploi.getType_contrat() != null) { %>
+                    <p><strong>Type de contrat :</strong> <%= emploi.getType_contrat() %></p>
+                    <% } %>
+                    <% if (emploi.getSalaire_min() > 0 || emploi.getSalaire_max() > 0) { %>
+                    <p><strong>Salaire :</strong> 
+                    <%= emploi.getSalaire_min() > 0 ? String.format("%,.0f", emploi.getSalaire_min()) : "?" %> 
+                    - 
+                    <%= emploi.getSalaire_max() > 0 ? String.format("%,.0f", emploi.getSalaire_max()) : "?" %> 
+                    <%= emploi.getDevise() != null ? emploi.getDevise() : "Ar" %>
+                    </p>
+                    <% } %>
+                    <% if (emploi.getExperience_requise() != null) { %>
+                    <p><strong>Expérience :</strong> <%= emploi.getExperience_requise() %></p>
+                    <% } %>
+                    <% if (emploi.getCompetences_requises() != null) { %>
+                    <p><strong>Compétences requises :</strong> <%= emploi.getCompetences_requises() %></p>
+                    <% } %>
+                    <% if (emploi.getDate_limite() != null) { %>
+                    <p><strong>Date limite :</strong> <%= new SimpleDateFormat("dd/MM/yyyy").format(emploi.getDate_limite()) %></p>
+                    <% } %>
+                </div>
+                <%
+                    }
+                } else if ("TYP00003".equals(post.getIdtypepublication())) {
+                    // ACTIVITÉ
+                    PostActivite activiteDetails = new PostActivite();
+                    activiteDetails.setPost_id(postId);
+                    Object[] activiteResult = CGenUtil.rechercher(activiteDetails, null, null, " AND post_id = '" + postId + "'");
+                    if (activiteResult != null && activiteResult.length > 0) {
+                        PostActivite activite = (PostActivite) activiteResult[0];
+                %>
+                <div class="post-details">
+                    <% if (activite.getTitre() != null) { %>
+                    <p><strong>Titre :</strong> <%= activite.getTitre() %></p>
+                    <% } %>
+                    <% if (activite.getLieu() != null) { %>
+                    <p><strong>Lieu :</strong> <%= activite.getLieu() %></p>
+                    <% } %>
+                    <% if (activite.getDate_debut() != null || activite.getDate_fin() != null) { %>
+                    <p><strong>Date :</strong> 
+                    <%= activite.getDate_debut() != null ? new SimpleDateFormat("dd/MM/yyyy HH:mm").format(activite.getDate_debut()) : "?" %>
+                    <% if (activite.getDate_fin() != null) { %> - <%= new SimpleDateFormat("dd/MM/yyyy HH:mm").format(activite.getDate_fin()) %><% } %>
+                    </p>
+                    <% } %>
+                    <% if (activite.getPrix() > 0) { %>
+                    <p><strong>Prix :</strong> <%= String.format("%,.0f", activite.getPrix()) %> Ar</p>
+                    <% } %>
+                    <% if (activite.getNombre_places() > 0) { %>
+                    <p><strong>Places :</strong> <%= activite.getPlaces_restantes() > 0 ? activite.getPlaces_restantes() : activite.getNombre_places() %> / <%= activite.getNombre_places() %> disponibles</p>
+                    <% } %>
+                    <% if (activite.getLien_inscription() != null) { %>
+                    <p><a href="<%= activite.getLien_inscription() %>" target="_blank" style="color:#0095f6;"><i class="fa fa-external-link"></i> S'inscrire</a></p>
+                    <% } %>
+                </div>
+                <%
+                    }
+                }
+                %>
             </div>
             
             <!-- Tags du post -->
