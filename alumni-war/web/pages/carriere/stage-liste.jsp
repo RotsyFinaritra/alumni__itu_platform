@@ -48,6 +48,7 @@
     <section class="content-header">
         <h1><i class="fa fa-graduation-cap"></i> <%= pr.getTitre() %></h1>
         <ol class="breadcrumb">
+            <li><a href="<%=pr.getLien()%>?but=accueil.jsp"><i class="fa fa-home"></i> Accueil</a></li>
             <li><a href="<%=pr.getLien()%>?but=carriere/carriere-accueil.jsp"><i class="fa fa-briefcase"></i> Espace Carri&egrave;re</a></li>
             <li class="active">Offres de stage</li>
         </ol>

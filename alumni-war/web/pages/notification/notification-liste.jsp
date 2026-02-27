@@ -195,11 +195,16 @@
                         <span class="notif-badge-count"><%= countNonLu %></span>
                         <% } %>
                     </div>
-                    <% if (countNonLu > 0) { %>
-                    <button type="button" class="notif-mark-all-btn" onclick="marquerToutLu()">
-                        <i class="fa fa-check-double"></i> Tout marquer comme lu
-                    </button>
-                    <% } %>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <% if (countNonLu > 0) { %>
+                        <button type="button" class="notif-mark-all-btn" onclick="marquerToutLu()">
+                            <i class="fa fa-check-double"></i> Tout marquer comme lu
+                        </button>
+                        <% } %>
+                        <a href="<%=lien%>?but=accueil.jsp" class="btn btn-default btn-sm" style="margin: 0;">
+                            <i class="fa fa-home"></i> Accueil
+                        </a>
+                    </div>
                 </div>
                 
                 <!-- Filtre rapide (pills) -->

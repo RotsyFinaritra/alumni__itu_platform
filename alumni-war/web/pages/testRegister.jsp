@@ -86,6 +86,7 @@
         String prenom = formParams.get("prenom");
         String mail = formParams.get("mail");
         String etu = formParams.get("etu");
+        String profCode = formParams.get("prof_code");
         String loginuser = formParams.get("loginuser");
         String pwduser = formParams.get("pwduser");
         String confirmPwd = formParams.get("confirmPwd");
@@ -94,16 +95,32 @@
         String idtypeutilisateur = formParams.get("idtypeutilisateur");
         String idpromotion = formParams.get("promotion");
 
-        // Validate required fields
+        // Validate required fields (différent selon le type)
+        boolean isEnseignant = "TU0000003".equals(idtypeutilisateur);
+        
         if (loginuser == null || loginuser.trim().isEmpty() ||
             pwduser == null || pwduser.trim().isEmpty() ||
             nomuser == null || nomuser.trim().isEmpty() ||
             prenom == null || prenom.trim().isEmpty() ||
-            mail == null || mail.trim().isEmpty() ||
-            etu == null || etu.trim().isEmpty()) {
-            session.setAttribute("errorInscription", "Tous les champs obligatoires doivent être renseignés (y compris l'ETU).");
+            mail == null || mail.trim().isEmpty()) {
+            session.setAttribute("errorInscription", "Tous les champs obligatoires doivent être renseignés.");
             response.sendRedirect("inscription.jsp");
             return;
+        }
+        
+        // Vérifier l'identification selon le type
+        if (isEnseignant) {
+            if (profCode == null || profCode.trim().isEmpty()) {
+                session.setAttribute("errorInscription", "Le code enseignant est obligatoire.");
+                response.sendRedirect("inscription.jsp");
+                return;
+            }
+        } else {
+            if (etu == null || etu.trim().isEmpty()) {
+                session.setAttribute("errorInscription", "Le numéro étudiant (ETU) est obligatoire.");
+                response.sendRedirect("inscription.jsp");
+                return;
+            }
         }
 
         // Check password confirmation
@@ -116,78 +133,123 @@
         // Open database connection
         c = new UtilDB().GetConn();
         
-        // VALIDATION 1: Vérifier si l'ETU est déjà inscrit
-        if (EtudiantValidator.isEtuDejaInscrit(etu, c)) {
-            session.setAttribute("errorInscription", "Le numéro étudiant " + etu + " est déjà inscrit. Veuillez vous connecter.");
-            response.sendRedirect("inscription.jsp");
-            return;
+        if (isEnseignant) {
+            // VALIDATION ENSEIGNANT: Vérifier le code prof
+            // Charger la liste des enseignants depuis le classpath
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            java.io.InputStream is = classLoader.getResourceAsStream("enseignants.json");
+            java.util.Scanner scanner = new java.util.Scanner(is, "UTF-8").useDelimiter("\\A");
+            String jsonContent = scanner.hasNext() ? scanner.next() : "[]";
+            scanner.close();
+            is.close();
+            
+            // Parser le JSON simple
+            boolean profFound = false;
+            String[] profs = jsonContent.split("\\{");
+            for (String prof : profs) {
+                if (prof.contains("\"code\": \"" + profCode + "\"")) {
+                    profFound = true;
+                    break;
+                }
+            }
+            
+            if (!profFound) {
+                session.setAttribute("errorInscription", "Code enseignant invalide. Veuillez sélectionner parmi la liste.");
+                response.sendRedirect("inscription.jsp");
+                return;
+            }
+            
+            // Vérifier si le code enseignant est déjà inscrit
+            if (EtudiantValidator.isEtuDejaInscrit(profCode, c)) {
+                session.setAttribute("errorInscription", "Ce code enseignant est déjà inscrit. Veuillez vous connecter.");
+                response.sendRedirect("inscription.jsp");
+                return;
+            }
+        } else {
+            // VALIDATION ÉTUDIANT: Valider ETU avec nom/prénom
+            // VALIDATION 1: Vérifier si l'ETU est déjà inscrit
+            if (EtudiantValidator.isEtuDejaInscrit(etu, c)) {
+                session.setAttribute("errorInscription", "Le numéro étudiant " + etu + " est déjà inscrit. Veuillez vous connecter.");
+                response.sendRedirect("inscription.jsp");
+                return;
+            }
+            
+            // VALIDATION 2: Valider l'ETU avec nom/prénom et récupérer la promotion
+            EtudiantValidator validator = null;
+            EtudiantValidator.ValidationResult validationResult = null;
+            try {
+                validator = new EtudiantValidator();
+                validationResult = validator.valider(etu, nomuser, prenom);
+            } catch (Exception ex) {
+                System.err.println("Erreur lors du chargement de la liste des étudiants: " + ex.getMessage());
+                ex.printStackTrace();
+                session.setAttribute("errorInscription", "Erreur système: impossible de valider votre inscription. Veuillez contacter l'administration.");
+                response.sendRedirect("inscription.jsp");
+                return;
+            }
+            
+            if (!validationResult.isValide()) {
+                session.setAttribute("errorInscription", validationResult.getMessage());
+                response.sendRedirect("inscription.jsp");
+                return;
+            }
+            
+            // Récupérer la promotion depuis la validation
+            String promotionValidee = validationResult.getPromotion();
+            
+            // Récupérer l'ID de la promotion depuis la base
+            bean.Promotion promoObj = new bean.Promotion();
+            promoObj.setId(promotionValidee);
+            Object[] promoResult = bean.CGenUtil.rechercher(promoObj, null, null, c, "");
+            if (promoResult == null || promoResult.length == 0) {
+                session.setAttribute("errorInscription", "Promotion " + promotionValidee + " non trouvée dans la base de données. Veuillez contacter l'administration.");
+                response.sendRedirect("inscription.jsp");
+                return;
+            }
+            
+            // Utiliser la promotion validée (écrase celle du formulaire si différente)
+            idpromotion = promotionValidee;
         }
-        
-        // VALIDATION 2: Valider l'ETU avec nom/prénom et récupérer la promotion
-        EtudiantValidator validator = null;
-        EtudiantValidator.ValidationResult validationResult = null;
-        try {
-            validator = new EtudiantValidator();
-            validationResult = validator.valider(etu, nomuser, prenom);
-        } catch (Exception ex) {
-            System.err.println("Erreur lors du chargement de la liste des étudiants: " + ex.getMessage());
-            ex.printStackTrace();
-            session.setAttribute("errorInscription", "Erreur système: impossible de valider votre inscription. Veuillez contacter l'administration.");
-            response.sendRedirect("inscription.jsp");
-            return;
-        }
-        
-        if (!validationResult.isValide()) {
-            session.setAttribute("errorInscription", validationResult.getMessage());
-            response.sendRedirect("inscription.jsp");
-            return;
-        }
-        
-        // Récupérer la promotion depuis la validation
-        String promotionValidee = validationResult.getPromotion();
-        
-        // Récupérer l'ID de la promotion depuis la base
-        bean.Promotion promoObj = new bean.Promotion();
-        promoObj.setId(promotionValidee);
-        Object[] promoResult = bean.CGenUtil.rechercher(promoObj, null, null, c, "");
-        if (promoResult == null || promoResult.length == 0) {
-            session.setAttribute("errorInscription", "Promotion " + promotionValidee + " non trouvée dans la base de données. Veuillez contacter l'administration.");
-            response.sendRedirect("inscription.jsp");
-            return;
-        }
-        
-        // Utiliser la promotion validée (écrase celle du formulaire si différente)
-        idpromotion = promotionValidee;
 
         // Encrypt password
         String encryptedPwd = Utilitaire.cryptWord(pwduser, CRYPT_NIVEAU, CRYPT_CROISSANTE);
 
         // Log for debug
+        String identifiant = isEnseignant ? profCode : etu;
         System.out.println("Registration: loginuser=" + loginuser +
                ", nomuser=" + nomuser +
                ", prenom=" + prenom +
                ", mail=" + mail +
-               ", etu=" + etu +
+               ", identifiant=" + identifiant +
+               ", type=" + (isEnseignant ? "enseignant" : "étudiant") +
                ", promotion=" + idpromotion);
 
         c.setAutoCommit(false);
 
-        // Create UtilisateurPg object (refuser est int, compatible avec la BDD)
+        // Create UtilisateurPg object
         UtilisateurPg utilisateur = new UtilisateurPg();
         utilisateur.setLoginuser(loginuser);
         utilisateur.setPwduser(encryptedPwd);
         utilisateur.setNomuser(nomuser);
         utilisateur.setPrenom(prenom);
         utilisateur.setMail(mail);
-        // Pour enseignant, etu et idpromotion peuvent être null
-        utilisateur.setEtu((etu != null && !etu.trim().isEmpty()) ? etu : null);
+        
+        // Définir l'identification selon le type d'utilisateur
+        utilisateur.setEtu(isEnseignant ? profCode : etu);
+        
         utilisateur.setTeluser(teluser != null ? teluser : "");
         utilisateur.setAdruser(adruser != null ? adruser : "");
         utilisateur.setIdrole(UtilisateurPg.getIdRoleEquivalent(idtypeutilisateur));
         utilisateur.setIdtypeutilisateur(idtypeutilisateur);
-        utilisateur.setIdpromotion((idpromotion != null && !idpromotion.trim().isEmpty()) ? idpromotion : null);
-        if (photoPath != null) {
+        
+        // Promotion seulement pour les étudiants
+        utilisateur.setIdpromotion(!isEnseignant && idpromotion != null && !idpromotion.trim().isEmpty() ? idpromotion : null);
+        
+        // Photo: utiliser celle uploadée ou mettre une photo par défaut (comme Facebook)
+        if (photoPath != null && !photoPath.isEmpty()) {
             utilisateur.setPhoto(photoPath);
+        } else {
+            utilisateur.setPhoto("user-placeholder.svg");
         }
 
         // Generate primary key and create user
@@ -203,8 +265,8 @@
         ParamCrypt paramCrypt = new ParamCrypt(CRYPT_NIVEAU, CRYPT_CROISSANTE, String.valueOf(newUserId));
         paramCrypt.createObject("SYSTEM", c);
 
-        // Ajouter l'utilisateur au groupe de sa promotion
-        if (idpromotion != null && !idpromotion.trim().isEmpty()) {
+        // Ajouter l'utilisateur au groupe de sa promotion (seulement pour les étudiants)
+        if (!isEnseignant && idpromotion != null && !idpromotion.trim().isEmpty()) {
             try {
                 Object[] groupeResult = CGenUtil.rechercher(new Groupe(), null, null, 
                     " AND idpromotion = '" + idpromotion.trim() + "' AND actif = 1");

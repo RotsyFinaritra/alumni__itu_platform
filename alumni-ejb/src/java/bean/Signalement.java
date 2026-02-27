@@ -11,7 +11,7 @@ public class Signalement extends ClassMAPTable {
     private String idmotifsignalement;
     private String idstatutsignalement;
     private String description;
-    private int traite_par = -1;
+    private int traite_par;
     private Timestamp traite_at;
     private String decision;
     private Timestamp created_at;

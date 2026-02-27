@@ -108,8 +108,11 @@
 %>
 <div class="content-wrapper">
     <section class="content-header">
-        <div class="container-fluid">
+        <div class="container-fluid" style="display: flex; justify-content: space-between; align-items: center;">
             <h1><i class="fa fa-graduation-cap"></i> Publier une offre de stage</h1>
+            <a href="<%=lien%>?but=carriere/stage-liste.jsp" class="btn btn-default">
+                <i class="fa fa-arrow-left"></i> Retour &agrave; la liste
+            </a>
         </div>
     </section>
     <section class="content">

@@ -1,6 +1,6 @@
 <%@ page pageEncoding="UTF-8" contentType="text/html; charset=UTF-8" %>
 <%@ page import="bean.*, utilitaire.Utilitaire, utilitaire.UtilDB, java.util.*, java.text.SimpleDateFormat, java.sql.*" %>
-<%@ page import="user.UserEJB, utilisateurAcade.UtilisateurAcade" %>
+<%@ page import="user.UserEJB, utilisateurAcade.UtilisateurAcade, utilisateurAcade.UtilisateurPg" %>
 <% try {
     UserEJB u = (UserEJB) session.getValue("u");
     String lien = (String) session.getValue("lien");
@@ -11,10 +11,14 @@
     
     int refuserInt = u.getUser().getRefuser();
     String nomUser = u.getUser().getNomuser() != null ? u.getUser().getNomuser() : "";
+    String loginUser = u.getUser().getLoginuser() != null ? u.getUser().getLoginuser() : "";
     
     // === RÉCUPÉRER L'UTILISATEUR CONNECTÉ (prenom, photo via UtilisateurAcade) ===
     String prenomUser = "";
-    String photoUser = request.getContextPath() + "/assets/img/default-avatar.png";
+    String nomCompletUser = "";
+    String defaultAvatar = request.getContextPath() + "/assets/img/user-placeholder.svg";
+    String photoUser = defaultAvatar;
+    String roleSubtitle = "Membre Alumni ITU"; // Par défaut
     UtilisateurAcade userCritere = new UtilisateurAcade();
     // Ne pas utiliser setters car CGenUtil applique UPPER() qui échoue sur integers
     Object[] userResult = CGenUtil.rechercher(userCritere, null, null, " AND refuser = " + refuserInt);
@@ -22,14 +26,32 @@
     if (userResult != null && userResult.length > 0) {
         UtilisateurAcade userInfo = (UtilisateurAcade) userResult[0];
         prenomUser = userInfo.getPrenom() != null ? userInfo.getPrenom() : "";
+        nomUser = userInfo.getNomuser() != null ? userInfo.getNomuser() : "";
+        nomCompletUser = ((prenomUser + " " + nomUser).trim());
         if (userInfo.getPhoto() != null && !userInfo.getPhoto().isEmpty()) {
             String photoFileName = userInfo.getPhoto();
             if (photoFileName.contains("/")) {
                 photoFileName = photoFileName.substring(photoFileName.lastIndexOf("/") + 1);
             }
-            photoUser = request.getContextPath() + "/profile-photo?file=" + photoFileName;
+            // Si c'est la photo par défaut, utiliser le chemin statique
+            if ("user-placeholder.svg".equals(photoFileName)) {
+                photoUser = defaultAvatar;
+            } else {
+                photoUser = request.getContextPath() + "/profile-photo?file=" + photoFileName;
+            }
         }
-        isEtudiant = "TU0000002".equals(userInfo.getIdtypeutilisateur());
+        // Déterminer le sous-titre selon le type d'utilisateur
+        String typeUtilisateur = userInfo.getIdtypeutilisateur();
+        if ("TU0000001".equals(typeUtilisateur)) {
+            roleSubtitle = "Ancien Étudiant (Alumni)";
+        } else if ("TU0000002".equals(typeUtilisateur)) {
+            roleSubtitle = "Étudiant";
+            isEtudiant = true;
+        } else if ("TU0000003".equals(typeUtilisateur)) {
+            roleSubtitle = "Enseignant";
+        } else {
+            roleSubtitle = "Administrateur";
+        }
     }
     
     // === STATISTIQUES ===
@@ -240,7 +262,7 @@
                 <!-- Zone texte + actions -->
                 <div class="create-bottom">
                     <img class="avatar-sm" src="<%= photoUser %>" alt="Photo">
-                    <textarea name="contenu" class="create-input" placeholder="Quoi de neuf, <%= prenomUser %> ?" required rows="1" oninput="autoResize(this)"></textarea>
+                    <textarea name="contenu" class="create-input" placeholder="Quoi de neuf, <%= nomCompletUser %> ?" required rows="1" oninput="autoResize(this)"></textarea>
                     <button type="submit" class="btn-post" title="Publier"><i class="fa fa-paper-plane"></i></button>
                 </div>
 
@@ -293,23 +315,27 @@
                 int nbLikes = post.getNb_likes();
                 int nbComments = post.getNb_commentaires();
                 
-                // Charger l'auteur via UtilisateurAcade
+                // Charger l'auteur via UtilisateurPg (pour loginuser)
                 String nomComplet = "Utilisateur";
-                String photoAuteur = request.getContextPath() + "/assets/img/default-avatar.png";
-                UtilisateurAcade auteurCritere = new UtilisateurAcade();
-                Object[] auteurResult = CGenUtil.rechercher(auteurCritere, null, null, " AND refuser = " + postAuteurId);
+                String photoAuteur = request.getContextPath() + "/assets/img/user-placeholder.svg";
+                UtilisateurPg auteurPg = new UtilisateurPg();
+                auteurPg.setRefuser(postAuteurId);
+                Object[] auteurResult = CGenUtil.rechercher(auteurPg, null, null, " AND refuser = " + postAuteurId);
                 if (auteurResult != null && auteurResult.length > 0) {
-                    UtilisateurAcade auteur = (UtilisateurAcade) auteurResult[0];
-                    String prenom = auteur.getPrenom() != null ? auteur.getPrenom() : "";
-                    String nom = auteur.getNomuser() != null ? auteur.getNomuser() : "";
-                    nomComplet = (prenom + " " + nom).trim();
+                    UtilisateurPg auteur = (UtilisateurPg) auteurResult[0];
+                    nomComplet = ((auteur.getPrenom() != null ? auteur.getPrenom() + " " : "") + 
+                                (auteur.getNomuser() != null ? auteur.getNomuser() : "")).trim();
                     if (nomComplet.isEmpty()) nomComplet = "Utilisateur";
                     if (auteur.getPhoto() != null && !auteur.getPhoto().isEmpty()) {
                         String auteurPhotoFile = auteur.getPhoto();
                         if (auteurPhotoFile.contains("/")) {
                             auteurPhotoFile = auteurPhotoFile.substring(auteurPhotoFile.lastIndexOf("/") + 1);
                         }
-                        photoAuteur = request.getContextPath() + "/profile-photo?file=" + auteurPhotoFile;
+                        if ("user-placeholder.svg".equals(auteurPhotoFile)) {
+                            photoAuteur = request.getContextPath() + "/assets/img/user-placeholder.svg";
+                        } else {
+                            photoAuteur = request.getContextPath() + "/profile-photo?file=" + auteurPhotoFile;
+                        }
                     }
                 }
                 
@@ -648,8 +674,8 @@
                 <a href="<%= lien %>?but=profil/mon-profil.jsp" class="profile-link">
                     <img class="profile-avatar" src="<%= photoUser %>" alt="Photo">
                     <div class="profile-info">
-                        <span class="profile-name"><%= prenomUser %> <%= nomUser %></span>
-                        <span class="profile-subtitle">Membre Alumni ITU</span>
+                        <span class="profile-name"><%= nomCompletUser %></span>
+                        <span class="profile-subtitle"><%= roleSubtitle %></span>
                     </div>
                 </a>
             </div>
@@ -749,7 +775,7 @@
 <div class="interests-overlay" id="interestsOverlay">
     <div class="interests-modal">
         <div class="interests-header">
-            <h2><i class="fa fa-heart"></i> Bienvenue, <%= prenomUser %> !</h2>
+            <h2><i class="fa fa-heart"></i> Bienvenue, <%= nomCompletUser %> !</h2>
             <p>Choisissez vos centres d'int&eacute;r&ecirc;t pour personnaliser votre fil d'actualit&eacute;.</p>
         </div>
         <div class="interests-body">

@@ -523,6 +523,24 @@
                 <button class="action-btn bookmark-btn">
                     <i class="fa fa-bookmark-o"></i>
                 </button>
+                <%
+                    // Vérifier si l'utilisateur a déjà signalé cette publication
+                    Signalement sigPostCheck = new Signalement();
+                    Object[] dejaSignalePost = CGenUtil.rechercher(sigPostCheck, null, null,
+                        " AND post_id = '" + postId + "' AND idutilisateur = " + refuserInt);
+                    boolean dejaSignalePublication = (dejaSignalePost != null && dejaSignalePost.length > 0);
+                    if (dejaSignalePublication) {
+                %>
+                <span class="action-btn" style="color: #999; cursor: default;" title="Vous avez d&eacute;j&agrave; signal&eacute; cette publication">
+                    <i class="fa fa-flag"></i>
+                    <span>Signal&eacute;</span>
+                </span>
+                <% } else { %>
+                <a href="<%=lien%>?but=publication/signalement-saisie.jsp&post_id=<%=postId%>" class="action-btn" title="Signaler">
+                    <i class="fa fa-flag"></i>
+                    <span>Signaler</span>
+                </a>
+                <% } %>
             </div>
 
             <!-- Résumé likes -->
@@ -593,7 +611,23 @@
                                class="comment-delete" onclick="return confirm('Supprimer ce commentaire ?')">
                                 Supprimer
                             </a>
-                            <% } %>
+                            <% } else {
+                                // Vérifier si l'utilisateur a déjà signalé ce commentaire
+                                Signalement sigCommCheck = new Signalement();
+                                Object[] dejaSignaleComm = CGenUtil.rechercher(sigCommCheck, null, null,
+                                    " AND commentaire_id = '" + comment.getId() + "' AND idutilisateur = " + refuserInt);
+                                boolean dejaSignaleCommentaire = (dejaSignaleComm != null && dejaSignaleComm.length > 0);
+                                if (dejaSignaleCommentaire) { %>
+                            <span class="comment-delete" style="color: #999; cursor: default;" title="Vous avez d&eacute;j&agrave; signal&eacute; ce commentaire">
+                                <i class="fa fa-flag"></i> Signal&eacute;
+                            </span>
+                            <%  } else { %>
+                            <a href="<%= lien %>?but=publication/signalement-saisie.jsp&commentaire_id=<%= comment.getId() %>&post_id=<%= postId %>"
+                               class="comment-delete" title="Signaler ce commentaire">
+                                Signaler
+                            </a>
+                            <%  }
+                            } %>
                         </div>
                     </div>
                 </div>
@@ -622,9 +656,6 @@
 
             <!-- Boutons auteur -->
             <div class="sidebar-section">
-                <a href="<%= lien %>?but=profil/mon-profil.jsp&refuser=<%= post.getIdutilisateur() %>" class="sidebar-btn primary">
-                    <i class="fa fa-user"></i> Voir le profil
-                </a>
                 <% if (!isOwner && emailAuteur != null && !emailAuteur.isEmpty()) { %>
                 <a href="mailto:<%= emailAuteur %>" class="sidebar-btn default">
                     <i class="fa fa-envelope"></i> Contacter
@@ -1553,18 +1584,71 @@ document.addEventListener('click', function(e) {
 });
 
 function toggleLike() {
-    // Animation du cœur avant redirection
     var btn = document.getElementById('like-btn');
+    var likeCountSpan = document.getElementById('likeCount');
+    var postId = '<%= postId %>';
+    var lien = '<%= lien %>';
+    
+    // Animation du cœur
     if (btn) {
         var icon = btn.querySelector('i');
         if (icon) {
             icon.classList.add('heart-animating');
         }
     }
-    // Redirection avec petit délai pour voir l'animation
-    setTimeout(function() {
-        window.location.href = '<%= lien %>?but=publication/apresPublication.jsp&acte=like&id=<%= postId %>&bute=publication/publication-fiche.jsp';
-    }, 150);
+    
+    // Appel AJAX pour toggle le like
+    fetch(lien + '?but=publication/apresPublication.jsp&acte=like&id=' + postId + '&ajax=1', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Mettre à jour le compteur
+            likeCountSpan.textContent = data.nbLikes;
+            
+            // Toggle la classe liked
+            btn.classList.toggle('liked');
+            
+            // Changer l'icone
+            var icon = btn.querySelector('i');
+            if (btn.classList.contains('liked')) {
+                icon.classList.remove('fa-heart-o');
+                icon.classList.add('fa-heart');
+            } else {
+                icon.classList.remove('fa-heart');
+                icon.classList.add('fa-heart-o');
+            }
+            
+            // Mettre à jour le résumé des likes en bas
+            var likeSummary = document.querySelector('.post-likes-summary');
+            if (likeSummary) {
+                if (data.nbLikes > 0) {
+                    likeSummary.innerHTML = '<strong>' + data.nbLikes + ' J\'aime' + (data.nbLikes > 1 ? 's' : '') + '</strong>';
+                    likeSummary.style.display = 'block';
+                } else {
+                    likeSummary.style.display = 'none';
+                }
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        // En cas d'erreur, on peut faire une redirection classique
+        window.location.href = lien + '?but=publication/publication-fiche.jsp&id=' + postId;
+    })
+    .finally(() => {
+        // Retirer l'animation
+        if (btn) {
+            var icon = btn.querySelector('i');
+            if (icon) {
+                icon.classList.remove('heart-animating');
+            }
+        }
+    });
 }
 
 function sharePost() {

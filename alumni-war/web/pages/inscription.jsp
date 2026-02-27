@@ -122,57 +122,14 @@
                             %>
 
                 <form class="form" action="testRegister.jsp" method="post" enctype="multipart/form-data">
-                    <div class="alert" style="background: #e8f4fd; border-left: 4px solid #0095DA; padding: 12px; margin-bottom: 15px; border-radius: 4px;">
-                        <strong>ℹ️ Information importante :</strong> Votre numéro étudiant (ETU) sera votre identifiant de connexion.
-                    </div>
-
+                    <!-- Type d'utilisateur EN PREMIER -->
                     <label class="field">
-                        <span class="label">Numéro étudiant (ETU) <span style="color: red;">*</span></span>
-                        <span class="input-wrap">
-                            <span class="icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3 6v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2zm2 0h14v12H5V6zm7 2a2 2 0 1 1-2 2 2 2 0 0 1 2-2z"/></svg>
-                            </span>
-                            <input type="text" name="etu" id="etu-input" placeholder="Ex: ETU001234" required />
-                        </span>
-                    </label>
-
-                    <label class="field">
-                        <span class="label">Nom</span>
+                        <span class="label">Type d'utilisateur <span style="color: red;">*</span></span>
                         <span class="input-wrap">
                             <span class="icon" aria-hidden="true">
                                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-5.33 0-8 2.67-8 6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1c0-3.33-2.67-6-8-6z"/></svg>
                             </span>
-                            <input type="text" name="nomuser" placeholder="Entrer votre nom" required />
-                        </span>
-                    </label>
-
-                    <label class="field">
-                        <span class="label">Prénom</span>
-                        <span class="input-wrap">
-                            <span class="icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-5.33 0-8 2.67-8 6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1c0-3.33-2.67-6-8-6z"/></svg>
-                            </span>
-                            <input type="text" name="prenom" placeholder="Entrer votre prénom" required />
-                        </span>
-                    </label>
-
-                    <label class="field">
-                        <span class="label">Email</span>
-                        <span class="input-wrap">
-                            <span class="icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 2v.01L12 13 4 6.01V6h16zM4 18V8.83l7.29 6.88a1 1 0 0 0 1.42 0L20 8.83V18H4z"/></svg>
-                            </span>
-                            <input type="email" name="mail" placeholder="Entrer votre nsiemail" required />
-                        </span>
-                    </label>
-
-                    <label class="field">
-                        <span class="label">Type d'utilisateur</span>
-                        <span class="input-wrap">
-                            <span class="icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-5.33 0-8 2.67-8 6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1c0-3.33-2.67-6-8-6z"/></svg>
-                            </span>
-                            <select name="idtypeutilisateur" id="idtypeutilisateur-select" required onchange="toggleEtuPromoFields()">
+                            <select name="idtypeutilisateur" id="idtypeutilisateur-select" required onchange="toggleIdentificationFields()">
                                 <option value="">Sélectionner un type</option>
                                 <%
                                     if (typesUtilisateur != null) {
@@ -188,8 +145,68 @@
                         </span>
                     </label>
 
+                    <!-- Champ d'identification (ETU ou Code Enseignant) -->
+                    <div id="identification-container">
+                        <!-- Conteneur pour ETU (visible par défaut pour étudiants/alumni) -->
+                        <label class="field" id="etu-field" style="display: none;">
+                            <span class="label">Numéro étudiant (ETU) <span style="color: red;">*</span></span>
+                            <span class="input-wrap">
+                                <span class="icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3 6v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2zm2 0h14v12H5V6zm7 2a2 2 0 1 1-2 2 2 2 0 0 1 2-2z"/></svg>
+                                </span>
+                                <input type="text" name="etu" id="etu-input" placeholder="Ex: ETU001234" />
+                            </span>
+                        </label>
+
+                        <!-- Conteneur pour Code Enseignant (visible pour enseignants) -->
+                        <label class="field" id="prof-field" style="display: none;">
+                            <span class="label">Code Enseignant <span style="color: red;">*</span></span>
+                            <span class="input-wrap">
+                                <span class="icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                                </span>
+                                <input type="text" name="prof_code" id="prof-code-input" placeholder="Ex: ENS001" list="enseignants-list" />
+                                <datalist id="enseignants-list"></datalist>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="alert" style="background: #e8f4fd; border-left: 4px solid #0095DA; padding: 12px; margin-bottom: 15px; border-radius: 4px;">
+                        <strong>ℹ️ Information importante :</strong> <span id="alert-text">Votre numéro étudiant (ETU) sera votre identifiant de connexion.</span>
+                    </div>
 
                     <label class="field">
+                        <span class="label">Nom <span style="color: red;">*</span></span>
+                        <span class="input-wrap">
+                            <span class="icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-5.33 0-8 2.67-8 6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1c0-3.33-2.67-6-8-6z"/></svg>
+                            </span>
+                            <input type="text" name="nomuser" placeholder="Entrer votre nom" required />
+                        </span>
+                    </label>
+
+                    <label class="field">
+                        <span class="label">Prénom <span style="color: red;">*</span></span>
+                        <span class="input-wrap">
+                            <span class="icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-5.33 0-8 2.67-8 6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1c0-3.33-2.67-6-8-6z"/></svg>
+                            </span>
+                            <input type="text" name="prenom" placeholder="Entrer votre prénom" required />
+                        </span>
+                    </label>
+
+                    <label class="field">
+                        <span class="label">Email <span style="color: red;">*</span></span>
+                        <span class="input-wrap">
+                            <span class="icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 2v.01L12 13 4 6.01V6h16zM4 18V8.83l7.29 6.88a1 1 0 0 0 1.42 0L20 8.83V18H4z"/></svg>
+                            </span>
+                            <input type="email" name="mail" placeholder="Entrer votre email" required />
+                        </span>
+                    </label>
+
+                    <!-- Promotion (visible seulement pour non-enseignants) -->
+                    <label class="field" id="promotion-field">
                         <span class="label">Promotion (assignée automatiquement)</span>
                         <span class="input-wrap">
                             <span class="icon" aria-hidden="true">
@@ -203,7 +220,7 @@
                     <input type="hidden" name="loginuser" id="loginuser-hidden" />
 
                     <label class="field">
-                        <span class="label">Mot de passe</span>
+                        <span class="label">Mot de passe <span style="color: red;">*</span></span>
                         <span class="input-wrap">
                             <span class="icon" aria-hidden="true">
                                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17 10h-1V7a4 4 0 0 0-8 0v3H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2zm-6 0V7a3 3 0 0 1 6 0v3z"/></svg>
@@ -213,7 +230,7 @@
                     </label>
 
                     <label class="field">
-                        <span class="label">Confirmer mot de passe</span>
+                        <span class="label">Confirmer mot de passe <span style="color: red;">*</span></span>
                         <span class="input-wrap">
                             <span class="icon" aria-hidden="true">
                                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17 10h-1V7a4 4 0 0 0-8 0v3H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2zm-6 0V7a3 3 0 0 1 6 0v3z"/></svg>
@@ -252,24 +269,6 @@
                         </span>
                     </label>
 
-                    
-
-                    <script>
-                        function toggleEtuPromoFields() {
-                            var select = document.getElementById('idtypeutilisateur-select');
-                            var etuPromoDiv = document.getElementById('etu-promo-fields');
-                            if (select.value === 'TU0000003') {
-                                etuPromoDiv.style.display = 'none';
-                            } else {
-                                etuPromoDiv.style.display = '';
-                            }
-                        }
-                        // Initialisation au chargement
-                        window.addEventListener('DOMContentLoaded', function() {
-                            toggleEtuPromoFields();
-                        });
-                    </script>
-
                     <button class="btn-primary" type="submit">
                         S'inscrire
                     </button>
@@ -292,21 +291,109 @@
 </div>
 
 <script>
-// Copier automatiquement le numéro ETU dans le champ login caché
-document.getElementById('etu-input').addEventListener('input', function() {
-    document.getElementById('loginuser-hidden').value = this.value;
+// Charger la liste des enseignants depuis le JSON
+let enseignantsData = [];
+
+// Charger les enseignants au chargement
+window.addEventListener('DOMContentLoaded', function() {
+    fetch('${pageContext.request.contextPath}/pages/api/enseignants-api.jsp')
+        .then(response => response.json())
+        .then(data => {
+            enseignantsData = data;
+            // Remplir la datalist avec les codes et noms
+            const datalist = document.getElementById('enseignants-list');
+            datalist.innerHTML = '';
+            data.forEach(ens => {
+                const option = document.createElement('option');
+                option.value = ens.code;
+                option.textContent = ens.code + ' - ' + ens.nom + ' ' + ens.prenom;
+                datalist.appendChild(option);
+            });
+        })
+        .catch(err => console.error('Erreur chargement enseignants:', err));
+    
+    // Initialisation
+    toggleIdentificationFields();
+    setupLoginUserSync();
 });
 
-// S'assurer que le login est rempli avant soumission
-document.querySelector('form.form').addEventListener('submit', function(e) {
-    var etu = document.getElementById('etu-input').value.trim();
-    if (etu) {
-        document.getElementById('loginuser-hidden').value = etu;
+function toggleIdentificationFields() {
+    const typeSelect = document.getElementById('idtypeutilisateur-select').value;
+    const etuField = document.getElementById('etu-field');
+    const profField = document.getElementById('prof-field');
+    const promotionField = document.getElementById('promotion-field');
+    const alertText = document.getElementById('alert-text');
+    
+    // TU0000003 est enseignant
+    if (typeSelect === 'TU0000003') {
+        // Afficher Code Enseignant, cacher ETU et promotion
+        etuField.style.display = 'none';
+        profField.style.display = '';
+        promotionField.style.display = 'none';
+        alertText.textContent = 'Votre code enseignant sera votre identifiant de connexion.';
+        document.getElementById('prof-code-input').required = true;
+        document.getElementById('etu-input').required = false;
     } else {
-        e.preventDefault();
-        alert('Le numéro étudiant (ETU) est obligatoire.');
+        // Afficher ETU et promotion, cacher Code Enseignant
+        etuField.style.display = '';
+        profField.style.display = 'none';
+        promotionField.style.display = '';
+        alertText.textContent = 'Votre numéro étudiant (ETU) sera votre identifiant de connexion.';
+        document.getElementById('prof-code-input').required = false;
+        document.getElementById('etu-input').required = true;
     }
-});
+}
+
+function setupLoginUserSync() {
+    // Sync ETU vers loginuser
+    const etuInput = document.getElementById('etu-input');
+    const profInput = document.getElementById('prof-code-input');
+    const loginusernHidden = document.getElementById('loginuser-hidden');
+    
+    etuInput.addEventListener('input', function() {
+        loginusernHidden.value = this.value;
+    });
+    
+    profInput.addEventListener('input', function() {
+        loginusernHidden.value = this.value;
+    });
+    
+    // Validation avant soumission
+    document.querySelector('form.form').addEventListener('submit', function(e) {
+        const typeSelect = document.getElementById('idtypeutilisateur-select').value;
+        
+        if (typeSelect === 'TU0000003') {
+            // Enseignant - vérifier code
+            const profCode = profInput.value.trim();
+            if (!profCode) {
+                e.preventDefault();
+                alert('Le code enseignant est obligatoire.');
+                return;
+            }
+            // Vérifier si le code existe dans la liste
+            const exists = enseignantsData.some(ens => ens.code === profCode);
+            if (!exists) {
+                e.preventDefault();
+                alert('Code enseignant invalide. Veuillez sélectionner parmi la liste.');
+                return;
+            }
+            loginusernHidden.value = profCode;
+        } else {
+            // Étudiant/Alumni - vérifier ETU
+            const etu = etuInput.value.trim();
+            if (etu) {
+                loginusernHidden.value = etu;
+            } else {
+                e.preventDefault();
+                alert('Le numéro étudiant (ETU) est obligatoire.');
+                return;
+            }
+        }
+    });
+}
+
+// Ajouter écouteur pour le changement de type d'utilisateur
+document.getElementById('idtypeutilisateur-select').addEventListener('change', toggleIdentificationFields);
 </script>
 
 </body>

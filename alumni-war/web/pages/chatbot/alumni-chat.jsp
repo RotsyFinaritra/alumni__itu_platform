@@ -11,9 +11,12 @@
 %>
 
 <div class="content-wrapper">
-    <section class="content-header">
+    <section class="content-header" style="position: relative;">
         <h1><i class="fa fa-search"></i> Recherche Alumni ITU</h1>
         <p class="text-muted">Recherchez des informations sur les anciens étudiants, leurs parcours, entreprises...</p>
+        <a href="<%=lien%>?but=accueil.jsp" class="btn btn-default btn-sm" style="position: absolute; top: 15px; right: 15px; margin: 0;">
+            <i class="fa fa-home"></i> Accueil
+        </a>
     </section>
     
     <section class="content">

@@ -1,0 +1,12 @@
+[
+  {"code": "ENS001", "nom": "Rakoto", "prenom": "Jean"},
+  {"code": "ENS002", "nom": "Randrianampoinimerina", "prenom": "Marie"},
+  {"code": "ENS003", "nom": "Ramirez", "prenom": "Carlos"},
+  {"code": "ENS004", "nom": "Ramananarivo", "prenom": "Sophie"},
+  {"code": "ENS005", "nom": "Razafindrakoto", "prenom": "André"},
+  {"code": "ENS006", "nom": "Andrianavalona", "prenom": "Hélène"},
+  {"code": "ENS007", "nom": "Ranaivoson", "prenom": "Grégoire"},
+  {"code": "ENS008", "nom": "Rasamoela", "prenom": "Élisabeth"},
+  {"code": "ENS009", "nom": "Rajaonson", "prenom": "François"},
+  {"code": "ENS010", "nom": "Randriamampoinimerina", "prenom": "Zoé"}
+]

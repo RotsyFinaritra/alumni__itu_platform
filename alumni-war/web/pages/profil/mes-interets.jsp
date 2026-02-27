@@ -38,6 +38,9 @@ try {
                         <h1><i class="fa fa-heart"></i> Mes centres d'int&eacute;r&ecirc;t</h1>
                         <p>Personnalisez votre fil d'actualit&eacute; en s&eacute;lectionnant les sujets qui vous int&eacute;ressent.</p>
                     </div>
+                    <a href="<%= lien %>?but=accueil.jsp" class="btn btn-default btn-sm" style="position: absolute; right: 15px; margin: 0;">
+                        <i class="fa fa-home"></i> Accueil
+                    </a>
                 </div>
                 
                 <!-- Topics Grid -->
