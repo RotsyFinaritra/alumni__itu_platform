@@ -5,6 +5,7 @@
 <%@ page import="bean.Signalement" %>
 <%@ page import="bean.MotifSignalement" %>
 <%@ page import="bean.Post" %>
+<%@ page import="bean.Commentaire" %>
 <%@ page import="bean.CGenUtil" %>
 <%@ page import="user.UserEJB" %>
 <%@ page import="utilisateurAcade.UtilisateurPg" %>
@@ -12,38 +13,69 @@
     try {
         UserEJB u = (UserEJB) session.getValue("u");
         String lien = (String) session.getValue("lien");
-        int refuserInt = Integer.parseInt(u.getUser().getTuppleID());
+        
         String postId = request.getParameter("post_id");
+        String commentaireId = request.getParameter("commentaire_id");
+        boolean isCommentaire = (commentaireId != null && !commentaireId.isEmpty());
         
-        if (postId == null || postId.isEmpty()) {
-            throw new Exception("Aucune publication specifiee");
+        if (!isCommentaire && (postId == null || postId.isEmpty())) {
+            throw new Exception("Aucun contenu specifie");
         }
         
-        // Charger le post pour afficher un apercu
-        Post postCritere = new Post();
-        postCritere.setId(postId);
-        Object[] postResult = CGenUtil.rechercher(postCritere, null, null, " AND id = '" + postId + "'");
-        if (postResult == null || postResult.length == 0) {
-            throw new Exception("Publication introuvable");
-        }
-        Post post = (Post) postResult[0];
-        
-        // Charger l'auteur de la publication
+        // Variables communes
         String nomAuteur = "Utilisateur";
-        UtilisateurPg auteurCritere = new UtilisateurPg();
-        Object[] auteurResult = CGenUtil.rechercher(auteurCritere, null, null, " AND refuser = " + post.getIdutilisateur());
-        if (auteurResult != null && auteurResult.length > 0) {
-            UtilisateurPg auteur = (UtilisateurPg) auteurResult[0];
-            nomAuteur = (auteur.getNomuser() != null ? auteur.getNomuser() : "") + " " + (auteur.getPrenom() != null ? auteur.getPrenom() : "");
+        String contenuApercu = "";
+        String acte = "signaler";
+        String titreSignalement = "Signaler une publication";
+        String iconSignalement = "fa-newspaper-o";
+        
+        if (isCommentaire) {
+            // Charger le commentaire
+            Commentaire commCritere = new Commentaire();
+            commCritere.setId(commentaireId);
+            Object[] commResult = CGenUtil.rechercher(commCritere, null, null, "");
+            if (commResult == null || commResult.length == 0) {
+                throw new Exception("Commentaire introuvable");
+            }
+            Commentaire commentaire = (Commentaire) commResult[0];
+            if (postId == null || postId.isEmpty()) postId = commentaire.getPost_id();
+            
+            UtilisateurPg auteurCritere = new UtilisateurPg();
+            Object[] auteurResult = CGenUtil.rechercher(auteurCritere, null, null, " AND refuser = " + commentaire.getIdutilisateur());
+            if (auteurResult != null && auteurResult.length > 0) {
+                UtilisateurPg auteur = (UtilisateurPg) auteurResult[0];
+                nomAuteur = ((auteur.getPrenom() != null ? auteur.getPrenom() + " " : "") + 
+                            (auteur.getNomuser() != null ? auteur.getNomuser() : "")).trim();
+            }
+            contenuApercu = commentaire.getContenu() != null ? commentaire.getContenu() : "";
+            acte = "signalerCommentaire";
+            titreSignalement = "Signaler un commentaire";
+            iconSignalement = "fa-comment";
+        } else {
+            // Charger la publication
+            Post postCritere = new Post();
+            postCritere.setId(postId);
+            Object[] postResult = CGenUtil.rechercher(postCritere, null, null, " AND id = '" + postId + "'");
+            if (postResult == null || postResult.length == 0) {
+                throw new Exception("Publication introuvable");
+            }
+            Post post = (Post) postResult[0];
+            
+            UtilisateurPg auteurCritere = new UtilisateurPg();
+            Object[] auteurResult = CGenUtil.rechercher(auteurCritere, null, null, " AND refuser = " + post.getIdutilisateur());
+            if (auteurResult != null && auteurResult.length > 0) {
+                UtilisateurPg auteur = (UtilisateurPg) auteurResult[0];
+                nomAuteur = ((auteur.getPrenom() != null ? auteur.getPrenom() + " " : "") + 
+                            (auteur.getNomuser() != null ? auteur.getNomuser() : "")).trim();
+            }
+            contenuApercu = post.getContenu() != null ? post.getContenu() : "";
         }
         
-        // Contenu abrege
-        String contenuApercu = post.getContenu() != null ? post.getContenu() : "";
+        // Nettoyer et tronquer le contenu
+        contenuApercu = contenuApercu.replaceAll("<[^>]*>", "");
         if (contenuApercu.length() > 200) {
             contenuApercu = contenuApercu.substring(0, 200) + "...";
         }
-        // Nettoyer les tags HTML
-        contenuApercu = contenuApercu.replaceAll("<[^>]*>", "");
         
         // --- Formulaire APJ ---
         Signalement sig = new Signalement();
@@ -70,10 +102,10 @@
         
         // Configurer les champs visibles
         c = pi.getFormu().getChamp("idmotifsignalement");
-        if (c != null) { c.setLibelle("Motif du signalement"); c.setAutre("required"); }
+        if (c != null) { c.setLibelle("Motif du signalement *"); c.setAutre("required"); }
         
         c = pi.getFormu().getChamp("description");
-        if (c != null) { c.setLibelle("Description (optionnel)"); c.setType("editor"); }
+        if (c != null) { c.setLibelle("Description (optionnel)"); }
         
         // Ordre d'affichage
         pi.getFormu().setOrdre(new String[]{"idmotifsignalement", "description"});
@@ -81,37 +113,10 @@
         pi.preparerDataFormu();
         pi.getFormu().makeHtmlInsertTabIndex();
 %>
-<style>
-.signal-container { max-width: 700px; margin: 0 auto; }
-.signal-warning {
-    background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px;
-    padding: 15px 20px; margin-bottom: 20px; color: #856404;
-}
-.signal-warning i { margin-right: 8px; }
-.post-preview {
-    background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px;
-    padding: 15px 20px; margin-bottom: 20px;
-}
-.post-preview .preview-author {
-    font-weight: 600; color: #333; margin-bottom: 5px;
-}
-.post-preview .preview-content {
-    color: #666; font-size: 14px; line-height: 1.5;
-}
-.signal-form .box { border-top: 3px solid #e74c3c; }
-.signal-form .box-header { background: #fdf2f2; }
-.signal-form .box-title { color: #c0392b; }
-.btn-signal {
-    background: #e74c3c; color: #fff; border: none;
-    padding: 10px 30px; border-radius: 5px; font-size: 15px;
-    cursor: pointer; transition: background 0.2s;
-}
-.btn-signal:hover { background: #c0392b; color: #fff; }
-</style>
 
 <div class="content-wrapper">
     <section class="content-header">
-        <h1><i class="fa fa-flag" style="color:#e74c3c"></i> Signaler une publication</h1>
+        <h1><i class="fa fa-flag text-danger"></i> <%= titreSignalement %></h1>
         <ol class="breadcrumb">
             <li><a href="<%=lien%>?but=publication/publication-liste.jsp"><i class="fa fa-newspaper-o"></i> Publications</a></li>
             <li><a href="<%=lien%>?but=publication/publication-fiche.jsp&id=<%=postId%>">Publication</a></li>
@@ -119,47 +124,57 @@
         </ol>
     </section>
     <section class="content">
-        <div class="signal-container">
-            
-            <!-- Avertissement -->
-            <div class="signal-warning">
-                <i class="fa fa-exclamation-triangle"></i>
-                <strong>Attention :</strong> Les signalements abusifs peuvent entra&icirc;ner des sanctions. 
-                Veuillez signaler uniquement les contenus qui enfreignent les r&egrave;gles de la communaut&eacute;.
-            </div>
-            
-            <!-- Apercu de la publication -->
-            <div class="post-preview">
-                <div class="preview-author"><i class="fa fa-user"></i> <%= nomAuteur %></div>
-                <div class="preview-content"><%= contenuApercu %></div>
-            </div>
-            
-            <!-- Formulaire de signalement -->
-            <div class="signal-form">
-                <form method="post" action="<%=lien%>?but=publication/apresPublication.jsp">
-                    <input type="hidden" name="acte" value="signaler">
-                    <input type="hidden" name="post_id" value="<%=postId%>">
-                    <input type="hidden" name="bute" value="publication/publication-fiche.jsp">
-                    
-                    <div class="box">
-                        <div class="box-header with-border">
-                            <h3 class="box-title"><i class="fa fa-flag"></i> Formulaire de signalement</h3>
-                        </div>
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                
+                <!-- Avertissement -->
+                <div class="callout callout-warning">
+                    <h4><i class="fa fa-exclamation-triangle"></i> Attention</h4>
+                    <p>Les signalements abusifs peuvent entra&icirc;ner des sanctions. 
+                    Veuillez signaler uniquement les contenus qui enfreignent les r&egrave;gles de la communaut&eacute;.</p>
+                </div>
+                
+                <!-- Apercu du contenu signale -->
+                <div class="box box-default">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"><i class="fa <%= iconSignalement %>"></i> Contenu signal&eacute;</h3>
+                    </div>
+                    <div class="box-body">
+                        <p><strong><i class="fa fa-user"></i> <%= nomAuteur %></strong></p>
+                        <blockquote style="font-size: 14px;"><%= contenuApercu %></blockquote>
+                    </div>
+                </div>
+                
+                <!-- Formulaire de signalement -->
+                <div class="box box-danger">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"><i class="fa fa-flag"></i> Formulaire de signalement</h3>
+                    </div>
+                    <form method="post" action="<%=lien%>?but=publication/apresPublication.jsp">
+                        <input type="hidden" name="acte" value="<%= acte %>">
+                        <% if (isCommentaire) { %>
+                        <input type="hidden" name="commentaire_id" value="<%= commentaireId %>">
+                        <input type="hidden" name="bute" value="publication/publication-fiche.jsp&id=<%= postId %>">
+                        <% } else { %>
+                        <input type="hidden" name="post_id" value="<%= postId %>">
+                        <input type="hidden" name="bute" value="publication/publication-fiche.jsp">
+                        <% } %>
+                        
                         <div class="box-body">
                             <%= pi.getFormu().getHtmlInsert() %>
                         </div>
                         <div class="box-footer">
-                            <button type="submit" class="btn btn-signal" onclick="return confirm('Confirmez-vous le signalement de cette publication ?');">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Confirmez-vous ce signalement ?');">
                                 <i class="fa fa-flag"></i> Envoyer le signalement
                             </button>
                             <a href="<%=lien%>?but=publication/publication-fiche.jsp&id=<%=postId%>" class="btn btn-default" style="margin-left: 10px;">
-                                <i class="fa fa-times"></i> Annuler
+                                <i class="fa fa-arrow-left"></i> Annuler
                             </a>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
+                
             </div>
-
         </div>
     </section>
 </div>

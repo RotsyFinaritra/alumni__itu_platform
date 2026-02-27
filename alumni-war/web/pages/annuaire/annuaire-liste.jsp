@@ -154,6 +154,9 @@ try {
 <div class="content-wrapper">
     <section class="content-header">
         <h1><i class="fa fa-users"></i> <%= pr.getTitre() %></h1>
+        <a href="<%=pr.getLien()%>?but=accueil.jsp" class="back-link" style="float:right; margin-top:-40px;">
+            <i class="fa fa-arrow-left"></i> Retour à l'accueil
+        </a>
     </section>
     <section class="content">
         <!-- Formulaire de recherche -->

@@ -125,13 +125,20 @@ try {
     else if ("like".equals(acte)) {
         String postId = request.getParameter("id");
         String returnPage = request.getParameter("bute");
+        String isAjax = request.getParameter("ajax");
         if (returnPage == null || returnPage.isEmpty()) returnPage = "publication/publication-fiche.jsp";
         
         if (postId == null || postId.isEmpty()) {
+            if ("1".equals(isAjax)) {
+                response.setContentType("application/json; charset=UTF-8");
+                out.print("{\"success\": false, \"error\": \"ID manquant\"}");
+                return;
+            }
 %><script language="JavaScript">alert('ID manquant');history.back();</script><%
             return;
         }
         
+        int nbLikes = 0;
         try {
         // Vérifier si déjà liké via CGenUtil
         Like likeCheck = new Like();
@@ -142,16 +149,6 @@ try {
             // Déjà liké - supprimer (unlike)
             Like existingLike = (Like) existingLikes[0];
             u.deleteObject(existingLike);
-            
-            // Mettre à jour compteur
-            Post postToUpdate = new Post();
-            postToUpdate.setId(postId);
-            Object[] posts = CGenUtil.rechercher(postToUpdate, null, null, "");
-            if (posts != null && posts.length > 0) {
-                Post p = (Post) posts[0];
-                int newCount = Math.max(0, p.getNb_likes() - 1);
-                updatePostCounter(postId, "nb_likes", newCount);
-            }
         } else {
             // Créer nouveau like
             Like newLike = new Like();
@@ -159,20 +156,28 @@ try {
             newLike.setIdutilisateur(refuserInt);
             newLike.setCreated_at(new java.sql.Timestamp(System.currentTimeMillis()));
             u.createObject(newLike);
-            
-            // Mettre à jour compteur et créer notification
-            Post postToUpdate = new Post();
-            postToUpdate.setId(postId);
-            Object[] posts = CGenUtil.rechercher(postToUpdate, null, null, "");
-            if (posts != null && posts.length > 0) {
-                Post p = (Post) posts[0];
-                int newCount = p.getNb_likes() + 1;
-                updatePostCounter(postId, "nb_likes", newCount);
-                
-                // Créer notification pour l'auteur du post
+        }
+        
+        // Compter le nombre RÉEL de likes depuis la table likes
+        Like likeCounting = new Like();
+        Object[] allLikes = CGenUtil.rechercher(likeCounting, null, null, " AND post_id = '" + postId + "'");
+        nbLikes = (allLikes != null) ? allLikes.length : 0;
+        
+        // Mettre à jour le compteur dans la table posts
+        updatePostCounter(postId, "nb_likes", nbLikes);
+        
+        // Créer notification pour l'auteur du post si c'est un LIKE (pas un unlike)
+        if (existingLikes == null || existingLikes.length == 0) {
+            // C'était un like, créer notification
+            Post postForNotif = new Post();
+            postForNotif.setId(postId);
+            Object[] postForNotifResult = CGenUtil.rechercher(postForNotif, null, null, "");
+            if (postForNotifResult != null && postForNotifResult.length > 0) {
+                Post p = (Post) postForNotifResult[0];
                 if (p.getIdutilisateur() != refuserInt && currentUser != null) {
                     String nomComplet = ((currentUser.getPrenom() != null ? currentUser.getPrenom() + " " : "") + 
                                         (currentUser.getNomuser() != null ? currentUser.getNomuser() : "")).trim();
+                    if (nomComplet.isEmpty()) nomComplet = "Utilisateur";
                     
                     Notification notif = new Notification();
                     notif.setIdutilisateur(p.getIdutilisateur());
@@ -189,10 +194,21 @@ try {
         }
         } catch (Exception ex) {
             ex.printStackTrace();
+            if ("1".equals(isAjax)) {
+                response.setContentType("application/json; charset=UTF-8");
+                out.print("{\"success\": false, \"error\": \"" + ex.getMessage() + "\"}");
+                return;
+            }
         }
         
-        // Rediriger vers la page d'origine
+        // Retourner JSON si AJAX, sinon rediriger
+        if ("1".equals(isAjax)) {
+            response.setContentType("application/json; charset=UTF-8");
+            out.print("{\"success\": true, \"nbLikes\": " + nbLikes + "}");
+        } else {
+            // Rediriger vers la page d'origine
 %><script language="JavaScript">document.location.replace("<%=lien%>?but=<%=returnPage%>&id=<%=postId%>");</script><%
+        }
         return;
     }
     
@@ -385,6 +401,7 @@ try {
                 if (p.getIdutilisateur() != refuserInt && currentUser != null) {
                     String nomComplet = ((currentUser.getPrenom() != null ? currentUser.getPrenom() + " " : "") + 
                                         (currentUser.getNomuser() != null ? currentUser.getNomuser() : "")).trim();
+                    if (nomComplet.isEmpty()) nomComplet = "Utilisateur";
                     
                     Notification notif = new Notification();
                     notif.setIdutilisateur(p.getIdutilisateur());
@@ -450,6 +467,8 @@ try {
         String sigPostId = request.getParameter("post_id");
         String idmotifsignalement = request.getParameter("idmotifsignalement");
         String sigDescription = request.getParameter("description");
+        String returnPage = request.getParameter("bute");
+        if (returnPage == null || returnPage.isEmpty()) returnPage = "publication/publication-fiche.jsp";
         
         if (sigPostId == null || sigPostId.isEmpty()) {
             throw new Exception("Aucune publication specifiee");
@@ -474,19 +493,80 @@ try {
             throw new Exception("Vous avez deja signale cette publication");
         }
         
-        // Creer le signalement
-        Signalement newSig = new Signalement();
-        newSig.setIdutilisateur(refuserInt);
-        newSig.setPost_id(sigPostId);
-        newSig.setIdmotifsignalement(idmotifsignalement);
-        newSig.setIdstatutsignalement("SSIG00001"); // En attente
-        newSig.setCreated_at(new java.sql.Timestamp(System.currentTimeMillis()));
-        if (sigDescription != null && !sigDescription.trim().isEmpty()) {
-            newSig.setDescription(sigDescription.trim());
+        // Creer le signalement avec connexion explicite
+        Connection sigConn = null;
+        try {
+            sigConn = new UtilDB().GetConn();
+            Signalement newSig = new Signalement();
+            newSig.construirePK(sigConn);
+            newSig.setIdutilisateur(refuserInt);
+            newSig.setPost_id(sigPostId);
+            newSig.setIdmotifsignalement(idmotifsignalement);
+            newSig.setIdstatutsignalement("SSIG00001"); // En attente
+            newSig.setCreated_at(new java.sql.Timestamp(System.currentTimeMillis()));
+            if (sigDescription != null && !sigDescription.trim().isEmpty()) {
+                newSig.setDescription(sigDescription.trim());
+            }
+            newSig.insertToTable(sigConn);
+        } finally {
+            if (sigConn != null) try { sigConn.close(); } catch (Exception ignored) {}
         }
-        u.createObject(newSig);
         
-%><script language="JavaScript"> alert('Votre signalement a bien ete enregistre. Il sera examine par les moderateurs.'); document.location.replace("<%=lien%>?but=publication/publication-fiche.jsp&id=<%=sigPostId%>");</script><%
+%><script language="JavaScript"> alert('Votre signalement a bien ete enregistre. Il sera examine par les moderateurs.'); document.location.replace("<%=lien%>?but=<%=returnPage%>&id=<%=sigPostId%>");</script><%
+        return;
+    }
+    
+    // ============== SIGNALER COMMENTAIRE ==============
+    else if ("signalerCommentaire".equals(acte)) {
+        String sigCommentaireId = request.getParameter("commentaire_id");
+        String idmotifsignalement = request.getParameter("idmotifsignalement");
+        String sigDescription = request.getParameter("description");
+        String returnPage = request.getParameter("bute");
+        if (returnPage == null || returnPage.isEmpty()) returnPage = "publication/publication-fiche.jsp";
+        
+        if (sigCommentaireId == null || sigCommentaireId.isEmpty()) {
+            throw new Exception("Aucun commentaire specifie");
+        }
+        if (idmotifsignalement == null || idmotifsignalement.isEmpty()) {
+            throw new Exception("Veuillez choisir un motif de signalement");
+        }
+        
+        // Verifier que le commentaire existe
+        Commentaire commCheck = new Commentaire();
+        commCheck.setId(sigCommentaireId);
+        Object[] commExists = CGenUtil.rechercher(commCheck, null, null, "");
+        if (commExists == null || commExists.length == 0) {
+            throw new Exception("Commentaire introuvable");
+        }
+        
+        // Verifier si l'utilisateur a deja signale ce commentaire
+        Signalement sigCheck = new Signalement();
+        Object[] dejaSignale = CGenUtil.rechercher(sigCheck, null, null, 
+            " AND commentaire_id = '" + sigCommentaireId + "' AND idutilisateur = " + refuserInt);
+        if (dejaSignale != null && dejaSignale.length > 0) {
+            throw new Exception("Vous avez deja signale ce commentaire");
+        }
+        
+        // Creer le signalement avec connexion explicite
+        Connection sigConn = null;
+        try {
+            sigConn = new UtilDB().GetConn();
+            Signalement newSig = new Signalement();
+            newSig.construirePK(sigConn);
+            newSig.setIdutilisateur(refuserInt);
+            newSig.setCommentaire_id(sigCommentaireId);
+            newSig.setIdmotifsignalement(idmotifsignalement);
+            newSig.setIdstatutsignalement("SSIG00001"); // En attente
+            newSig.setCreated_at(new java.sql.Timestamp(System.currentTimeMillis()));
+            if (sigDescription != null && !sigDescription.trim().isEmpty()) {
+                newSig.setDescription(sigDescription.trim());
+            }
+            newSig.insertToTable(sigConn);
+        } finally {
+            if (sigConn != null) try { sigConn.close(); } catch (Exception ignored) {}
+        }
+        
+%><script language="JavaScript"> alert('Votre signalement a bien ete enregistre. Il sera examine par les moderateurs.'); document.location.replace("<%=lien%>?but=<%=returnPage%>");</script><%
         return;
     }
     

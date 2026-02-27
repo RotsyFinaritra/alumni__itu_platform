@@ -286,7 +286,8 @@
                     </div>
                     <div class="instagram-info">
                         <div class="instagram-username">
-                            <%= utilisateur.getLoginuser() != null ? utilisateur.getLoginuser() : "" %>
+                            <%= ((utilisateur.getPrenom() != null ? utilisateur.getPrenom() : "") + " " + 
+                                 (utilisateur.getNomuser() != null ? utilisateur.getNomuser() : "")).trim() %>
                             <% if (isOwnProfile) { %>
                             <a href="<%= lien %>?but=profil/mon-profil-saisie.jsp&acte=update&classe=utilisateurAcade.UtilisateurAcade&nomtable=utilisateur&refuser=<%= refuser %>"
                                class="instagram-btn">
