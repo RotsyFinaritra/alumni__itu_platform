@@ -105,13 +105,20 @@
                 <form action="<%=pi.getLien()%>?but=carriere/apresCarriere.jsp" method="post" name="<%=nomTable%>" id="<%=nomTable%>" 
                       enctype="multipart/form-data" data-parsley-validate>
                     <div class="card-body">
+                        <!-- Contenu / Description (stocké dans la table posts) -->
+                        <div class="form-group">
+                            <label>Description de l'activit&eacute;</label>
+                            <textarea name="contenu" class="form-control" rows="5" 
+                                      placeholder="D&eacute;crivez l'activit&eacute; ou l'&eacute;v&eacute;nement en d&eacute;tail..."></textarea>
+                        </div>
+                        
                         <%
                             out.println(pi.getFormu().getHtmlInsert());
                             out.println(pi.getHtmlAddOnPopup());
                         %>
                         
                         <!-- Section fichiers -->
-                        <div class="card card-outline card-info mt-3">
+                        <div class="card card-outline card-info mt-3 mb-4">
                             <div class="card-header">
                                 <h4 class="card-title"><i class="fa fa-paperclip"></i> Fichiers joints (optionnel)</h4>
                                 <div class="card-tools">

@@ -49,6 +49,11 @@
         pi.getFormu().getChamp("contact_tel").setLibelle("T&eacute;l&eacute;phone de contact");
         pi.getFormu().getChamp("lien_candidature").setLibelle("Lien de candidature");
         pi.getFormu().getChamp("identreprise").setLibelle("Entreprise *");
+        
+        // Masquer le champ texte 'entreprise' (doublon avec l'autocomplete identreprise)
+        pi.getFormu().getChamp("entreprise").setVisible(false);
+        // pi.getFormu().getChamp("localisation").setVisible(false);
+        // pi.getFormu().getChamp("post_id").setVisible(false);
 
         // Configuration des autocomplete (nomClasse, colId, tableName)
         // Entreprise avec bouton + pour ajouter
@@ -118,6 +123,13 @@
                 <form action="<%=pi.getLien()%>?but=carriere/apresCarriere.jsp" method="post" name="<%=nomTable%>" id="<%=nomTable%>" 
                       enctype="multipart/form-data" data-parsley-validate>
                     <div class="card-body">
+                        <!-- Contenu / Description (stocké dans la table posts) -->
+                        <div class="form-group">
+                            <label>Description de l'offre</label>
+                            <textarea name="contenu" class="form-control" rows="5" 
+                                      placeholder="D&eacute;crivez l'offre d'emploi en d&eacute;tail..."></textarea>
+                        </div>
+                        
                         <%
                             out.println(pi.getFormu().getHtmlInsert());
                             out.println(pi.getHtmlAddOnPopup());
@@ -139,7 +151,7 @@
                         </div>
                         
                         <!-- Section fichiers -->
-                        <div class="card card-outline card-info mt-3">
+                        <div class="card card-outline card-info mt-3 mb-4">
                             <div class="card-header">
                                 <h4 class="card-title"><i class="fa fa-paperclip"></i> Fichiers joints (optionnel)</h4>
                                 <div class="card-tools">

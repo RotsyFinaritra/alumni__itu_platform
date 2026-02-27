@@ -10,7 +10,7 @@
     int pubRestantes = PublicationPermission.publicationsRestantes(u);
     PostStageLib t = new PostStageLib();
 
-    String[] listeCrt = {"entreprise", "localisation", "duree", "auteur_nom", "created_at"};
+    String[] listeCrt = {"identreprise", "localisation", "duree", "auteur_nom", "created_at"};
     String[] listeInt = {"created_at"};
     String[] libEntete = {"post_id", "created_at", "entreprise", "localisation", "duree", "auteur_nom", "nb_likes", "nb_commentaires"};
 
@@ -21,7 +21,8 @@
     pr.setApres("carriere/stage-liste.jsp");
 
     // Labels des criteres de recherche
-    pr.getFormu().getChamp("entreprise").setLibelle("Entreprise / Organisme");
+    pr.getFormu().getChamp("identreprise").setLibelle("Entreprise / Organisme");
+    pr.getFormu().getChamp("identreprise").setPageAppelComplete("bean.Entreprise", "id", "entreprise");
     pr.getFormu().getChamp("localisation").setLibelle("Localisation");
     pr.getFormu().getChamp("duree").setLibelle("Dur&eacute;e");
     pr.getFormu().getChamp("auteur_nom").setLibelle("Auteur");

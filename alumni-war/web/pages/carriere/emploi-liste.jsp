@@ -10,9 +10,9 @@
     int pubRestantes = PublicationPermission.publicationsRestantes(u);
     PostEmploiLib t = new PostEmploiLib();
 
-    String[] listeCrt = {"entreprise", "poste", "localisation", "auteur_nom", "created_at"};
+    String[] listeCrt = {"identreprise", "poste", "localisation", "auteur_nom", "created_at"};
     String[] listeInt = {"created_at"};
-    String[] libEntete = {"post_id", "created_at", "entreprise", "poste", "localisation", "auteur_nom", "nb_likes", "nb_commentaires"};
+    String[] libEntete = {"post_id", "created_at", "identreprise", "poste", "localisation", "auteur_nom", "nb_likes", "nb_commentaires"};
 
     PageRecherche pr = new PageRecherche(t, request, listeCrt, listeInt, 3, libEntete, libEntete.length);
     pr.setTitre("Liste des offres d'emploi");
@@ -21,7 +21,8 @@
     pr.setApres("carriere/emploi-liste.jsp");
 
     // Labels des criteres de recherche
-    pr.getFormu().getChamp("entreprise").setLibelle("Entreprise");
+    pr.getFormu().getChamp("identreprise").setLibelle("Entreprise");
+    pr.getFormu().getChamp("identreprise").setPageAppelComplete("bean.Entreprise", "id", "entreprise");
     pr.getFormu().getChamp("poste").setLibelle("Poste");
     pr.getFormu().getChamp("localisation").setLibelle("Localisation");
     pr.getFormu().getChamp("auteur_nom").setLibelle("Auteur");
