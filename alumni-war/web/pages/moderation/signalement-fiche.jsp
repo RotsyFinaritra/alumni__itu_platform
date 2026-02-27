@@ -106,257 +106,121 @@
 %>
 
 <style>
-    .signalement-detail {
+    .fiche-card {
         background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        overflow: hidden;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
     }
     
-    .detail-header {
-        background: linear-gradient(135deg, #0095f6 0%, #00759c 100%);
-        padding: 30px;
+    .fiche-card-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid #eee;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        color: #fff;
     }
     
-    .detail-header h2 {
+    .fiche-card-header h3 {
         margin: 0;
-        font-size: 24px;
+        font-size: 16px;
         font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 12px;
+        color: #333;
     }
     
-    .status-badge {
-        padding: 8px 16px;
-        border-radius: 20px;
+    .fiche-card-body {
+        padding: 20px;
+    }
+    
+    .status-pill {
+        padding: 5px 12px;
+        border-radius: 15px;
         font-size: 12px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        background: rgba(255,255,255,0.25);
-        backdrop-filter: blur(10px);
+        font-weight: 600;
     }
     
-    .detail-body {
-        padding: 0;
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-done { background: #d4edda; color: #155724; }
+    .status-deleted { background: #f8d7da; color: #721c24; }
+    
+    .info-row {
+        display: flex;
+        padding: 10px 0;
+        border-bottom: 1px solid #f5f5f5;
     }
     
-    .detail-section {
-        padding: 24px 30px;
-        border-bottom: 1px solid #f0f0f0;
+    .info-row:last-child { border-bottom: none; }
+    
+    .info-row .label {
+        width: 140px;
+        font-size: 13px;
+        color: #666;
+        flex-shrink: 0;
     }
     
-    .detail-section:last-child {
-        border-bottom: none;
-    }
-    
-    .section-title {
+    .info-row .value {
         font-size: 14px;
-        font-weight: 700;
-        color: #8e8e8e;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 16px;
-        display: flex;
+        color: #333;
+        flex: 1;
+    }
+    
+    .motif-tag {
+        display: inline-flex;
         align-items: center;
-        gap: 8px;
-    }
-    
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-    }
-    
-    .info-item {
-        display: flex;
-        flex-direction: column;
         gap: 6px;
-    }
-    
-    .info-label {
-        font-size: 12px;
-        font-weight: 600;
-        color: #8e8e8e;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .info-value {
-        font-size: 15px;
-        color: #262626;
+        padding: 6px 12px;
+        background: #f8f9fa;
+        border-radius: 4px;
         font-weight: 500;
     }
     
-    .motif-display {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 16px;
+    .content-preview {
         background: #f8f9fa;
-        border-radius: 8px;
-        border-left: 4px solid;
-    }
-    
-    .motif-icon {
-        font-size: 18px;
-    }
-    
-    .gravite-badge {
-        padding: 4px 10px;
-        border-radius: 12px;
-        font-size: 10px;
-        font-weight: 700;
-        background: #ed4956;
-        color: #fff;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .content-box {
-        background: #f8f9fc;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        padding: 20px;
-        margin-top: 12px;
-    }
-    
-    .content-meta {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 16px;
-        margin-bottom: 16px;
-        padding-bottom: 16px;
-        border-bottom: 1px solid #e0e0e0;
-    }
-    
-    .content-text {
-        background: #fff;
-        padding: 16px;
         border-radius: 6px;
-        max-height: 250px;
-        overflow-y: auto;
-        color: #262626;
+        padding: 15px;
         font-size: 14px;
         line-height: 1.6;
-        border-left: 3px solid #0095f6;
+        max-height: 200px;
+        overflow-y: auto;
     }
     
-    .content-deleted {
-        border-left-color: #ed4956;
+    .content-preview.deleted {
         background: #fff5f5;
+        border-left: 3px solid #dc3545;
     }
     
-    .action-bar {
+    .action-buttons {
         display: flex;
-        gap: 12px;
-        align-items: center;
+        gap: 10px;
         flex-wrap: wrap;
     }
     
-    .btn-modern {
-        padding: 11px 24px;
-        border-radius: 8px;
-        font-weight: 600;
+    .btn-action {
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 500;
         font-size: 14px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
         border: none;
         cursor: pointer;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s;
     }
     
-    .btn-primary-modern {
-        background: #0095f6;
-        color: #fff;
-    }
+    .btn-back { background: #f0f0f0; color: #333; }
+    .btn-back:hover { background: #e0e0e0; color: #333; text-decoration: none; }
     
-    .btn-primary-modern:hover {
-        background: #0086e0;
-        color: #fff;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,149,246,0.25);
-    }
+    .btn-delete { background: #dc3545; color: #fff; }
+    .btn-delete:hover { background: #c82333; color: #fff; text-decoration: none; }
     
-    .btn-danger-modern {
-        background: #ed4956;
-        color: #fff;
-    }
-    
-    .btn-danger-modern:hover {
-        background: #d63447;
-        color: #fff;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(237,73,86,0.25);
-    }
-    
-    .btn-outline-modern {
-        background: transparent;
-        color: #262626;
-        border: 2px solid #e0e0e0;
-    }
-    
-    .btn-outline-modern:hover {
-        background: #f8f9fa;
-        color: #262626;
-        border-color: #bbb;
-        text-decoration: none;
-    }
-    
-    .treated-notice {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 20px;
-        background: #d4edda;
-        color: #155724;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 14px;
-    }
-    
-    @media (max-width: 768px) {
-        .detail-header {
-            flex-direction: column;
-            gap: 12px;
-            align-items: flex-start;
-            padding: 20px;
-        }
-        
-        .detail-section {
-            padding: 20px;
-        }
-        
-        .info-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .content-meta {
-            grid-template-columns: 1fr;
-        }
-        
-        .action-bar {
-            flex-direction: column;
-            width: 100%;
-        }
-        
-        .btn-modern {
-            width: 100%;
-            justify-content: center;
-        }
-    }
+    .btn-reject { background: #6c757d; color: #fff; }
+    .btn-reject:hover { background: #5a6268; color: #fff; text-decoration: none; }
 </style>
 
 <div class="content-wrapper">
     <section class="content-header">
-        <h1><i class="fa fa-flag"></i> D&eacute;tail du Signalement</h1>
+        <h1><i class="fa fa-flag"></i> Signalement #<%= id %></h1>
         <ol class="breadcrumb">
             <li><a href="<%=lien%>?but=moderation/moderation-liste.jsp"><i class="fa fa-shield"></i> Mod&eacute;ration</a></li>
             <li><a href="<%=lien%>?but=moderation/signalement-liste.jsp&tab=<%=tabRetour%>"><i class="fa fa-flag"></i> Signalements</a></li>
@@ -364,200 +228,123 @@
         </ol>
     </section>
     
-    <section class="content" style="background: #fafafa; min-height: 500px;">
-        <div class="signalement-detail">
-            <!-- En-tête avec gradient -->
-            <div class="detail-header">
-                <h2>
-                    <i class="fa fa-flag"></i>
-                    Signalement #<%= id %>
-                </h2>
-                <% if (estTraite) { %>
-                    <span class="status-badge">✓ Trait&eacute;</span>
-                <% } else { %>
-                    <span class="status-badge">⏳ En attente</span>
-                <% } %>
-            </div>
+    <section class="content">
+        <div class="row">
+        <div class="col-md-8 col-md-offset-2">
             
-            <div class="detail-body">
-                <!-- Informations du signalement -->
-                <div class="detail-section">
-                    <div class="section-title">
-                        <i class="fa fa-info-circle"></i>
-                        Informations du signalement
+            <!-- Carte: Informations générales -->
+            <div class="fiche-card">
+                <div class="fiche-card-header">
+                    <h3><i class="fa fa-info-circle"></i> Informations</h3>
+                    <% if (estTraite) { %>
+                        <span class="status-pill status-done"><i class="fa fa-check"></i> Trait&eacute;</span>
+                    <% } else { %>
+                        <span class="status-pill status-pending"><i class="fa fa-clock-o"></i> En attente</span>
+                    <% } %>
+                </div>
+                <div class="fiche-card-body">
+                    <div class="info-row">
+                        <span class="label">Date</span>
+                        <span class="value"><%= createdAt %></span>
                     </div>
-                    
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <div class="info-label">Date du signalement</div>
-                            <div class="info-value"><%= createdAt %></div>
-                        </div>
-                        
-                        <div class="info-item">
-                            <div class="info-label">Statut actuel</div>
-                            <div class="info-value">
-                                <span style="color:<%= statutCouleur %>; font-weight: 700;"><%= statutLibelle %></span>
-                            </div>
-                        </div>
-                        
-                        <div class="info-item">
-                            <div class="info-label">Signal&eacute; par</div>
-                            <div class="info-value"><%= signaleurNom %></div>
-                        </div>
-                        
-                        <div class="info-item">
-                            <div class="info-label">Email du signaleur</div>
-                            <div class="info-value"><%= signaleurEmail %></div>
-                        </div>
+                    <div class="info-row">
+                        <span class="label">Signal&eacute; par</span>
+                        <span class="value"><%= signaleurNom %> (<%= signaleurEmail %>)</span>
                     </div>
-                    <div class="box-body">
-                        <table class="table table-bordered">
-                            <tr><th width="35%">Date signalement</th><td><%= createdAt %></td></tr>
-                            <tr><th>Signal&eacute; par</th><td><%= signaleurNom %></td></tr>
-                            <tr><th>Email signaleur</th><td><%= signaleurEmail %></td></tr>
-                            <tr>
-                                <th>Motif</th>
-                                <td>
-                                    <span style="color:<%= motifCouleur %>">
-                                        <i class="fa <%= motifIcon %>"></i>
-                                        <%= motifLibelle %>
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr><th>Statut</th><td><span style="color:<%= statutCouleur %>"><%= statutLibelle %></span></td></tr>
-                            <tr><th>Description</th><td><%= description %></td></tr>
-                            <% if (estTraite) { %>
-                            <tr><th>Trait&eacute; par</th><td><%= moderateurNom %></td></tr>
-                            <tr><th>Trait&eacute; le</th><td><%= traiteAt %></td></tr>
-                            <tr><th>D&eacute;cision</th><td><%= decision %></td></tr>
-                            <% } %>
-                    
-                    <div style="margin-top: 20px;">
-                        <div class="info-label" style="margin-bottom: 8px;">Motif du signalement</div>
-                        <div class="motif-display" style="border-left-color:<%= motifCouleur %>">
-                            <i class="fa <%= motifIcon %> motif-icon" style="color:<%= motifCouleur %>"></i>
-                            <span style="color:#262626; font-weight: 600;"><%= motifLibelle %></span>
-                            <% if (motifGravite > 0) { %>
-                                <span class="gravite-badge">Niveau <%= motifGravite %></span>
-                            <% } %>
-                        </div>
+                    <div class="info-row">
+                        <span class="label">Motif</span>
+                        <span class="value">
+                            <span class="motif-tag" style="border-left: 3px solid <%= motifCouleur %>;">
+                                <i class="fa <%= motifIcon %>" style="color:<%= motifCouleur %>"></i>
+                                <%= motifLibelle %>
+                            </span>
+                        </span>
                     </div>
-                    
-                    <% if (description != null && !description.trim().isEmpty()) { %>
-                    <div style="margin-top: 20px;">
-                        <div class="info-label" style="margin-bottom: 8px;">Description</div>
-                        <div class="info-value" style="line-height: 1.6;"><%= description %></div>
+                    <% if (description != null && !"-".equals(description) && !description.trim().isEmpty()) { %>
+                    <div class="info-row">
+                        <span class="label">Description</span>
+                        <span class="value"><%= description %></span>
                     </div>
                     <% } %>
                 </div>
-                
-                <!-- Contenu signalé -->
-                <div class="detail-section" style="background: #fcfcfc;">
-                    <div class="section-title">
-                        <i class="fa <%= isPublication ? "fa-file-text" : "fa-comment" %>"></i>
-                        <%= isPublication ? "Publication" : "Commentaire" %> signal&eacute;<%= isPublication ? "e" : "" %>
-                        <% if (contenuSupprime) { %>
-                            <span class="gravite-badge" style="margin-left: 10px;">Supprim&eacute;</span>
-                        <% } %>
+            </div>
+            
+            <!-- Carte: Contenu signalé -->
+            <div class="fiche-card">
+                <div class="fiche-card-header">
+                    <h3><i class="fa <%= isPublication ? "fa-file-text" : "fa-comment" %>"></i> <%= isPublication ? "Publication" : "Commentaire" %> signal&eacute;<%= isPublication ? "e" : "" %></h3>
+                    <% if (contenuSupprime) { %>
+                        <span class="status-pill status-deleted"><i class="fa fa-trash"></i> Supprim&eacute;</span>
+                    <% } %>
+                </div>
+                <div class="fiche-card-body">
+                    <div class="info-row">
+                        <span class="label">Auteur</span>
+                        <span class="value"><%= auteurSignale %></span>
                     </div>
-                    
-                    <div class="content-box">
-                        <div class="content-meta">
-                            <div class="info-item">
-                                <div class="info-label">ID <%= isPublication ? "Publication" : "Commentaire" %></div>
-                                <div class="info-value"><%= targetId %></div>
-                            </div>
-                            
-                            <% if (!isPublication && !commentairePostId.isEmpty()) { %>
-                            <div class="info-item">
-                                <div class="info-label">ID Publication li&eacute;e</div>
-                                <div class="info-value"><%= commentairePostId %></div>
-                            </div>
-                            <% } %>
-                            
-                            <div class="info-item">
-                                <div class="info-label">Date de publication</div>
-                                <div class="info-value"><%= dateContenu %></div>
-                            </div>
-                            
-                            <div class="info-item">
-                                <div class="info-label">Auteur</div>
-                                <div class="info-value"><%= auteurSignale %></div>
-                            </div>
-                        </div>
-                        
-                        <div class="info-label" style="margin-bottom: 8px;">Contenu</div>
-                        <div class="content-text <%= contenuSupprime ? "content-deleted" : "" %>">
+                    <div class="info-row">
+                        <span class="label">Date</span>
+                        <span class="value"><%= dateContenu %></span>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="content-preview <%= contenuSupprime ? "deleted" : "" %>">
                             <%= contenuSignale %>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Historique modération (si traité) -->
-                <% if (estTraite) { %>
-                <div class="detail-section">
-                    <div class="section-title">
-                        <i class="fa fa-history"></i>
-                        Historique de mod&eacute;ration
+            </div>
+            
+            <% if (estTraite) { %>
+            <!-- Carte: Décision -->
+            <div class="fiche-card">
+                <div class="fiche-card-header">
+                    <h3><i class="fa fa-gavel"></i> D&eacute;cision</h3>
+                </div>
+                <div class="fiche-card-body">
+                    <div class="info-row">
+                        <span class="label">Mod&eacute;rateur</span>
+                        <span class="value"><%= moderateurNom %></span>
                     </div>
-                    
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <div class="info-label">Mod&eacute;rateur</div>
-                            <div class="info-value"><%= moderateurNom %></div>
-                        </div>
-                        
-                        <div class="info-item">
-                            <div class="info-label">Date de traitement</div>
-                            <div class="info-value"><%= traiteAt %></div>
-                        </div>
-                        
-                        <div class="info-item" style="grid-column: 1 / -1;">
-                            <div class="info-label">D&eacute;cision</div>
-                            <div class="info-value"><%= decision %></div>
-                        </div>
+                    <div class="info-row">
+                        <span class="label">Date</span>
+                        <span class="value"><%= traiteAt %></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">D&eacute;cision</span>
+                        <span class="value"><%= decision %></span>
                     </div>
                 </div>
-                <% } %>
-                
-                <!-- Actions de modération -->
-                <div class="detail-section">
-                    <div class="section-title">
-                        <i class="fa fa-gavel"></i>
-                        Actions de mod&eacute;ration
-                    </div>
-                    
-                    <div class="action-bar">
-                        <a href="<%=lien%>?but=moderation/signalement-liste.jsp&tab=<%=tabRetour%>" class="btn-modern btn-outline-modern">
-                            <i class="fa fa-arrow-left"></i>
-                            Retour
+            </div>
+            <% } %>
+            
+            <!-- Carte: Actions -->
+            <div class="fiche-card">
+                <div class="fiche-card-body">
+                    <div class="action-buttons">
+                        <a href="<%=lien%>?but=moderation/signalement-liste.jsp&tab=<%=tabRetour%>" class="btn-action btn-back">
+                            <i class="fa fa-arrow-left"></i> Retour
                         </a>
                         
                         <% if (!estTraite) { %>
                             <% if (!contenuSupprime) { %>
                             <a href="<%=lien%>?but=moderation/signalement-action.jsp&action=<%= isPublication ? "supprimer_publication" : "supprimer_commentaire" %>&id=<%=id%>&<%= isPublication ? "post_id" : "commentaire_id" %>=<%=targetId%>&bute=moderation/signalement-fiche.jsp%26id=<%=id%>%26type=<%=type%>" 
-                               class="btn-modern btn-danger-modern"
-                               onclick="return confirm('&Ecirc;tes-vous s&ucirc;r de vouloir supprimer <%= isPublication ? "cette publication" : "ce commentaire" %> ?');">
-                                <i class="fa fa-trash"></i>
-                                Supprimer le contenu
+                               class="btn-action btn-delete"
+                               onclick="return confirm('Supprimer <%= isPublication ? "cette publication" : "ce commentaire" %> ?');">
+                                <i class="fa fa-trash"></i> Supprimer le contenu
                             </a>
                             <% } %>
                             
                             <a href="<%=lien%>?but=moderation/signalement-action.jsp&action=rejeter&id=<%=id%>&bute=moderation/signalement-fiche.jsp%26id=<%=id%>%26type=<%=type%>" 
-                               class="btn-modern btn-outline-modern"
-                               onclick="return confirm('Rejeter ce signalement ? Le contenu restera visible.');">
-                                <i class="fa fa-times"></i>
-                                Rejeter le signalement
+                               class="btn-action btn-reject"
+                               onclick="return confirm('Rejeter ce signalement ?');">
+                                <i class="fa fa-times"></i> Rejeter
                             </a>
-                        <% } else { %>
-                            <div class="treated-notice">
-                                <i class="fa fa-check-circle"></i>
-                                Ce signalement a d&eacute;j&agrave; &eacute;t&eacute; trait&eacute;
-                            </div>
                         <% } %>
                     </div>
                 </div>
             </div>
+            
+        </div>
         </div>
     </section>
 </div>
