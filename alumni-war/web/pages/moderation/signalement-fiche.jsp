@@ -430,6 +430,7 @@
                             <tr><th>Trait&eacute; par</th><td><%= moderateurNom %></td></tr>
                             <tr><th>Trait&eacute; le</th><td><%= traiteAt %></td></tr>
                             <tr><th>D&eacute;cision</th><td><%= decision %></td></tr>
+                            <% } %>
                     
                     <div style="margin-top: 20px;">
                         <div class="info-label" style="margin-bottom: 8px;">Motif du signalement</div>
