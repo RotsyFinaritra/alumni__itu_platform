@@ -7,12 +7,11 @@
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ArrayList" %>
-<%@ page import="java.sql.Timestamp" %>
+<%@ page import="java.sql.*" %>
 <%@ page import="org.apache.commons.fileupload.servlet.ServletFileUpload" %>
 <%@ page import="org.apache.commons.fileupload.disk.DiskFileItemFactory" %>
 <%@ page import="org.apache.commons.fileupload.FileItem" %>
 <%@ page import="affichage.*" %>
-<%@ page import="java.sql.Timestamp" %>
 <%@ page import="utils.PublicationPermission" %>
 
 <!DOCTYPE html>
@@ -374,13 +373,28 @@
             if (postId == null) postId = formParams.get("id");
             id = postId;
 
-            // 1. Update Post via updateObject
-            Post post = new Post();
-            post.setId(postId);
-            post.setContenu(formParams.get("contenu") != null ? formParams.get("contenu") : "");
-            String visibilite = formParams.get("idvisibilite");
-            if (visibilite != null && !visibilite.isEmpty()) post.setIdvisibilite(visibilite);
-            u.updateObject(post);
+            // 1. Update Post via SQL direct (évite d'écraser idtypepublication et autres colonnes)
+            {
+                Connection conn = null;
+                PreparedStatement ps = null;
+                try {
+                    conn = new UtilDB().GetConn();
+                    String contenu = formParams.get("contenu") != null ? formParams.get("contenu") : "";
+                    String visibilite = formParams.get("idvisibilite");
+                    StringBuilder sql = new StringBuilder("UPDATE posts SET contenu = ?, edited_at = CURRENT_TIMESTAMP");
+                    if (visibilite != null && !visibilite.isEmpty()) sql.append(", idvisibilite = ?");
+                    sql.append(" WHERE id = ?");
+                    ps = conn.prepareStatement(sql.toString());
+                    int idx = 1;
+                    ps.setString(idx++, contenu);
+                    if (visibilite != null && !visibilite.isEmpty()) ps.setString(idx++, visibilite);
+                    ps.setString(idx++, postId);
+                    ps.executeUpdate();
+                } finally {
+                    if (ps != null) try { ps.close(); } catch (Exception ignored) {}
+                    if (conn != null) try { conn.close(); } catch (Exception ignored) {}
+                }
+            }
 
             // 2. Update PostEmploi via updateObject
             PostEmploi emploi = new PostEmploi();
@@ -451,13 +465,28 @@
             if (postId == null) postId = formParams.get("id");
             id = postId;
 
-            // 1. Update Post via updateObject
-            Post post = new Post();
-            post.setId(postId);
-            post.setContenu(formParams.get("contenu") != null ? formParams.get("contenu") : "");
-            String visibilite = formParams.get("idvisibilite");
-            if (visibilite != null && !visibilite.isEmpty()) post.setIdvisibilite(visibilite);
-            u.updateObject(post);
+            // 1. Update Post via SQL direct (évite d'écraser idtypepublication et autres colonnes)
+            {
+                Connection conn = null;
+                PreparedStatement ps = null;
+                try {
+                    conn = new UtilDB().GetConn();
+                    String contenu = formParams.get("contenu") != null ? formParams.get("contenu") : "";
+                    String visibilite = formParams.get("idvisibilite");
+                    StringBuilder sql = new StringBuilder("UPDATE posts SET contenu = ?, edited_at = CURRENT_TIMESTAMP");
+                    if (visibilite != null && !visibilite.isEmpty()) sql.append(", idvisibilite = ?");
+                    sql.append(" WHERE id = ?");
+                    ps = conn.prepareStatement(sql.toString());
+                    int idx = 1;
+                    ps.setString(idx++, contenu);
+                    if (visibilite != null && !visibilite.isEmpty()) ps.setString(idx++, visibilite);
+                    ps.setString(idx++, postId);
+                    ps.executeUpdate();
+                } finally {
+                    if (ps != null) try { ps.close(); } catch (Exception ignored) {}
+                    if (conn != null) try { conn.close(); } catch (Exception ignored) {}
+                }
+            }
 
             // 2. Update PostStage via updateObject
             PostStage stage = new PostStage();
@@ -525,13 +554,28 @@
             if (postId == null) postId = formParams.get("id");
             id = postId;
 
-            // 1. Update Post via updateObject
-            Post post = new Post();
-            post.setId(postId);
-            post.setContenu(formParams.get("contenu") != null ? formParams.get("contenu") : "");
-            String visibilite = formParams.get("idvisibilite");
-            if (visibilite != null && !visibilite.isEmpty()) post.setIdvisibilite(visibilite);
-            u.updateObject(post);
+            // 1. Update Post via SQL direct (évite d'écraser idtypepublication et autres colonnes)
+            {
+                Connection conn = null;
+                PreparedStatement ps = null;
+                try {
+                    conn = new UtilDB().GetConn();
+                    String contenu = formParams.get("contenu") != null ? formParams.get("contenu") : "";
+                    String visibilite = formParams.get("idvisibilite");
+                    StringBuilder sql = new StringBuilder("UPDATE posts SET contenu = ?, edited_at = CURRENT_TIMESTAMP");
+                    if (visibilite != null && !visibilite.isEmpty()) sql.append(", idvisibilite = ?");
+                    sql.append(" WHERE id = ?");
+                    ps = conn.prepareStatement(sql.toString());
+                    int idx = 1;
+                    ps.setString(idx++, contenu);
+                    if (visibilite != null && !visibilite.isEmpty()) ps.setString(idx++, visibilite);
+                    ps.setString(idx++, postId);
+                    ps.executeUpdate();
+                } finally {
+                    if (ps != null) try { ps.close(); } catch (Exception ignored) {}
+                    if (conn != null) try { conn.close(); } catch (Exception ignored) {}
+                }
+            }
 
             // 2. Update PostActivite via updateObject
             PostActivite activite = new PostActivite();
@@ -550,7 +594,6 @@
             activite.setContact_email(formParams.get("contact_email"));
             activite.setContact_tel(formParams.get("contact_tel"));
             activite.setLien_inscription(formParams.get("lien_inscription"));
-            activite.setLien_externe(formParams.get("lien_externe"));
             u.updateObject(activite);
 
             // 3. Traiter les nouveaux fichiers uploades via createObject
